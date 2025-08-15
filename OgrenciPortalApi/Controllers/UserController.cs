@@ -2,8 +2,8 @@
 using OgrenciPortalApi.Attributes;
 using OgrenciPortalApi.Models;
 using OgrenciPortalApi.Utils;
-using OgrenciPortali.DTOs;
-using OgrenciPortali.Models;
+using Shared.DTO;
+using Shared.Enums;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -35,7 +35,8 @@ namespace OgrenciPortalApi.Controllers
 
             try
             {
-                var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == model.Email && !u.IsDeleted && u.IsActive);
+                var user =
+                    await _db.Users.FirstOrDefaultAsync(u => u.Email == model.Email && !u.IsDeleted && u.IsActive);
                 if (user == null || !BCrypt.Net.BCrypt.Verify(model.Password, user.Password))
                 {
                     return Unauthorized();
@@ -147,16 +148,16 @@ namespace OgrenciPortalApi.Controllers
                 var users = await _db.Users
                     .Where(u => !u.IsDeleted)
                     .Include(u => u.Departments)
-                    .Select(u => new
+                    .Select(u => new UserDTO
                     {
-                        u.UserId,
-                        u.Name,
-                        u.Surname,
-                        u.Email,
-                        u.StudentNo,
-                        Role = ((Roles)u.Role).ToString(),
+                        UserId = u.UserId,
+                        CreatedAt = u.CreatedAt,
                         DepartmentName = u.Departments.Name,
-                        u.IsActive
+                        Email = u.Email,
+                        FullName = u.Name + " " + u.Surname,
+                        IsFirstLogin = u.IsFirstLogin,
+                        Role = (Roles)u.Role,
+                        StudentNo = u.StudentNo
                     })
                     .ToListAsync();
                 return Ok(users);
@@ -240,7 +241,7 @@ namespace OgrenciPortalApi.Controllers
                     Name = userInDb.Name,
                     Surname = userInDb.Surname,
                     Email = userInDb.Email,
-                    Role = (Roles)userInDb.Role,
+                    Role = userInDb.Role,
                     DepartmentId = userInDb.DepartmentId,
                     AdvisorId = userInDb.AdvisorId,
                     StudentNo = userInDb.StudentNo,

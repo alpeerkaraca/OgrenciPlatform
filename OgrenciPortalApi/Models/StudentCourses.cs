@@ -7,8 +7,6 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-using OgrenciPortali.Models;
-
 namespace OgrenciPortalApi.Models
 {
     using System;

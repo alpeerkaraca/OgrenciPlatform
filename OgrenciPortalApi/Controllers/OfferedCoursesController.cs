@@ -1,8 +1,7 @@
 ﻿using log4net;
 using OgrenciPortalApi.Attributes;
 using OgrenciPortalApi.Models;
-using OgrenciPortali.DTOs;
-using OgrenciPortali.Models;
+using Shared.DTO;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -10,6 +9,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
 using System.Web.Mvc;
+using Shared.Enums;
 
 namespace OgrenciPortalApi.Controllers
 {
@@ -33,6 +33,7 @@ namespace OgrenciPortalApi.Controllers
                 var offeredCourses = await _db.OfferedCourses
                     .Include(o => o.Courses.Departments)
                     .Include(o => o.Semesters)
+
                     .Include(o => o.Users)
                     .Where(o => !o.IsDeleted).Select(o => new ListOfferedCoursesDTO
                     {

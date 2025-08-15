@@ -1,12 +1,11 @@
-﻿using OgrenciPortali.Models;
-using System;
+﻿using System;
 using System.Web;
+using Shared.DTO;
 
 namespace OgrenciPortali.Utils
 {
     public class Utils
     {
-
         public static Guid? GetActiveUserId()
         {
             try
@@ -18,14 +17,14 @@ namespace OgrenciPortali.Utils
                 {
                     return userId;
                 }
+
                 return null;
             }
             catch (Exception e)
             {
-               Console.WriteLine(e);
-               return null;
+                Console.WriteLine(e);
+                return null;
             }
-
         }
 
         public static void SetAuditFieldsForCreate(BaseClass entitiy)

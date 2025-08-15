@@ -1,7 +1,7 @@
 ﻿using log4net;
 using OgrenciPortalApi.Attributes;
 using OgrenciPortalApi.Models;
-using OgrenciPortali.DTOs;
+using Shared.DTO;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;

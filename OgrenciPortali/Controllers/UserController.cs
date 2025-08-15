@@ -1,10 +1,7 @@
 ﻿using OgrenciPortali.Attributes;
-using OgrenciPortali.Models;
 using OgrenciPortali.ViewModels;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -13,7 +10,8 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using Newtonsoft.Json;
-using OgrenciPortali.DTOs;
+using Shared.DTO;
+using Shared.Enums;
 
 namespace OgrenciPortali.Controllers
 {
@@ -22,7 +20,6 @@ namespace OgrenciPortali.Controllers
     /// </summary>
     public class UserController : BaseController
     {
-        private readonly OgrenciPortalContext _db = new OgrenciPortalContext();
         private readonly string _apiBaseAddress = Utils.AppSettings.ApiBaseAddress;
 
         /// <summary>
@@ -265,13 +262,12 @@ namespace OgrenciPortali.Controllers
                 {
                     var json = await response.Content.ReadAsStringAsync();
                     //TODO:DTO ile yolla
-                    var userList = JsonConvert.DeserializeObject<List<User>>(json);
+                    var userList = JsonConvert.DeserializeObject<List<UserDTO>>(json);
                     return View(userList);
                 }
             }
 
-            var users = _db.Users.Include(u => u.Department).Where(u => !u.IsDeleted).ToList();
-            return View(users);
+            return View(new List<UserDTO>());
         }
 
         /// <summary>
@@ -359,28 +355,8 @@ namespace OgrenciPortali.Controllers
                     ModelState.AddModelError("", "Kullanıcı güncellenirken bir hata oluştu. Tekrar deneyin.");
                 return View(viewModel);
             }
-
-
-            return View(viewModel);
         }
 
-        /// <summary>
-        /// Kullanıcı silme işlemini gerçekleştirir (soft delete)
-        /// </summary>
-        [CustomAuth(Roles.Admin)]
-        public ActionResult Delete(Guid id)
-        {
-            var user = _db.Users.Find(id);
-            if (user == null || user.IsDeleted)
-            {
-                return HttpNotFound();
-            }
-
-            Utils.Utils.SetAuditFieldsForDelete(user);
-            _db.Entry(user).State = EntityState.Modified;
-            _db.SaveChanges();
-            return RedirectToAction("List", "User");
-        }
 
         /// <summary>
         /// Gets the current user's Bearer token from session/TempData
@@ -396,22 +372,6 @@ namespace OgrenciPortali.Controllers
             }
 
             return token;
-        }
-
-        /// <summary>
-        /// E-posta adresinin sistemde kayıtlı olup olmadığını kontrol eder
-        /// </summary>
-        private bool IsUserExist(string email)
-        {
-            return _db.Users.Any(u => u.Email == email);
-        }
-
-        /// <summary>
-        /// Kullanıcı şifresini hash'ler
-        /// </summary>
-        private string HashUserPassword(string password)
-        {
-            return string.IsNullOrEmpty(password) ? string.Empty : BCrypt.Net.BCrypt.HashPassword(password);
         }
 
         /// <summary>

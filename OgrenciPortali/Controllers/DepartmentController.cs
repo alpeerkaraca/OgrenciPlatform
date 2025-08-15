@@ -1,5 +1,4 @@
-﻿using OgrenciPortali.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -9,8 +8,9 @@ using System.Web.Mvc;
 using log4net;
 using Newtonsoft.Json;
 using OgrenciPortali.Attributes;
-using OgrenciPortali.DTOs;
+using Shared.DTO;
 using OgrenciPortali.ViewModels;
+using Shared.Enums;
 
 namespace OgrenciPortali.Controllers
 {
@@ -19,9 +19,6 @@ namespace OgrenciPortali.Controllers
     {
         private readonly string _apiBaseAddress = Utils.AppSettings.ApiBaseAddress;
         private readonly ILog Logger = LogManager.GetLogger(typeof(DepartmentController));
-
-        private readonly OgrenciPortalContext _db = new OgrenciPortalContext();
-
         // GET: Department/List
         public async Task<ActionResult> List()
         {

@@ -1,7 +1,6 @@
 ﻿using log4net;
 using OgrenciPortali.Attributes;
-using OgrenciPortali.DTOs;
-using OgrenciPortali.Models;
+using Shared.DTO;
 using OgrenciPortali.Utils;
 using OgrenciPortali.ViewModels;
 using System;
@@ -13,13 +12,13 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Newtonsoft.Json;
+using Shared.Enums;
 
 namespace OgrenciPortali.Controllers
 {
     [CustomAuth(Roles.Admin)]
     public class CoursesController : Controller
     {
-        private readonly OgrenciPortalContext db = new OgrenciPortalContext();
         private static readonly ILog Logger = LogManager.GetLogger(typeof(CoursesController));
         private readonly string _apiBaseAddress = AppSettings.ApiBaseAddress;
 
@@ -198,31 +197,6 @@ namespace OgrenciPortali.Controllers
                 viewModel.DepartmentList = await GetDepListFromApi(client);
                 return View(viewModel);
             }
-        }
-
-        // GET: Courses/Delete/5
-        public ActionResult Delete(int? id)
-        {
-            if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            var course = db.Courses.Find(id);
-            if (course == null) return HttpNotFound();
-            if (course.IsDeleted)
-            {
-                return RedirectToAction("List");
-            }
-
-            Utils.Utils.SetAuditFieldsForDelete(course);
-            return RedirectToAction("List");
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-
-            base.Dispose(disposing);
         }
 
         /// <summary>

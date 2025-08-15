@@ -1,4 +1,4 @@
-﻿using OgrenciPortali.Models;
+﻿using Shared.DTO;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -49,14 +49,6 @@ namespace OgrenciPortali.ViewModels
         public string ConfirmPassword { get; set; }
     }
 
-    /// <summary>
-    /// Öğrenci detay sayfası için view model
-    /// </summary>
-    public class StudentDetailViewModel
-    {
-        public User Student { get; set; }
-        public IEnumerable<StudentCourse> StudentCourses { get; set; }
-    }
 
     /// <summary>
     /// Kullanıcı güncelleme işlemi için view model
@@ -67,7 +59,7 @@ namespace OgrenciPortali.ViewModels
         public string Name { get; set; }
         public string Surname { get; set; }
         public string Email { get; set; }
-        public Roles Role { get; set; }
+        public int Role { get; set; }
         public string StudentNo { get; set; }
 
         public Guid? DepartmentId { get; set; }

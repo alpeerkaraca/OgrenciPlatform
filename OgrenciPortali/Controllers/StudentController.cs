@@ -1,6 +1,5 @@
 ﻿using log4net;
 using OgrenciPortali.Attributes;
-using OgrenciPortali.Models;
 using OgrenciPortali.ViewModels;
 using System;
 using System.Net.Http;
@@ -8,7 +7,8 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Newtonsoft.Json;
-using OgrenciPortali.DTOs;
+using Shared.DTO;
+using Shared.Enums;
 
 namespace OgrenciPortali.Controllers
 {

@@ -1,6 +1,5 @@
 ﻿using System.Web.Mvc;
 using OgrenciPortali.Attributes;
-using OgrenciPortali.Models;
 
 namespace OgrenciPortali.Controllers
 {
@@ -9,7 +8,6 @@ namespace OgrenciPortali.Controllers
     /// </summary>
     public class HomeController : BaseController
     {
-        private OgrenciPortalContext db = new OgrenciPortalContext();
 
         /// <summary>
         /// Ana sayfa görünümünü döndürür
@@ -40,14 +38,5 @@ namespace OgrenciPortali.Controllers
             return View();
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-
-            base.Dispose(disposing);
-        }
     }
 }
