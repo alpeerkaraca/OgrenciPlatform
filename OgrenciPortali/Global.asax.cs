@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using OgrenciPortali.Utils;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Security.Claims;
 using System.Text;
 using System.Threading;
@@ -20,9 +21,9 @@ namespace OgrenciPortali
 
         protected void Application_Start()
         {
-            DotNetEnv.Env.Load();
+            DotNetEnv.Env.Load(Path.Combine(Server.MapPath("~/"), ""));
             AppSettings.Load();
-            //AreaRegistration.RegisterAllAreas();
+            AreaRegistration.RegisterAllAreas();
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);

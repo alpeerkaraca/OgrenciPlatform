@@ -1,12 +1,12 @@
 ﻿using log4net;
 using Microsoft.IdentityModel.Tokens;
-using OgrenciPortalApi.Models;
+using OgrenciPortalApi.Models; // AppSettings için kendi projenizin using'ini ekleyin
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace OgrenciPortalApi.Utils
+namespace OgrenciPortalApi.Utils // Kendi projenizin ad alanını kullanın
 {
     public class TokenManager
     {
@@ -17,7 +17,7 @@ namespace OgrenciPortalApi.Utils
         public static string GenerateJwtToken(Users user)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Key));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
             var tokenHandler = new JwtSecurityTokenHandler();
             var now = DateTime.UtcNow;
 
@@ -26,7 +26,6 @@ namespace OgrenciPortalApi.Utils
                 Subject = new ClaimsIdentity(new[]
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                    new Claim("nameid", user.UserId.ToString()),
                     new Claim(ClaimTypes.AuthenticationMethod, "Custom"),
                     new Claim("user_email", user.Email.ToLower()),
                     new Claim("full_name", (user.Name + " " + user.Surname)),
@@ -35,8 +34,7 @@ namespace OgrenciPortalApi.Utils
                     new Claim("student_no", user.StudentNo ?? ""),
                     new Claim("first_login", user.IsFirstLogin.ToString()),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(),
-                        ClaimValueTypes.Integer64)
+                    new Claim(JwtRegisteredClaimNames.Iat, new DateTimeOffset(now).ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
                 }),
                 Expires = now.AddMinutes(90),
                 SigningCredentials = credentials,
@@ -54,36 +52,40 @@ namespace OgrenciPortalApi.Utils
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
 
-                if (!(tokenHandler.ReadToken(token) is JwtSecurityToken jwtToken))
+                if (!(tokenHandler.ReadToken(token) is JwtSecurityToken))
                     return null;
-
-                var symmetricKey = Encoding.UTF8.GetBytes(Key);
 
                 var validationParameters = new TokenValidationParameters()
                 {
                     RequireExpirationTime = true,
                     ValidateIssuer = true,
                     ValidateAudience = true,
-                    ValidIssuer = AppSettings.JwtMasterKey,
+                    ValidIssuer = AppSettings.JwtIssuer, 
                     ValidAudience = AppSettings.JwtAudience,
-                    LifetimeValidator = LifetimeValidator,
-                    IssuerSigningKey = new SymmetricSecurityKey(symmetricKey),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Key)),
+                    ClockSkew = TimeSpan.Zero 
                 };
-                var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
+
+                var principal = tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
+
+                if (!(validatedToken is JwtSecurityToken jwtSecurityToken) || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    Logger.Warn("Token geçersiz bir imza algoritması ile geldi.");
+                    return null;
+                }
+
                 return principal;
+            }
+            catch (SecurityTokenValidationException stvex)
+            {
+                Logger.Warn("Token doğrulaması başarısız oldu: " + stvex.Message);
+                return null;
             }
             catch (Exception ex)
             {
-                Logger.Error("Token Oluştururken Hata: ", ex);
+                Logger.Error("Token doğrulanırken beklenmedik bir hata oluştu: ", ex);
                 return null;
             }
-        }
-
-        private static bool LifetimeValidator(DateTime? notBefore, DateTime? expire, SecurityToken securityToken,
-            TokenValidationParameters validationParameters)
-        {
-            if (expire == null) return false;
-            return DateTime.UtcNow < expire;
         }
     }
 }

@@ -1,31 +1,35 @@
 ﻿using log4net;
 using OgrenciPortalApi.Attributes;
 using OgrenciPortalApi.Models;
-using OgrenciPortalApi.Utils;
 using OgrenciPortali.DTOs;
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
-using System.IdentityModel.Claims;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
+using System.Web.Http.Description;
 
 namespace OgrenciPortalApi.Controllers
 {
     [JwtAuth]
     [RoutePrefix("api/semesters")]
-    public class SemesterController : ApiController
+    public class SemesterController : BaseApiController
     {
-        private readonly ogrenci_portalEntities db = new ogrenci_portalEntities();
         private static readonly ILog Logger = LogManager.GetLogger(typeof(SemesterController));
 
+        /// <summary>
+        /// Sistemdeki tüm dönemleri listeler.
+        /// </summary>
+        /// <returns>Dönemlerin listesini içeren bir HTTP yanıtı döner.</returns>
         [HttpGet]
         [Route("")]
+        [ResponseType(typeof(List<ListSemestersDTO>))]
         public async Task<IHttpActionResult> GetSemesters()
         {
             try
             {
-                var semesters = await db.Semesters
+                var semesters = await _db.Semesters
                     .Where(s => !s.IsDeleted)
                     .Select(s => new ListSemestersDTO
                     {
@@ -36,32 +40,33 @@ namespace OgrenciPortalApi.Controllers
                         IsActive = s.IsActive,
                     })
                     .ToListAsync();
-                if (semesters.Count == 0)
-                {
-                    return NotFound();
-                }
 
-                Logger.Info("Dönemler çekildi.");
                 return Ok(semesters);
             }
             catch (Exception ex)
             {
-                Logger.Error("Dönemler çekilirken hata oluştu.", ex);
-                return InternalServerError(ex);
+                Logger.Error("Dönemler alınırken hata oluştu.", ex);
+                return InternalServerError(new Exception("Dönemler alınırken bir hata oluştu."));
             }
         }
 
+        /// <summary>
+        /// Sisteme yeni bir dönem ekler.
+        /// </summary>
+        /// <param name="dto">Eklenecek dönemin bilgilerini içeren DTO.</param>
+        /// <returns>Oluşturma durumunu bildiren bir HTTP yanıtı döner.</returns>
         [HttpPost]
         [Route("add")]
-        public async Task<IHttpActionResult> PostAddSemester(AddSemesterDTO dto)
+        [ResponseType(typeof(void))]
+        public async Task<IHttpActionResult> AddSemester(AddSemesterDTO dto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
             {
-                if (dto == null)
-                {
-                    return BadRequest("Dönem bilgileri eksik.");
-                }
-
                 var semester = new Semesters
                 {
                     SemesterId = Guid.NewGuid(),
@@ -70,62 +75,79 @@ namespace OgrenciPortalApi.Controllers
                     EndDate = dto.EndDate,
                     IsActive = dto.IsActive,
                     CreatedAt = DateTime.UtcNow,
-                    CreatedBy = GetActiveUserId(),
+                    CreatedBy = GetActiveUserIdString(),
                     UpdatedAt = DateTime.Now,
-                    UpdatedBy = GetActiveUserId(),
+                    UpdatedBy = GetActiveUserIdString(),
                     IsDeleted = false,
                 };
-                db.Semesters.Add(semester);
-                await db.SaveChangesAsync();
+                _db.Semesters.Add(semester);
+                await _db.SaveChangesAsync();
                 Logger.Info($"Yeni dönem eklendi: {dto.SemesterName}");
-                return Ok("Dönem Başarıyla Eklendi !");
+                return CreatedAtRoute("DefaultApi", new { id = semester.SemesterId }, new { Message = "Dönem başarıyla eklendi." });
             }
             catch (Exception ex)
             {
-                Logger.Error("Dönem ekleme sayfası yüklenirken hata oluştu.", ex);
-                return InternalServerError(ex);
+                Logger.Error("Yeni dönem eklenirken hata oluştu.", ex);
+                return InternalServerError(new Exception("Dönem eklenirken bir hata oluştu."));
             }
         }
 
+        /// <summary>
+        /// ID'si belirtilen dönemin düzenleme bilgilerini getirir.
+        /// </summary>
+        /// <param name="id">Düzenlenecek dönemin ID'si.</param>
+        /// <returns>Dönemin düzenleme bilgilerini içeren bir HTTP yanıtı döner.</returns>
         [HttpGet]
         [Route("edit/{id:guid}")]
-        public async Task<IHttpActionResult> GetEditSemester(Guid id)
+        [ResponseType(typeof(EditSemesterDTO))]
+        public async Task<IHttpActionResult> GetSemester(Guid id)
         {
             if (id == Guid.Empty)
             {
                 return BadRequest("Geçersiz dönem ID'si.");
             }
-
-            var semester = await db.Semesters.FirstOrDefaultAsync(s => s.SemesterId == id && !s.IsDeleted);
-            if (semester == null)
-            {
-                return NotFound();
-            }
-
-            var dto = new EditSemesterDTO
-            {
-                SemesterId = semester.SemesterId,
-                SemesterName = semester.SemesterName,
-                StartDate = semester.StartDate,
-                EndDate = semester.EndDate,
-                IsActive = semester.IsActive
-            };
-            return Ok(dto);
-        }
-
-        [HttpPost]
-        [Route("edit")]
-        public async Task<IHttpActionResult> PostEditSemester(EditSemesterDTO dto)
-        {
             try
             {
-                if (dto == null)
+                var semester = await _db.Semesters.FirstOrDefaultAsync(s => s.SemesterId == id && !s.IsDeleted);
+                if (semester == null)
                 {
-                    return BadRequest("Dönem bilgileri eksik.");
+                    return NotFound();
                 }
 
-                var semester =
-                    await db.Semesters.FirstOrDefaultAsync(s => s.SemesterId == dto.SemesterId && !s.IsDeleted);
+                var dto = new EditSemesterDTO
+                {
+                    SemesterId = semester.SemesterId,
+                    SemesterName = semester.SemesterName,
+                    StartDate = semester.StartDate,
+                    EndDate = semester.EndDate,
+                    IsActive = semester.IsActive
+                };
+                return Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"ID'si {id} olan dönem bilgileri alınırken hata oluştu.", ex);
+                return InternalServerError(new Exception("Dönem bilgileri alınırken bir hata oluştu."));
+            }
+        }
+
+        /// <summary>
+        /// Mevcut bir dönemin bilgilerini günceller.
+        /// </summary>
+        /// <param name="dto">Güncellenecek dönemin yeni bilgilerini içeren DTO.</param>
+        /// <returns>Güncelleme durumunu bildiren bir HTTP yanıtı döner.</returns>
+        [HttpPut]
+        [Route("edit")]
+        [ResponseType(typeof(void))]
+        public async Task<IHttpActionResult> EditSemester(EditSemesterDTO dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                var semester = await _db.Semesters.FirstOrDefaultAsync(s => s.SemesterId == dto.SemesterId && !s.IsDeleted);
                 if (semester == null)
                 {
                     return NotFound();
@@ -136,30 +158,35 @@ namespace OgrenciPortalApi.Controllers
                 semester.EndDate = dto.EndDate;
                 semester.IsActive = dto.IsActive;
                 semester.UpdatedAt = DateTime.UtcNow;
-                semester.UpdatedBy = GetActiveUserId();
-                await db.SaveChangesAsync();
+                semester.UpdatedBy = GetActiveUserIdString();
+                await _db.SaveChangesAsync();
                 Logger.Info($"Dönem güncellendi: {dto.SemesterName}");
-                return Ok("Dönem Başarıyla Güncellendi !");
+                return Ok(new { Message = "Dönem başarıyla güncellendi." });
             }
             catch (Exception ex)
             {
-                Logger.Error("Dönem güncelleme sayfası yüklenirken hata oluştu.", ex);
-                return InternalServerError(ex);
+                Logger.Error($"ID'si {dto.SemesterId} olan dönem güncellenirken hata oluştu.", ex);
+                return InternalServerError(new Exception("Dönem güncellenirken bir hata oluştu."));
             }
         }
 
-        [HttpGet]
+        /// <summary>
+        /// Belirtilen ID'ye sahip dönemi siler (soft delete).
+        /// </summary>
+        /// <param name="id">Silinecek dönemin ID'si.</param>
+        /// <returns>Silme işleminin durumunu bildiren bir HTTP yanıtı döner.</returns>
+        [HttpDelete]
         [Route("delete/{id:guid}")]
+        [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> DeleteSemester(Guid id)
         {
+            if (id == Guid.Empty)
+            {
+                return BadRequest("Geçersiz dönem ID'si.");
+            }
             try
             {
-                if (id == Guid.Empty)
-                {
-                    return BadRequest("Geçersiz dönem ID'si.");
-                }
-
-                var semester = await db.Semesters.FirstOrDefaultAsync(s => s.SemesterId == id && !s.IsDeleted);
+                var semester = await _db.Semesters.FirstOrDefaultAsync(s => s.SemesterId == id && !s.IsDeleted);
                 if (semester == null)
                 {
                     return NotFound();
@@ -167,24 +194,18 @@ namespace OgrenciPortalApi.Controllers
 
                 semester.IsDeleted = true;
                 semester.UpdatedAt = DateTime.UtcNow;
-                semester.UpdatedBy = GetActiveUserId();
+                semester.UpdatedBy = GetActiveUserIdString();
                 semester.DeletedAt = DateTime.Now;
-                semester.DeletedBy = GetActiveUserId();
-                await db.SaveChangesAsync();
+                semester.DeletedBy = GetActiveUserIdString();
+                await _db.SaveChangesAsync();
                 Logger.Info($"Dönem silindi: {semester.SemesterName}");
-                return Ok("Dönem Başarıyla Silindi !");
+                return Ok(new { Message = "Dönem başarıyla silindi." });
             }
             catch (Exception ex)
             {
-                Logger.Error("Dönem silinirken hata oluştu.", ex);
-                return InternalServerError(ex);
+                Logger.Error($"ID'si {id} olan dönem silinirken hata oluştu.", ex);
+                return InternalServerError(new Exception("Dönem silinirken bir hata oluştu."));
             }
-        }
-
-        public string GetActiveUserId()
-        {
-            return TokenManager.GetPrincipal(Request.Headers.Authorization.Parameter)
-                .FindFirst(ClaimTypes.NameIdentifier).Value;
         }
     }
 }
