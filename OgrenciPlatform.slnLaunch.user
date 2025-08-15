@@ -1,0 +1,17 @@
+[
+  {
+    "Name": "Debug",
+    "Projects": [
+      {
+        "Path": "OgrenciPortalApi\\OgrenciPortalApi.csproj",
+        "Action": "Start",
+        "DebugTarget": "IIS Express (Zen)"
+      },
+      {
+        "Path": "OgrenciPortali\\OgrenciPortali.csproj",
+        "Action": "Start",
+        "DebugTarget": "IIS Express (Zen)"
+      }
+    ]
+  }
+]

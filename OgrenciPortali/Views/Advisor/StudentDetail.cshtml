@@ -1,0 +1,336 @@
+@using OgrenciPortali.Models
+@using OgrenciPortali.DTOs
+@model StudentDetailDto
+@{
+    ViewBag.Title = "Öðrenci Detayý";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row mt-4">
+        <div class="col-12">
+            <a href="@Url.Action("AdvisedStudentList", "Advisor")" class="btn btn-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Geri Dön
+            </a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-circle me-2"></i>Öðrenci Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center"
+                             style="width: 80px; height: 80px;">
+                            <i class="bi bi-person-fill fs-1 text-white"></i>
+                        </div>
+                    </div>
+
+                    <table class="table table-borderless">
+                        <tr>
+                            <td class="fw-bold text-muted">Ad Soyad:</td>
+                            <td>@Model.FullName</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-muted">Öðrenci No:</td>
+                            <td>
+                                <span class="badge bg-primary">@Model.StudentNo</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-muted">E-posta:</td>
+                            <td>
+                                <a href="mailto:@Model.Email" class="text-decoration-none">
+                                    @Model.Email
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-muted">Bölüm:</td>
+                            <td>
+                                @if (Model.DepartmentName != null)
+                                {
+                                    <span class="badge bg-info">@Model.DepartmentName</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-muted">Kayýt Tarihi:</td>
+                            <td>@Model.CreatedAt.ToString("dd.MM.yyyy")</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-bar-chart me-2"></i>Ýstatistikler
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="border-end">
+                                <div class="fs-4 fw-bold text-primary">@Model.StudentCourses.Count()</div>
+                                <small class="text-muted">Toplam Ders</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border-end">
+                                <div class="fs-4 fw-bold text-success">@Model.StudentCourses.Count(c => c.ApprovalStatus == (int)ApprovalStatus.Onaylandý)</div>
+                                <small class="text-muted">Onaylanan</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="fs-4 fw-bold text-warning">@Model.StudentCourses.Count(c => c.ApprovalStatus == (int)ApprovalStatus.Bekliyor)</div>
+                            <small class="text-muted">Bekleyen</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-black bg-success">
+                    <h5 class="mb-0">
+                        <i class="bi bi-journal-bookmark me-2"></i>Ders Kayýtlarý
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.StudentCourses != null && Model.StudentCourses.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="coursesTable">
+                                <thead class="table-dark">
+                                <tr>
+                                    <th>Ders Kodu</th>
+                                    <th>Ders Adý</th>
+                                    <th>Kredi</th>
+                                    <th>Dönem</th>
+                                    <th>Durum</th>
+                                    <th>Kayýt Tarihi</th>
+                                    <th class="text-center">Ýþlemler</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @foreach (var course in Model.StudentCourses)
+                                {
+                                    var statusClass = course.ApprovalStatus switch
+                                    {
+                                        (int)ApprovalStatus.Bekliyor => "warning",
+                                        (int)ApprovalStatus.Onaylandý => "success",
+                                        _ => "danger"
+                                    };
+                                    var statusIcon = course.ApprovalStatus switch
+                                    {
+                                        (int)ApprovalStatus.Bekliyor => "clock",
+                                        (int)ApprovalStatus.Onaylandý => "check-circle",
+                                        _ => "x-circle"
+                                    };
+                                    var statusText = course.ApprovalStatus == (int)ApprovalStatus.Bekliyor ? "Bekliyor" :
+                                        course.ApprovalStatus == (int)ApprovalStatus.Onaylandý ? "Onaylandý" : "Reddedildi";
+
+                                    <tr>
+                                        <td>
+                                            <strong class="text-primary">@course.CourseCode</strong>
+                                        </td>
+                                        <td>@course.CourseName</td>
+                                        <td>
+                                            <span class="badge bg-secondary">@course.Credits</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">@course.SemesterName</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-@statusClass">
+                                                <i class="bi bi-@statusIcon me-1"></i>@statusText
+                                            </span>
+                                        </td>
+                                        <td>@course.RequestDate.ToString("dd.MM.yyyy")</td>
+                                        <td class="text-center">
+                                            @if (course.ApprovalStatus == (int)ApprovalStatus.Bekliyor)
+                                            {
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <button type="button" class="btn btn-success approve-btn"
+                                                            data-student-id="@course.StudentId"
+                                                            data-offered-course-id="@course.OfferedCourseId"
+                                                            title="Onayla">
+                                                        <i class="bi bi-check-lg"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-danger reject-btn"
+                                                            data-student-id="@course.StudentId"
+                                                            data-offered-course-id="@course.OfferedCourseId"
+                                                            title="Reddet">
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </button>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info text-center">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            Bu öðrencinin henüz ders kaydý bulunmamaktadýr.
+                        </div>
+                    }
+                </div>
+                @if (Model != null && Model.StudentCourses.Count > 0)
+                {
+                    <div class="card-footer bg-light">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <small class="text-muted">
+                                    <i class="bi bi-person-check me-1"></i>
+                                    Toplam @Model.StudentCourses.Count() Ders
+                                </small>
+                            </div>
+                            <div class="col-sm-6 text-end">
+                                <small class="text-muted">
+                                    <i class="bi bi-clock me-1"></i>
+                                    Son güncelleme: @DateTime.Now.ToString("dd.MM.yyyy HH:mm")
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="modal fade" id="responseModal" tabindex="-1" aria-labelledby="responseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" id="responseModalHeader">
+                <h5 class="modal-title" id="responseModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="responseModalBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*@Html.AntiForgeryToken()*@
+
+@section Scripts {
+    <script>
+        /**
+         * Sayfa yüklendiðinde gerekli bileþenleri baþlatýr
+         */
+        document.addEventListener('DOMContentLoaded',
+            function() {
+                initializeDataTable();
+                initializeApprovalButtons();
+            });
+
+/**
+ * DataTable'ý baþlatýr
+ */
+        function initializeDataTable() {
+            const table = document.getElementById('coursesTable');
+
+            if (table && typeof $.fn.DataTable !== 'undefined') {
+                $('#coursesTable').DataTable({
+                    language: {
+                        url: '/Content/datatables/i18n/tr.json'
+                    },
+                    responsive: true,
+                    pageLength: 10,
+                    order: [[5, 'desc']],
+                    columnDefs: [
+                        { orderable: false, targets: [6] },
+                        { className: "text-center", targets: [6] }
+                    ]
+                });
+            }
+        }
+
+/**
+ * Onay/Red butonlarýnýn event handler'larýný ayarlar
+ */
+        function initializeApprovalButtons() {
+            const responseModal = new bootstrap.Modal(document.getElementById('responseModal'));
+            //const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            document.addEventListener('click',
+                function(e) {
+                    if (e.target.closest('.approve-btn') || e.target.closest('.reject-btn')) {
+                        const btn = e.target.closest('.approve-btn, .reject-btn');
+                        const isApprove = btn.classList.contains('approve-btn');
+                        const studentId = btn.dataset.studentId;
+                        const offeredCourseId = btn.dataset.offeredCourseId;
+
+                        processApproval([studentId], [offeredCourseId], isApprove ? 1 : 2);
+                    }
+                });
+
+            /**
+             * Onay/Red iþlemini gerçekleþtirir
+             */
+            function processApproval(studentIds, offeredCourseIds, newStatus) {
+                const requestData = {
+                    StudentIds: studentIds,
+                    OfferedCourseIds: offeredCourseIds,
+                    NewStatus: newStatus
+                };
+
+                fetch('http://localhost:8000/api/advisor/update-approval-status',
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                //'RequestVerificationToken': token,
+                                'Authorization': `Bearer ${sessionStorage.getItem('bearerToken')}`
+                            },
+                            body: JSON.stringify(requestData)
+                        })
+                    .then(response => response.json().then(data => ({ ok: response.ok, data })))
+                    .then(({ ok, data }) => {
+                        showResponseModal(ok, ok ? 'Ýþlem Baþarýlý' : 'Bir Hata Oluþtu', data.message);
+                        if (ok) {
+                            setTimeout(() => location.reload(), 1500);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Fetch Error:', error);
+                        showResponseModal(false, 'Að Hatasý', 'Sunucu ile iletiþim kurulamadý.');
+                    });
+            }
+
+            /**
+             * Sonuç modal'ýný gösterir
+             */
+            function showResponseModal(isSuccess, title, message) {
+                const modalHeader = document.getElementById('responseModalHeader');
+                const modalTitle = document.getElementById('responseModalLabel');
+                const modalBody = document.getElementById('responseModalBody');
+
+                modalHeader.className = isSuccess ? 'modal-header bg-success text-white' : 'modal-header bg-danger text-white';
+                const icon = isSuccess ? '<i class="bi bi-check-circle-fill me-2"></i>' : '<i class="bi bi-x-octagon-fill me-2"></i>';
+                modalTitle.innerHTML = `${icon} ${title}`;
+                modalBody.textContent = message;
+                responseModal.show();
+            }
+        }
+    </script>
+}

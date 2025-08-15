@@ -1,0 +1,154 @@
+﻿@model OgrenciPortali.ViewModels.SemesterUpdateviewModel
+@{
+    ViewBag.Title = "Dönem Düzenle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .btn-inactive {
+        background-color: #6c757d;
+        color: white;
+        opacity: 0.65;
+    }
+</style>
+
+
+<div class="container">
+    <div class=" row justify-content-center align-content-center" style="min-height: 90vh;">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-plus-square me-2"></i>Dönem Düzenle | @Model.SemesterName
+                    </h4>
+                </div>
+                <div class="card-body d-flex align-content-center justify-content-center">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    @using (Html.BeginForm("Edit", "Semester", FormMethod.Post, new { @class = "needs-validation", novalidate = "novalidate" }))
+                    {
+                        @*@Html.AntiForgeryToken()*@
+                        @Html.HiddenFor(model => model.IsActive)
+                        @Html.HiddenFor(model => model.SemesterId)
+                        <div class="row" id="form-area">
+
+                            <div class=" col-md-6 col-12 mb-3">
+                                <label for="@Model.SemesterName" class="form-label">
+                                    <i class="bi bi-tag me-1"></i>Dönem Adı
+                                </label> @Html.EditorFor(model => model.SemesterName, new { htmlAttributes = new { @class = "form-control", required = true } })
+                            </div>
+                            <div class="col-md-6 col-12 mb-3">
+                                <label for="@Model.IsActive" class="form-label">
+                                    <i class="bi bi-calendar me-1"></i>Dönem Aktif Mi?
+                                </label>
+                                <div class="row gap-2">
+                                    <button type="button" id="btnYes" class="btn btn-success col">Evet</button>
+                                    <button type="button" id="btnNo" class="btn btn-danger col">Hayır</button>
+                                </div>
+                            </div>
+                            <div class=" col-md-6 col-12 mb-3">
+                                <label for="@Model.StartDate" class="form-label">
+                                    <i class="bi bi-calendar me-1"></i>Başlangıç Tarihi
+                                </label>
+                                @Html.EditorFor(model => model.StartDate, new { htmlAttributes = new { @class = "form-control", required = true, type = "date" } })
+                            </div>
+                            <div class="col-md-6 col-12 mb-3">
+                                <label for="@Model.EndDate" class="form-label">
+                                    <i class="bi bi-calendar me-1"></i>Bitiş Tarihi
+                                </label> @Html.EditorFor(model => model.EndDate, new { htmlAttributes = new { @class = "form-control", required = true, type = "date" } })
+                            </div>
+
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary ">
+                                    <i class="bi bi-check-lg me-2"></i>Dönem Güncelle
+                                </button>
+                                <a href="@Url.Action("List", "Semester")" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left me-2"></i>Listeye Geri Dön
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts
+{
+    <script src="~/Scripts/jquery-3.7.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+
+            var isActiveInput = $('#IsActive');
+            var btnYes = $('#btnYes');
+            var btnNo = $('#btnNo');
+
+            function updateActiveButtons() {
+                var isActive = isActiveInput.val().toLowerCase() === 'true';
+                if (isActive) {
+                    btnYes.removeClass('btn-inactive').addClass('btn-success');
+                    btnNo.removeClass('btn-danger').addClass('btn-inactive');
+                } else {
+                    btnNo.removeClass('btn-inactive').addClass('btn-danger');
+                    btnYes.removeClass('btn-success').addClass('btn-inactive');
+                }
+            }
+
+
+            updateActiveButtons();
+
+
+            btnYes.click(function() {
+                isActiveInput.val('true');
+                updateActiveButtons();
+            });
+
+            btnNo.click(function() {
+                isActiveInput.val('false');
+                updateActiveButtons();
+            });
+
+            var startDateInput = $('#StartDate');
+            var endDateInput = $('#EndDate');
+            var dateError = $('#dateError');
+            var form = $('#semesterForm');
+
+            function validateDates() {
+                var startDate = new Date(startDateInput.val());
+                var endDate = new Date(endDateInput.val());
+
+                if (!startDateInput.val() || !endDateInput.val()) {
+                    dateError.text('');
+                    return true;
+                }
+
+                if (startDate > endDate) {
+                    dateError.text('Bitiş tarihi, başlangıç tarihinden önce olamaz.');
+                    return false;
+                } else {
+                    dateError.text('');
+                    return true;
+                }
+            }
+
+            startDateInput.on('change', validateDates);
+            endDateInput.on('change', validateDates);
+
+            form.on('submit',
+                function(e) {
+                    if (!validateDates()) {
+                        e.preventDefault();
+                        alert('Lütfen tarih alanlarını kontrol edin. Bitiş tarihi başlangıçtan önce olamaz.');
+                    }
+                });
+        });
+    </script>
+}

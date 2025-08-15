@@ -1,0 +1,7 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:Boolean x:Key="/Default/Environment/ExcludedFiles/FilesAndFoldersToSkip/=48DB859B_002DC605_002D4A08_002D9E06_002D592182E15E1C_002Fd_003AScripts_002Ff_003Abootstrap_002Eesm_002Ejs/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/Environment/ExcludedFiles/FilesAndFoldersToSkip/=48DB859B_002DC605_002D4A08_002D9E06_002D592182E15E1C_002Fd_003AScripts_002Ff_003Abootstrap_002Ejs/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/Environment/ExcludedFiles/FilesAndFoldersToSkip/=48DB859B_002DC605_002D4A08_002D9E06_002D592182E15E1C_002Fd_003AScripts_002Ff_003Ajquery_002D3_002E7_002E1_002Ejs/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/Environment/ExcludedFiles/FilesAndFoldersToSkip/=48DB859B_002DC605_002D4A08_002D9E06_002D592182E15E1C_002Fd_003AScripts_002Ff_003Ajquery_002D3_002E7_002E1_002Eslim_002Ejs/@EntryIndexedValue">True</s:Boolean>
+	<s:String x:Key="/Default/Environment/SqlDaemon/FilesAndFoldersSqlDialects/=C_003A_005CUsers_005Calpeerkaraca_005CAppData_005CLocal_005CTemp_005Ciyjbipb3_002E_002Esql/@EntryIndexedValue">TSQL</s:String>
+	<s:String x:Key="/Default/Environment/SqlDaemon/SolutionSqlDialect/@EntryValue">TSQL</s:String></wpf:ResourceDictionary>

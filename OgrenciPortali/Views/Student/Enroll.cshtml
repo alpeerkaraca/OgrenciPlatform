@@ -1,0 +1,399 @@
+﻿@*
+    Modern JavaScript (fetch API) ile hazırlanmış CSHTML dosyası.
+    Bu sürüm jQuery gerektirmez.
+*@
+
+@using System.Security.Claims
+@model OgrenciPortali.ViewModels.EnrollmentPageViewModel
+@{
+    ViewBag.Title = "Ders Kayıt Ekranı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex flex-wrap p-3 gap-3 justify-content-center align-items-center bg-light shadow-sm rounded mb-4">
+    @if (Model.EnrollableList.Any() || Model.PendingCourses.Any())
+    {
+        var firstCourse = Model.EnrollableList.FirstOrDefault() ?? Model.PendingCourses.First();
+        <div>
+            <strong>Danışman:</strong> @firstCourse.TeacherName
+        </div>
+    }
+    @if (User.Identity.IsAuthenticated)
+    {
+        var claim = User.Identity as ClaimsIdentity;
+        var fullName = claim?.FindFirst("full_name")?.Value;
+        var studentNo = claim?.FindFirst("student_no")?.Value;
+        <div><strong>Öğrenci:</strong> @studentNo - @fullName </div>
+    }
+    @if (Model.EnrollableList.Any() || Model.PendingCourses.Any())
+    {
+        var firstCourse = Model.EnrollableList.FirstOrDefault() ?? Model.PendingCourses.First();
+        <div>
+            <strong>Dönem:</strong> @firstCourse.SemesterName
+        </div>
+        <div>
+            <strong>Bölüm:</strong> @firstCourse.DepartmentName
+        </div>
+    }
+</div>
+
+
+<form>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header h5 text-center">Seçilen Dersler</div>
+                <div class="card-body d-flex flex-column">
+                    <div class="row text-center fw-bold">
+                        <div class="col">Maks. Kredi</div>
+                        <div class="col">Seçilen Kredi</div>
+                        <div class="col">Kalan Kredi</div>
+                    </div>
+                    <div class="row text-center fw-bold text-primary mb-3">
+                        <div class="col" id="max-credits">45</div>
+                        <div class="col" id="selected-credits">0</div>
+                        <div class="col" id="remaining-credits">45</div>
+                    </div>
+                    <hr/>
+                    <div class="flex-grow-1">
+                        <table class="table table-striped table-hover table-sm small table-transform">
+                            <thead>
+                            <tr>
+                                <th>Sıra</th>
+                                <th>Ders Kodu</th>
+                                <th>Ders Adı</th>
+                                <th>Kredi</th>
+                                <th>Durum / İşlem</th>
+                            </tr>
+                            </thead>
+                            <tbody id="secilmis-dersler-body">
+                            @foreach (var course in Model.PendingCourses)
+                            {
+                                <tr data-course-id="@course.CourseId" data-credit="@course.Credit" data-code="@course.CourseCode" data-name="@course.CourseName" class="table-info">
+                                    <td></td>
+                                    <td>@course.CourseCode</td>
+                                    <td>@course.CourseName</td>
+                                    <td>@course.Credit</td>
+                                    <td>
+                                        <span class="badge bg-warning text-dark">Onay Bekliyor</span>
+                                    </td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card h-100">
+                <div class="card-header h5 text-center">Dönem Dersleri</div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-sm small">
+                            <thead>
+                            <tr class="text-center">
+                                <th>Seç</th>
+                                <th>Ders Kodu</th>
+                                <th>Ders Adı</th>
+                                <th>Kredi</th>
+                                <th>Öğretim Üyesi</th>
+                                <th>Kontenjan</th>
+                            </tr>
+                            </thead>
+                            <tbody id="secebilecegim-dersler-body">
+                            @foreach (var course in Model.EnrollableList)
+                            {
+                                var isQuotaFull = course.CurrentUserCount >= course.Quota;
+                                var rowClass = isQuotaFull ? "table-secondary text-muted" : "";
+
+                                <tr class="text-center @rowClass" data-course-id="@course.CourseId" data-code="@course.CourseCode" data-name="@course.CourseName" data-credit="@course.Credit">
+                                    <td>
+                                        @if (isQuotaFull)
+                                        {
+                                            <span class="badge bg-danger">Dolu</span>
+                                        }
+                                        else
+                                        {
+                                            <input class="form-check-input" type="checkbox" name="selectedCourses" value="@course.CourseId">
+                                        }
+                                    </td>
+                                    <td>@course.CourseCode</td>
+                                    <td>@course.CourseName</td>
+                                    <td>@course.Credit</td>
+                                    <td>@course.TeacherName</td>
+                                    <td>@course.CurrentUserCount / @course.Quota</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-center align-items-center gap-3 mt-4">
+        @if (Model.PendingCourses.Any())
+        {
+            <button type="button" id="reset-selection-btn" class="btn btn-danger btn-lg">
+                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                <i class="bi bi-arrow-counterclockwise"></i> Seçimleri Sıfırla
+            </button>
+        }
+
+        <button type="button" id="submit-selection-btn" class="btn btn-primary btn-lg">
+            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+            Seçimi Tamamla ve Onaya Gönder
+        </button>
+    </div>
+</form>
+
+<div class="modal fade" id="resetConfirmModal" tabindex="-1" aria-labelledby="resetConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="resetConfirmModalLabel"><i class="bi bi-exclamation-triangle-fill"></i> Seçimleri Sıfırla</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Onayda bekleyen tüm ders seçimleriniz iptal edilecek ve bu işlem geri alınamayacaktır.</p>
+                <p class="mb-0 fw-bold">Seçimlerinizi sıfırlamak istediğinizden emin misiniz?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-danger" id="confirm-reset-btn">Evet, Sıfırla</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="creditLimitModal" tabindex="-1" aria-labelledby="creditLimitModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-warning">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="creditLimitModalLabel"><i class="bi bi-exclamation-triangle-fill"></i> Uyarı: Kredi Limiti Aşıldı</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Seçtiğiniz bu ders, belirlenen maksimum kredi limitini aşmanıza neden oluyor.</p>
+                <p class="mb-0">Lütfen ders eklemeye devam etmek için mevcut listenizden bir ders çıkarın veya seçiminizi değiştirin.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Anladım</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="responseModal" tabindex="-1" aria-labelledby="responseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" id="responseModalHeader">
+                <h5 class="modal-title" id="responseModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="responseModalBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded',
+            () => {
+                // === DOM ELEMENTLERİ ===
+                const secebilecegimDerslerBody = document.getElementById('secebilecegim-dersler-body');
+                const secilmisDerslerBody = document.getElementById('secilmis-dersler-body');
+                const maxCreditsEl = document.getElementById('max-credits');
+                const selectedCreditsEl = document.getElementById('selected-credits');
+                const remainingCreditsEl = document.getElementById('remaining-credits');
+                const submitButton = document.getElementById('submit-selection-btn');
+                const resetButton = document.getElementById('reset-selection-btn');
+
+                // Bootstrap modal nesnelerini oluşturma
+                const responseModalEl = document.getElementById('responseModal');
+                const responseModal = new bootstrap.Modal(responseModalEl);
+                const resetConfirmModal = new bootstrap.Modal(document.getElementById('resetConfirmModal'));
+                const creditLimitModal = new bootstrap.Modal(document.getElementById('creditLimitModal'));
+
+                const maxCredits = parseInt(maxCreditsEl.textContent, 10);
+                let secilenToplamKredi = 0;
+
+                // === EVENT LISTENERS ===
+                secebilecegimDerslerBody.addEventListener('change',
+                    (event) => {
+                        if (!event.target.matches('input[type="checkbox"]')) return;
+
+                        const checkbox = event.target;
+                        const dersSatiri = checkbox.closest('tr');
+                        const dersKredisi = parseInt(dersSatiri.dataset.credit, 10);
+
+                        if (checkbox.checked && (secilenToplamKredi + dersKredisi) > maxCredits) {
+                            creditLimitModal.show();
+                            checkbox.checked = false;
+                            return;
+                        }
+
+                        const courseData = {
+                            id: dersSatiri.dataset.courseId,
+                            code: dersSatiri.dataset.code,
+                            name: dersSatiri.dataset.name,
+                            credit: dersKredisi
+                        };
+
+                        if (checkbox.checked) {
+                            dersiSecilmisListesineEkle(courseData);
+                        } else {
+                            dersiSecilmisListesindenKaldir(courseData.id);
+                        }
+                        kredileriGuncelle();
+                    });
+
+                secilmisDerslerBody.addEventListener('click',
+                    (event) => {
+                        if (event.target.classList.contains('btn-kaldir')) {
+                            const courseId = event.target.dataset.courseId;
+                            dersiSecilmisListesindenKaldir(courseId);
+                            const ilgiliCheckbox = secebilecegimDerslerBody.querySelector(`input[value="${courseId}"]`);
+                            if (ilgiliCheckbox) {
+                                ilgiliCheckbox.checked = false;
+                            }
+                            kredileriGuncelle();
+                        }
+                    });
+
+                submitButton.addEventListener('click',
+                    () => {
+                        const spinner = submitButton.querySelector('.spinner-border');
+                        const selectedCheckboxes = secebilecegimDerslerBody.querySelectorAll('input[type="checkbox"]:checked');
+
+                        if (selectedCheckboxes.length === 0) {
+                            showResponseModal(false, 'Onaya Gönderilecek Ders Seçilmedi', 'Lütfen listeden en az bir yeni ders seçin.');
+                            return;
+                        }
+
+                        const selectedCourseIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+
+                        submitButton.disabled = true;
+                        spinner.classList.remove('d-none');
+
+                        fetch('http://localhost:8000/api/students/enroll',
+                                {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${sessionStorage.getItem('bearerToken')}`
+                                    },
+                                    body: JSON.stringify(selectedCourseIds)
+                                })
+                            .then(response => response.json().then(data => ({ ok: response.ok, data })))
+                            .then(({ ok, data }) => {
+                                showResponseModal(ok, ok ? 'İşlem Başarılı' : 'Bir Hata Oluştu', data.message);
+                                if (ok) {
+                                    responseModalEl.addEventListener('hidden.bs.modal', () => location.reload(), { once: true });
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Fetch Error:', error);
+                                showResponseModal(false, 'Ağ Hatası', 'Sunucu ile iletişim kurulamadı.');
+                            })
+                            .finally(() => {
+                                submitButton.disabled = false;
+                                spinner.classList.add('d-none');
+                            });
+                    });
+
+                if (resetButton) {
+                    resetButton.addEventListener('click',
+                        () => {
+                            resetConfirmModal.show();
+                        });
+                }
+
+                document.getElementById('confirm-reset-btn').addEventListener('click',
+                    () => {
+                        const spinner = resetButton.querySelector('.spinner-border');
+                        resetConfirmModal.hide();
+
+                        resetButton.disabled = true;
+                        spinner.classList.remove('d-none');
+
+                        fetch('http://localhost:8000/api/students/reset-enrollments',
+                                {
+                                    method: 'POST',
+                                    headers: {
+                                        'Authorization': `Bearer ${sessionStorage.getItem('bearerToken')}`
+                                    }
+                                })
+                            .then(response => response.json().then(data => ({ ok: response.ok, data })))
+                            .then(({ ok, data }) => {
+                                showResponseModal(ok, ok ? 'İşlem Başarılı' : 'Hata', data.message);
+                                if (ok) {
+                                    responseModalEl.addEventListener('hidden.bs.modal', () => location.reload(), { once: true });
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Reset Error:', error);
+                                showResponseModal(false, 'Ağ Hatası', 'Sunucu ile iletişim kurulamadı.');
+                            })
+                            .finally(() => {
+                                resetButton.disabled = false;
+                                spinner.classList.add('d-none');
+                            });
+                    });
+
+
+                // === FONKSİYONLAR ===
+                const showResponseModal = (isSuccess, title, message) => {
+                    const modalHeader = document.getElementById('responseModalHeader');
+                    const modalTitle = document.getElementById('responseModalLabel');
+                    const modalBody = document.getElementById('responseModalBody');
+                    modalHeader.className = isSuccess ? 'modal-header bg-success text-white' : 'modal-header bg-danger text-white';
+                    const icon = isSuccess ? '<i class="bi bi-check-circle-fill me-2"></i>' : '<i class="bi bi-x-octagon-fill me-2"></i>';
+                    modalTitle.innerHTML = `${icon} ${title}`;
+                    modalBody.textContent = message;
+                    responseModal.show();
+                };
+
+                const dersiSecilmisListesineEkle = (course) => {
+                    if (secilmisDerslerBody.querySelector(`tr[data-course-id="${course.id}"]`)) return;
+                    const yeniSatirHtml = `<tr data-course-id="${course.id}" data-credit="${course.credit}" class="fw-bold"><td data-label="Sıra"></td><td data-label="Ders Kodu">${course.code}</td><td data-label="Ders Adı">${course.name}</td><td data-label="Kredi">${course.credit}</td><td data-label="İşlem"><button type="button" class="btn btn-sm btn-danger btn-kaldir" data-course-id="${course.id}">Kaldır</button></td></tr>`;
+                    secilmisDerslerBody.insertAdjacentHTML('beforeend', yeniSatirHtml);
+                    siraNumaralariniGuncelle();
+                };
+
+                const dersiSecilmisListesindenKaldir = (courseId) => {
+                    const silinecekSatir = secilmisDerslerBody.querySelector(`tr[data-course-id="${courseId}"]`);
+                    if (silinecekSatir) silinecekSatir.remove();
+                    siraNumaralariniGuncelle();
+                };
+
+                const kredileriGuncelle = () => {
+                    const tumSecilmisSatirlar = secilmisDerslerBody.querySelectorAll('tr');
+                    secilenToplamKredi = Array.from(tumSecilmisSatirlar).reduce((total, row) => total + parseInt(row.dataset.credit, 10), 0);
+                    selectedCreditsEl.textContent = secilenToplamKredi;
+                    remainingCreditsEl.textContent = maxCredits - secilenToplamKredi;
+                };
+
+                const siraNumaralariniGuncelle = () => {
+                    const satirlar = secilmisDerslerBody.querySelectorAll('tr');
+                    satirlar.forEach((satir, index) => {
+                        satir.querySelector('td:first-child').textContent = index + 1;
+                    });
+                };
+
+                const initializePage = () => {
+                    siraNumaralariniGuncelle();
+                    kredileriGuncelle();
+                };
+
+                initializePage();
+            });
+    </script>
+}

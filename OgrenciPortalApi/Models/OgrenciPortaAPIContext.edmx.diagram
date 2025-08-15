@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="91f7b94e4f0b4562b0e35cc288159674" Name="Diagram1" ZoomLevel="121">
+        <EntityTypeShape EntityType="ogrenci_portalModel.Courses" Width="1.5" PointX="3" PointY="2" IsExpanded="true" />
+        <EntityTypeShape EntityType="ogrenci_portalModel.Departments" Width="1.5" PointX="0.75" PointY="5.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="ogrenci_portalModel.OfferedCourses" Width="1.5" PointX="6" PointY="2.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="ogrenci_portalModel.Semesters" Width="1.5" PointX="5.875" PointY="9.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="ogrenci_portalModel.StudentCourses" Width="1.5" PointX="7.5" PointY="6.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="ogrenci_portalModel.Users" Width="1.5" PointX="3" PointY="6.375" IsExpanded="true" />
+        <AssociationConnector Association="ogrenci_portalModel.FK_dbo_Courses_dbo_Departments_DepartmentId" ManuallyRouted="false" />
+        <AssociationConnector Association="ogrenci_portalModel.FK_dbo_OfferedCourses_dbo_Courses_CourseId" ManuallyRouted="false" />
+        <AssociationConnector Association="ogrenci_portalModel.FK_dbo_Users_dbo_Departments_DepartmentId" ManuallyRouted="false" />
+        <AssociationConnector Association="ogrenci_portalModel.FK_dbo_OfferedCourses_dbo_Semesters_SemesterId" ManuallyRouted="false" />
+        <AssociationConnector Association="ogrenci_portalModel.FK_dbo_OfferedCourses_dbo_Users_TeacherId" ManuallyRouted="false" />
+        <AssociationConnector Association="ogrenci_portalModel.FK_dbo_StudentCourses_dbo_OfferedCourses_OfferedCourseId" ManuallyRouted="false" />
+        <AssociationConnector Association="ogrenci_portalModel.FK_dbo_StudentCourses_dbo_Users_StudentId" ManuallyRouted="false" />
+        <AssociationConnector Association="ogrenci_portalModel.FK_dbo_Users_dbo_Users_AdvisorId" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

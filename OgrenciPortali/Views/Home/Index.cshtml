@@ -1,0 +1,371 @@
+﻿@using System.Security.Claims
+@{
+    ViewBag.Title = "Ana Sayfa";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link rel="stylesheet" href="../../Content/css/index-style.css"/>
+
+
+<div class="hero-section">
+    <div class="welcome-time" id="currentTime"></div>
+    @if (User.Identity.IsAuthenticated)
+    {
+        var claimsIdentity = User.Identity as ClaimsIdentity;
+        var department = claimsIdentity?.FindFirst("department")?.Value;
+        var studentNo = claimsIdentity?.FindFirst("student_no")?.Value;
+        var userRole = claimsIdentity?.FindFirst("user_role")?.Value;
+
+        <h1 class="display-4 mb-3">
+            Hoş Geldniz, @User.Identity.Name
+        </h1>
+        <p class="lead mb-4">
+            @if (userRole == "1")
+            {
+                <text>Sistem yöneticisi olarak platformun tüm özelliklerini yönetebilirsiniz.</text>
+            }
+            else if (userRole == "2")
+            {
+                <text>Danışman olarak öğrencilerinizin akademik yolculuklarına rehberlik edebilirsiniz.</text>
+            }
+            else if (userRole == "3")
+            {
+                <text>Öğrenci portalına hoş geldiniz. Ders seçimi yapabilir ve akademik bilgilerinizi takip edebilirsiniz.</text>
+            }
+        </p>
+
+        <div class="d-flex flex-wrap justify-content-center gap-2 ">
+            @if (!string.IsNullOrEmpty(department))
+            {
+                <span class="user-info-badge">
+                    <i class="bi bi-building me-2"></i>@department
+                </span>
+            }
+            @if ((userRole == "3" || User.IsInRole("Öğrenci")) && !string.IsNullOrEmpty(studentNo))
+            {
+                <span class="user-info-badge">
+                    <i class="bi bi-card-text me-2"></i>@studentNo
+                </span>
+            }
+            <span class="user-info-badge">
+                <i class="bi bi-person-badge me-2"></i>
+                @if (userRole == "1")
+                {
+                    <text>Admin</text>
+                }
+                else if (userRole == "2")
+                {
+                    <text>Danışman</text>
+                }
+                else if (userRole == "3")
+                {
+                    <text>Öğrenci</text>
+                }
+                else
+                {
+                    @userRole
+                }
+            </span>
+        </div>
+    }
+    else
+    {
+        <p class="lead mb-4">Öğrenci Yönetim Sistemine hoş geldiniz. Lütfen giriş yapın.</p>
+        <a href="@Url.Action("Login", "User")" class="btn btn-light btn-lg">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Giriş Yap
+        </a>
+    }
+</div>
+
+@if (User.Identity.IsAuthenticated)
+
+
+{
+    var claims = User.Identity as ClaimsIdentity;
+    var userRole = claims?.FindFirst("user_role")?.Value;
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h2 class="section-title">Sistem Durumu</h2>
+            <p class="section-subtitle">Anlık veriler ve istatistikler</p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        @if (userRole == "1")
+        {
+            <div class="col-lg-3 col-md-6">
+                <div class="card metric-card fade-in-up animation-delay-1">
+                    <div class="metric-icon" style="background: linear-gradient(135deg, #3498db, #2980b9);">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <div class="metric-number" id="userCount">0</div>
+                    <div class="metric-label">Toplam Kullanıcı</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card metric-card fade-in-up animation-delay-2">
+                    <div class="metric-icon" style="background: linear-gradient(135deg, #27ae60, #229954);">
+                        <i class="bi bi-book-fill"></i>
+                    </div>
+                    <div class="metric-number" id="courseCount">0</div>
+                    <div class="metric-label">Toplam Ders</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card metric-card fade-in-up animation-delay-3">
+                    <div class="metric-icon" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
+                        <i class="bi bi-clock-fill"></i>
+                    </div>
+                    <div class="metric-number" id="pendingCount">0</div>
+                    <div class="metric-label">Bekleyen Onaylar</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card metric-card fade-in-up animation-delay-4">
+                    <div class="metric-icon" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">
+                        <i class="bi bi-building-fill"></i>
+                    </div>
+                    <div class="metric-number" id="departmentCount">0</div>
+                    <div class="metric-label">Toplam Bölüm</div>
+                </div>
+            </div>
+        }
+        else if (userRole == "2" || User.IsInRole("Danışman"))
+        {
+            <div class="col-lg-4 col-md-6">
+                <div class="card metric-card fade-in-up animation-delay-1">
+                    <div class="metric-icon" style="background: linear-gradient(135deg, #3498db, #2980b9);">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <div class="metric-number" id="advisedStudentCount">0</div>
+                    <div class="metric-label">Danışan Öğrenciler</div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="card metric-card fade-in-up animation-delay-2">
+                    <div class="metric-icon" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
+                        <i class="bi bi-clock-fill"></i>
+                    </div>
+                    <div class="metric-number" id="pendingApprovalCount">0</div>
+                    <div class="metric-label">Bekleyen Onaylar</div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="card metric-card fade-in-up animation-delay-3">
+                    <div class="metric-icon" style="background: linear-gradient(135deg, #27ae60, #229954);">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <div class="metric-number" id="approvedCount">0</div>
+                    <div class="metric-label">Onaylanan Kayıtlar</div>
+                </div>
+            </div>
+        }
+        else if (userRole == "3" || User.IsInRole("Öğrenci"))
+        {
+            <div class="col-lg-4 col-md-6">
+                <div class="card metric-card fade-in-up animation-delay-1">
+                    <div class="metric-icon" style="background: linear-gradient(135deg, #3498db, #2980b9);">
+                        <i class="bi bi-book-fill"></i>
+                    </div>
+                    <div class="metric-number" id="enrolledCourseCount">0</div>
+                    <div class="metric-label">Kayıtlı Dersler</div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="card metric-card fade-in-up animation-delay-2">
+                    <div class="metric-icon" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
+                        <i class="bi bi-clock-fill"></i>
+                    </div>
+                    <div class="metric-number" id="pendingCourseCount">0</div>
+                    <div class="metric-label">Onay Bekleyen</div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="card metric-card fade-in-up animation-delay-3">
+                    <div class="metric-icon" style="background: linear-gradient(135deg, #27ae60, #229954);">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <div class="metric-number" id="approvedCourseCount">0</div>
+                    <div class="metric-label">Onaylanan Dersler</div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h2 class="section-title">Hızlı Erişim</h2>
+            <p class="section-subtitle">Sık kullanılan işlemler için kısayollar</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        @if (userRole == "1" || User.IsInRole("Admin"))
+        {
+            <div class="col-lg-4 col-md-6">
+                <a href="@Url.Action("Register", "User")" class="quick-action fade-in-up animation-delay-1">
+                    <div class="action-icon">
+                        <i class="bi bi-person-plus"></i>
+                    </div>
+                    <div class="action-title">Yeni Kullanıcı</div>
+                    <div class="action-description">Sisteme yeni kullanıcı ekleyin</div>
+                </a>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <a href="@Url.Action("Add", "Courses")" class="quick-action fade-in-up animation-delay-2">
+                    <div class="action-icon">
+                        <i class="bi bi-plus-circle"></i>
+                    </div>
+                    <div class="action-title">Yeni Ders</div>
+                    <div class="action-description">Sisteme yeni ders tanımlayın</div>
+                </a>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <a href="@Url.Action("List", "User")" class="quick-action fade-in-up animation-delay-3">
+                    <div class="action-icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div class="action-title">Kullanıcı Yönetimi</div>
+                    <div class="action-description">Tüm kullanıcıları görüntüleyin</div>
+                </a>
+            </div>
+        }
+        else if (userRole == "2" || User.IsInRole("Danışman"))
+        {
+            <div class="col-lg-6 col-md-6">
+                <a href="@Url.Action("CourseApprovals", "Advisor")" class="quick-action fade-in-up animation-delay-1">
+                    <div class="action-icon">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <div class="action-title">Ders Onayları</div>
+                    <div class="action-description">Öğrenci ders kayıtlarını onaylayın</div>
+                </a>
+            </div>
+            <div class="col-lg-6 col-md-6">
+                <a href="@Url.Action("AdvisedStudentList", "Advisor")" class="quick-action fade-in-up animation-delay-2">
+                    <div class="action-icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div class="action-title">Danışan Öğrenciler</div>
+                    <div class="action-description">Öğrencilerinizi görüntüleyin</div>
+                </a>
+            </div>
+        }
+        else if (userRole == "3" || User.IsInRole("Öğrenci"))
+        {
+            <div class="col-lg-6 col-md-6">
+                <a href="@Url.Action("Enroll", "Student")" class="quick-action fade-in-up animation-delay-1">
+                    <div class="action-icon">
+                        <i class="bi bi-plus-circle"></i>
+                    </div>
+                    <div class="action-title">Ders Seçimi</div>
+                    <div class="action-description">Yeni dersler seçin</div>
+                </a>
+            </div>
+            <div class="col-lg-6 col-md-6">
+                <a href="@Url.Action("MyCourses", "Student")" class="quick-action fade-in-up animation-delay-2">
+                    <div class="action-icon">
+                        <i class="bi bi-book"></i>
+                    </div>
+                    <div class="action-title">Derslerim</div>
+                    <div class="action-description">Kayıtlı derslerinizi görün</div>
+                </a>
+            </div>
+        }
+    </div>
+}
+
+@section Scripts {
+    <script>
+        var token = sessionStorage.getItem("bearerToken");
+
+        class DashboardManager {
+            constructor() {
+                this.refreshInterval = 60000;
+                this.animationDuration = 1000;
+                this.init();
+            }
+
+            init() {
+                this.updateTime();
+                this.loadDashboardData();
+                this.startAutoRefresh();
+                setInterval(() => this.updateTime(), 1000);
+            }
+
+            updateTime() {
+                const now = new Date();
+                const options = {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                };
+                const timeString = now.toLocaleDateString('tr-TR', options);
+                document.getElementById('currentTime').textContent = timeString;
+            }
+
+            async loadDashboardData() {
+                try {
+                    const response = await fetch('http://localhost:8000/api/dashboard/data',
+                        { headers: { Authorization: `Bearer ${token}` } });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        this.updateCounters(result.data);
+                    } else {
+                        console.error('Dashboard veri yükleme hatası:', result.message);
+                    }
+                } catch (error) {
+                    console.error('AJAX hatası:', error);
+                }
+            }
+
+            updateCounters(data) {
+                Object.keys(data).forEach((key, index) => {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        setTimeout(() => {
+                                this.animateCounter(element, data[key]);
+                            },
+                            index * 200);
+                    }
+                });
+            }
+
+            animateCounter(element, targetValue, duration = this.animationDuration) {
+                const startValue = parseInt(element.textContent) || 0;
+                let startTime = null;
+
+                const animate = (currentTime) => {
+                    if (startTime === null) startTime = currentTime;
+                    const progress = Math.min((currentTime - startTime) / duration, 1);
+                    const currentValue = Math.floor(startValue + (targetValue - startValue) * progress);
+                    element.textContent = currentValue;
+
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    }
+                };
+
+                requestAnimationFrame(animate);
+            }
+
+            startAutoRefresh() {
+                setInterval(() => {
+                        this.loadDashboardData();
+                    },
+                    this.refreshInterval);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded',
+            function() {
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <text>new DashboardManager();</text>
+                }
+            });
+    </script>
+}

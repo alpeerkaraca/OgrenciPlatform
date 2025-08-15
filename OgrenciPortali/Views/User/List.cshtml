@@ -1,0 +1,440 @@
+﻿@using OgrenciPortali.Models
+@using Roles = OgrenciPortali.Models.Roles
+@model IEnumerable<User>
+@{
+    ViewBag.Title = "Kullanıcı Listesi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .user-card {
+        transition: all 0.3s ease;
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .user-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .user-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+
+    .role-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+    }
+
+    .stats-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+        margin-top: 1.5rem;
+    }
+
+    .stats-item { text-align: center; }
+
+    .stats-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+
+    .stats-label {
+        font-size: 0.95rem;
+        opacity: 0.9;
+    }
+
+    .filter-section { margin-bottom: 2rem; }
+
+    .filter-btn {
+        background: transparent;
+        border: 2px solid #dee2e6;
+        color: #6c757d;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .filter-btn.active {
+        background: #667eea;
+        border-color: #667eea;
+        color: white;
+    }
+
+    .filter-btn:hover { transform: translateY(-1px); }
+
+    .search-box {
+        border-radius: 25px;
+        border: 2px solid #dee2e6;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-box:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    .user-info { padding: 1.25rem; }
+
+    .user-name {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+
+    .user-email {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .user-details {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .user-actions {
+        padding: 1rem 1.25rem;
+        background-color: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .no-users {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+
+    .no-users i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-end align-items-center mt-1">
+                <div>
+                    <a href="@Url.Action("Register", "User")" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Yeni Kullanıcı Ekle
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="stats-section">
+            <h4 class="mb-0">Kullanıcı İstatistikleri</h4>
+            <div class="stats-grid">
+                <div class="stats-item">
+                    <div class="stats-number">@Model.Count()</div>
+                    <div class="stats-label">Toplam Kullanıcı</div>
+                </div>
+                <div class="stats-item">
+                    <div class="stats-number">@Model.Count(u => u.Role == Roles.Admin)</div>
+                    <div class="stats-label">Admin</div>
+                </div>
+                <div class="stats-item">
+                    <div class="stats-number">@Model.Count(u => u.Role == Roles.Danışman)</div>
+                    <div class="stats-label">Danışman</div>
+                </div>
+                <div class="stats-item">
+                    <div class="stats-number">@Model.Count(u => u.Role == Roles.Öğrenci)</div>
+                    <div class="stats-label">Öğrenci</div>
+                </div>
+                <div class="stats-item">
+                    <div class="stats-number">@Model.Count(u => u.IsFirstLogin)</div>
+                    <div class="stats-label">İlk Giriş Bekleyen</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row filter-section">
+            <div class="col-lg-8">
+                <div class="mb-3">
+                    <button class="filter-btn active" data-filter="all">
+                        <i class="bi bi-people me-1"></i>Tümü
+                    </button>
+                    <button class="filter-btn" data-filter="admin">
+                        <i class="bi bi-shield-check me-1"></i>Admin
+                    </button>
+                    <button class="filter-btn" data-filter="advisor">
+                        <i class="bi bi-person-badge me-1"></i>Danışman
+                    </button>
+                    <button class="filter-btn" data-filter="student">
+                        <i class="bi bi-mortarboard me-1"></i>Öğrenci
+                    </button>
+                    <button class="filter-btn" data-filter="first-login">
+                        <i class="bi bi-exclamation-triangle me-1"></i>İlk Giriş
+                    </button>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <input type="text" class="form-control search-box" id="userSearch" placeholder="Kullanıcı ara...">
+            </div>
+        </div>
+
+        <div class="row" id="usersContainer">
+            @foreach (var user in Model.OrderBy(u => u.FullName))
+            {
+                var roleClass = user.Role == Roles.Admin ? "admin" :
+                    user.Role == Roles.Danışman ? "advisor" : "student";
+                var roleBadgeClass = user.Role == Roles.Admin ? "danger" :
+                    user.Role == Roles.Danışman ? "warning" : "info";
+                var filterClass = user.IsFirstLogin ? "first-login " + roleClass : roleClass;
+
+                <div class="col-xl-4 col-lg-6 mb-4 user-item" data-filter="@filterClass" data-search="@user.FullName.ToLower() @user.Email.ToLower() @user.StudentNo">
+                    <div class="card user-card h-100">
+                        <div class="user-info position-relative">
+                            <span class="badge bg-@roleBadgeClass role-badge">@user.Role.ToString()</span>
+
+                            <div class="text-center">
+                                <div class="user-avatar mx-auto">
+                                    @user.FullName.Substring(0, Math.Min(2, user.FullName.Length)).ToUpper()
+                                </div>
+                            </div>
+
+                            <div class="user-name text-center">@user.FullName</div>
+                            <div class="user-email text-center">@user.Email</div>
+
+                            <div class="user-details">
+                                @if (!string.IsNullOrEmpty(user.StudentNo))
+                                {
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span><i class="bi bi-card-text me-2"></i>Öğrenci No:</span>
+                                        <span>@user.StudentNo</span>
+                                    </div>
+                                }
+                                @if (user.Department != null)
+                                {
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span><i class="bi bi-building me-2"></i>Bölüm:</span>
+                                        <span>@user.Department.Name</span>
+                                    </div>
+                                }
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span><i class="bi bi-calendar-event me-2"></i>Kayıt:</span>
+                                    <span>@user.CreatedAt.ToString("dd.MM.yyyy")</span>
+                                </div>
+                                @if (user.IsFirstLogin)
+                                {
+                                    <div class="text-center">
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-exclamation-triangle me-1"></i>İlk Giriş Bekliyor
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="user-actions">
+                            <div class="btn-group w-100" role="group">
+                                <a href="@Url.Action("Edit", "User", new { id = user.UserId })"
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-pencil"></i> Düzenle
+                                </a>
+                                <button type="button" class="btn btn-outline-danger btn-sm delete-user"
+                                        data-user-id="@user.UserId" data-user-name="@user.FullName">
+                                    <i class="bi bi-trash"></i> Sil
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="no-users">
+                    <i class="bi bi-people"></i>
+                    <h4>Henüz Kullanıcı Bulunmuyor</h4>
+                    <p class="mb-4">Sisteme ilk kullanıcıyı eklemek için aşağıdaki butona tıklayın.</p>
+                    <a href="@Url.Action("Register", "User")" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-circle me-2"></i>İlk Kullanıcıyı Ekle
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Kullanıcı Silme Onayı
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Bu kullanıcıyı silmek istediğinize emin misiniz?</p>
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Uyarı:</strong> Bu işlem geri alınamaz!
+                </div>
+                <p class="mb-0">
+                    <strong>Kullanıcı:</strong> <span id="userNameToDelete"></span>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="bi bi-trash me-2"></i>Sil
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        if (sessionStorage.getItem('bearerToken') != null)
+            var token = sessionStorage.getItem('bearerToken');
+        document.addEventListener('DOMContentLoaded',
+            function() {
+                initializeFiltering();
+                initializeSearch();
+                initializeDeleteModal();
+            });
+
+        function initializeFiltering() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const userItems = document.querySelectorAll('.user-item');
+
+            filterButtons.forEach(button => {
+                button.addEventListener('click',
+                    function() {
+                        const filter = this.dataset.filter;
+
+                        filterButtons.forEach(btn => btn.classList.remove('active'));
+                        this.classList.add('active');
+
+                        filterUsers(filter);
+                    });
+            });
+
+            function filterUsers(filter) {
+                userItems.forEach(item => {
+                    const filterData = item.dataset.filter;
+
+                    if (filter === 'all' || filterData.includes(filter)) {
+                        item.style.display = 'block';
+                        item.style.animation = 'fadeInUp 0.5s ease forwards';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            }
+        }
+
+        function initializeSearch() {
+            const searchInput = document.getElementById('userSearch');
+            const userItems = document.querySelectorAll('.user-item');
+
+            searchInput.addEventListener('input',
+                function() {
+                    const searchTerm = this.value.toLowerCase();
+
+                    userItems.forEach(item => {
+                        const searchData = item.dataset.search;
+
+                        if (searchData.includes(searchTerm)) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+        }
+
+        function initializeDeleteModal() {
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+            const deleteButtons = document.querySelectorAll('.delete-user');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            const userNameSpan = document.getElementById('userNameToDelete');
+            let userIdToDelete = null;
+
+            deleteButtons.forEach(button => {
+                button.addEventListener('click',
+                    function() {
+                        userIdToDelete = this.dataset.userId;
+                        const userName = this.dataset.userName;
+                        userNameSpan.textContent = userName;
+                        deleteModal.show();
+                    });
+            });
+
+            confirmDeleteBtn.addEventListener('click',
+                function() {
+                    if (userIdToDelete) {
+                        fetch(`http://localhost:8000/api/user/delete/${userIdToDelete}`,
+                                {
+                                    method: 'POST',
+                                    headers: { Authorization: `Bearer ${token}` }
+                                }
+                            )
+                            .then(resp => {
+                                if (resp.ok) {
+                                    deleteModal.hide();
+                                    location.reload();
+                                } else {
+                                    console.error('Kullanıcı silinirken hata oluştu.');
+                                }
+                            });
+                    }
+                });
+        }
+
+        const style = document.createElement('style');
+        style.textContent = `
+                    @@keyframes fadeInUp {
+                        from {
+                            opacity: 0;
+                            transform: translateY(20px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateY(0);
+                        }
+                    }
+                `;
+        document.head.appendChild(style);
+    </script>
+}

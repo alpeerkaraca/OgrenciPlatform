@@ -1,0 +1,550 @@
+@using System.Security.Claims
+@using OgrenciPortali.Models
+@model OgrenciPortali.DTOs.AdvisorApprovalDTO
+@{
+    ViewBag.Title = "Ders Kayýt Onaylarý";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    @@media (max-width: 768px) {
+        .card-body { padding: 0.75rem; }
+
+        .btn-lg {
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+        }
+
+        .table-responsive { border: none; }
+
+        .table td, .table th {
+            padding: 0.5rem 0.25rem;
+            font-size: 0.85rem;
+        }
+
+        .btn-group .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .badge { font-size: 0.7rem; }
+
+        .table .d-none-mobile { display: none !important; }
+
+        .mobile-card {
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            margin-bottom: 0.75rem;
+            padding: 0.75rem;
+            background: white;
+        }
+
+        .mobile-card-header {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+
+        .mobile-card-body { font-size: 0.9rem; }
+
+        .mobile-card-actions {
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+    }
+
+    @@media (min-width: 769px) {
+        .mobile-view { display: none !important; }
+    }
+
+    @@media (max-width: 768px) {
+        .desktop-view { display: none !important; }
+    }
+</style>
+
+@if (User.Identity.IsAuthenticated)
+{
+    var user = (ClaimsIdentity)User.Identity;
+    var fullName = user.FindFirst("full_name")?.Value;
+    var department = user.FindFirst("department")?.Value;
+    <div class="d-flex flex-wrap p-2 p-md-3 gap-2 gap-md-3 justify-content-center align-items-center bg-light shadow-sm rounded mb-3 mb-md-4">
+        <div class="text-center text-md-start">
+            <strong>Danýþman:</strong> @fullName
+        </div>
+        @if (department != null)
+        {
+            <div class="text-center text-md-start">
+                <strong>Bölüm:</strong> @department
+            </div>
+        }
+        <div class="text-center text-md-start">
+            <strong>Bekleyen Onay:</strong>
+            <span class="badge bg-warning text-dark">@Model.PendingApprovals.Count(a => a.ApprovalStatus == 0)</span>
+        </div>
+    </div>
+}
+
+<div class="card mb-3 mb-md-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-gear-fill me-2"></i>Toplu Ýþlemler</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-2 g-md-3">
+            <div class="col-12 col-md-4">
+                <button type="button" id="select-all-btn" class="btn btn-outline-primary w-100 btn-lg">
+                    <i class="bi bi-check-square me-1 me-md-2"></i>Tümünü Seç
+                </button>
+            </div>
+            <div class="col-6 col-md-4">
+                <button type="button" id="approve-selected-btn" class="btn btn-success w-100 btn-lg" disabled>
+                    <i class="bi bi-check-circle me-1 me-md-2"></i><span class="d-none d-sm-inline">Seçilenleri </span>Onayla
+                </button>
+            </div>
+            <div class="col-6 col-md-4">
+                <button type="button" id="reject-selected-btn" class="btn btn-danger w-100 btn-lg" disabled>
+                    <i class="bi bi-x-circle me-1 me-md-2"></i><span class="d-none d-sm-inline">Seçilenleri </span>Reddet
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-list-task me-2"></i>Ders Kayýt Talepleri</h5>
+    </div>
+    <div class="card-body">
+        @if (!Model.PendingApprovals.Any())
+        {
+            <div class="alert alert-info text-center">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                Henüz onay bekleyen ders kayýt talebi bulunmamaktadýr.
+            </div>
+        }
+        else
+        {
+            <div class="desktop-view">
+                <div class="table-responsive">
+                    <table id="approvalTable" class="table table-striped table-hover" style="width: 100%">
+                        <thead class="table-dark">
+                        <tr>
+                            <th class="text-center" style="width: 50px;">
+                                <input type="checkbox" id="master-checkbox" class="form-check-input">
+                            </th>
+                            <th>Öðrenci No</th>
+                            <th>Öðrenci Adý</th>
+                            <th>Ders Kodu</th>
+                            <th>Ders Adý</th>
+                            <th class="text-center">Kredi</th>
+                            <th>Gün/Saat</th>
+                            <th>Dönem</th>
+                            <th class="text-center">Durum</th>
+                            <th>Talep Tarihi</th>
+                            <th class="text-center" style="width: 120px;">Ýþlemler</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var approval in Model.PendingApprovals)
+                        {
+                            var statusText = approval.ApprovalStatus switch
+                            {
+                                0 => "Bekliyor",
+                                1 => "Onaylandý",
+                                _ => "Reddedildi"
+                            };
+                            var statusIcon = approval.ApprovalStatus switch
+                            {
+                                0 => "clock",
+                                1 => "check-circle",
+                                _ => "x-circle"
+                            };
+
+                            <tr data-student-id="@approval.StudentId"
+                                data-offered-course-id="@approval.OfferedCourseId">
+                                <td class="text-center">
+                                    @if (approval.ApprovalStatus == 0)
+                                    {
+                                        <input type="checkbox" class="form-check-input row-checkbox">
+                                    }
+                                </td>
+                                <td>@approval.StudentNo</td>
+                                <td>@approval.StudentName</td>
+                                <td>
+                                    <strong>@approval.CourseCode</strong>
+                                </td>
+                                <td>@approval.CourseName</td>
+                                <td class="text-center">@approval.Credits</td>
+                                <td>@approval.DayOfWeek @approval.StartTime.Hours:@approval.StartTime.Minutes-@approval.EndTime.Hours:@approval.EndTime.Minutes</td>
+                                <td class="text-center">@approval.SemesterName</td>
+                                <td class="text-center">
+                                    <span class="badge bg-@(approval.ApprovalStatus switch
+                                                          {
+                                                              0 => "warning",
+                                                              1 => "success",
+                                                              _ => "danger"
+                                                          })">
+                                        <i class="bi bi-@statusIcon me-1"></i>@statusText
+                                    </span>
+                                </td>
+                                <td>@approval.RequestDate.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td class="text-center">
+                                    @if (approval.ApprovalStatus == 0)
+                                    {
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-success approve-btn px-2 py-1" title="Onayla"
+                                                    data-student-id="@approval.StudentId"
+                                                    data-offered-course-id="@approval.OfferedCourseId">
+                                                <i class="bi bi-check-lg"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-danger reject-btn px-2 py-1" title="Reddet"
+                                                    data-student-id="@approval.StudentId"
+                                                    data-offered-course-id="@approval.OfferedCourseId">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mobile-view">
+                @foreach (var approval in Model.PendingApprovals)
+                {
+                    var statusText = approval.ApprovalStatus switch
+                    {
+                        0 => "Bekliyor",
+                        1 => "Onaylandý",
+                        _ => "Reddedildi"
+                    };
+                    var statusIcon = approval.ApprovalStatus switch
+                    {
+                        0 => "clock",
+                        1 => "check-circle",
+                        _ => "x-circle"
+                    };
+
+                    <div class="mobile-card border-@(approval.ApprovalStatus switch
+                                                   {
+                                                       0 => "warning",
+                                                       1 => "success",
+                                                       _ => "danger"
+                                                   })"
+                         data-student-id="@approval.StudentId"
+                         data-offered-course-id="@approval.OfferedCourseId">
+
+                        <div class="mobile-card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                @if (approval.ApprovalStatus == 0)
+                                {
+                                    <input type="checkbox" class="form-check-input row-checkbox me-2">
+                                }
+                                <strong>@approval.StudentName</strong>
+                            </div>
+                            <span class="badge bg-@(approval.ApprovalStatus switch
+                                                  {
+                                                      0 => "warning",
+                                                      1 => "success",
+                                                      _ => "danger"
+                                                  })">
+                                <i class="bi bi-@statusIcon me-1"></i>@statusText
+                            </span>
+                        </div>
+
+                        <div class="mobile-card-body">
+                            <div class="row g-1">
+                                <div class="col-6">
+                                    <small class="text-muted">Öðrenci No:</small> @approval.StudentNo
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Kredi:</small> @approval.Credits
+                                </div>
+                                <div class="col-12"><small class="text-muted">Ders:</small> <strong>@approval.CourseCode</strong> - @approval.CourseName</div>
+                                <div class="col-6"><small class="text-muted">Gün/Saat:</small> @approval.DayOfWeek @approval.StartTime-@approval.EndTime</div>
+                                <div class="col-6">
+                                    <small class="text-muted">Dönem:</small> @approval.SemesterName
+                                </div>
+                                <div class="col-12">
+                                    <small class="text-muted">Talep Tarihi:</small> @approval.RequestDate.ToString("dd.MM.yyyy HH:mm")
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (approval.ApprovalStatus == 0)
+                        {
+                            <div class="mobile-card-actions">
+                                <div class="btn-group w-100" role="group">
+                                    <button type="button" class="btn btn-success approve-btn"
+                                            data-student-id="@approval.StudentId"
+                                            data-offered-course-id="@approval.OfferedCourseId">
+                                        <i class="bi bi-check-lg me-1"></i>Onayla
+                                    </button>
+                                    <button type="button" class="btn btn-danger reject-btn"
+                                            data-student-id="@approval.StudentId"
+                                            data-offered-course-id="@approval.OfferedCourseId">
+                                        <i class="bi bi-x-lg me-1"></i>Reddet
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<div class="modal fade" id="responseModal" tabindex="-1" aria-labelledby="responseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" id="responseModalHeader">
+                <h5 class="modal-title" id="responseModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="responseModalBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Antiforgery Token (Hidden Field) *@
+@*@Html.AntiForgeryToken()*@
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            console.log('jQuery version:', $.fn.jquery);
+            console.log('DataTables available:', typeof $.fn.DataTable);
+
+            const responseModalEl = document.getElementById('responseModal');
+            const responseModal = new bootstrap.Modal(responseModalEl);
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const masterCheckbox = document.getElementById('master-checkbox');
+            const selectAllBtn = document.getElementById('select-all-btn');
+            const approveSelectedBtn = document.getElementById('approve-selected-btn');
+            const rejectSelectedBtn = document.getElementById('reject-selected-btn');
+
+            let table;
+            if (window.innerWidth > 768) {
+                try {
+                    table = $('#approvalTable').DataTable({
+                        language: {
+                            url: '/Content/datatables/i18n/tr.json'
+                        },
+                        responsive: false,
+                        pageLength: 25,
+                        order: [[9, 'desc'], [8, 'asc']],
+                        columnDefs: [
+                            { orderable: false, searchable: false, targets: [0, 10] },
+                            { className: "text-center", targets: [0, 5, 8, 10] }
+                        ],
+                        drawCallback: function() {
+                            updateButtonStates();
+                            attachEventHandlers();
+                        }
+                    });
+                    console.log('DataTable initialized successfully');
+                } catch (error) {
+                    console.error('DataTable initialization failed:', error);
+                }
+            }
+
+            function attachEventHandlers() {
+                if (masterCheckbox) {
+                    masterCheckbox.removeEventListener('change', handleMasterCheckboxChange);
+                    masterCheckbox.addEventListener('change', handleMasterCheckboxChange);
+                }
+
+                document.querySelectorAll('.row-checkbox').forEach(cb => {
+                    cb.removeEventListener('change', handleRowCheckboxChange);
+                    cb.addEventListener('change', handleRowCheckboxChange);
+                });
+
+                document.querySelectorAll('.approve-btn, .reject-btn').forEach(btn => {
+                    btn.removeEventListener('click', handleApprovalButtonClick);
+                    btn.addEventListener('click', handleApprovalButtonClick);
+                });
+            }
+
+            function handleMasterCheckboxChange() {
+                const checkboxes = document.querySelectorAll('.row-checkbox');
+                checkboxes.forEach(cb => cb.checked = this.checked);
+                updateButtonStates();
+            }
+
+            function handleRowCheckboxChange() {
+                updateMasterCheckbox();
+                updateButtonStates();
+            }
+
+            function handleApprovalButtonClick(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const btn = e.currentTarget;
+                const studentId = btn.dataset.studentId;
+                const offeredCourseId = btn.dataset.offeredCourseId;
+                const isApprove = btn.classList.contains('approve-btn');
+
+                processApproval([studentId], [offeredCourseId], isApprove ? @((int)ApprovalStatus.Onaylandý) : @((int)ApprovalStatus.Reddedildi));
+            }
+
+            if (selectAllBtn) {
+                selectAllBtn.addEventListener('click',
+                    function() {
+                        const checkboxes = document.querySelectorAll('.row-checkbox');
+                        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                        checkboxes.forEach(cb => cb.checked = !allChecked);
+                        if (masterCheckbox) {
+                            masterCheckbox.checked = !allChecked;
+                        }
+                        updateButtonStates();
+                    });
+            }
+
+            if (approveSelectedBtn) {
+                approveSelectedBtn.addEventListener('click',
+                    function() {
+                        const selected = getSelectedItems();
+                        if (selected.studentIds.length > 0) {
+                            processApproval(selected.studentIds, selected.offeredCourseIds, @((int)ApprovalStatus.Onaylandý));
+                        }
+                    });
+            }
+
+            if (rejectSelectedBtn) {
+                rejectSelectedBtn.addEventListener('click',
+                    function() {
+                        const selected = getSelectedItems();
+                        if (selected.studentIds.length > 0) {
+                            processApproval(selected.studentIds, selected.offeredCourseIds, @((int)ApprovalStatus.Reddedildi));
+                        }
+                    });
+            }
+
+            function updateMasterCheckbox() {
+                if (!masterCheckbox) return;
+
+                const checkboxes = document.querySelectorAll('.row-checkbox');
+                const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+
+                if (checkedCount === 0) {
+                    masterCheckbox.checked = false;
+                    masterCheckbox.indeterminate = false;
+                } else if (checkedCount === checkboxes.length) {
+                    masterCheckbox.checked = true;
+                    masterCheckbox.indeterminate = false;
+                } else {
+                    masterCheckbox.checked = false;
+                    masterCheckbox.indeterminate = true;
+                }
+            }
+
+            function updateButtonStates() {
+                const selectedCount = document.querySelectorAll('.row-checkbox:checked').length;
+                const hasSelection = selectedCount > 0;
+
+                if (approveSelectedBtn) approveSelectedBtn.disabled = !hasSelection;
+                if (rejectSelectedBtn) rejectSelectedBtn.disabled = !hasSelection;
+
+                if (selectAllBtn) {
+                    const checkboxes = document.querySelectorAll('.row-checkbox');
+                    const allChecked = Array.from(checkboxes).every(cb => cb.checked) && checkboxes.length > 0;
+
+                    selectAllBtn.innerHTML = allChecked ? '<i class="bi bi-square me-1 me-md-2"></i>Seçimi Temizle' : '<i class="bi bi-check-square me-1 me-md-2"></i>Tümünü Seç';
+                    selectAllBtn.className = allChecked ? 'btn btn-outline-secondary w-100 btn-lg' : 'btn btn-outline-primary w-100 btn-lg';
+                }
+            }
+
+            function getSelectedItems() {
+                const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+                const studentIds = [];
+                const offeredCourseIds = [];
+
+                selectedCheckboxes.forEach(cb => {
+                    const container = cb.closest('tr, .mobile-card');
+                    studentIds.push(container.dataset.studentId);
+                    offeredCourseIds.push(container.dataset.offeredCourseId);
+                });
+
+                return { studentIds, offeredCourseIds };
+            }
+
+            function processApproval(studentIds, offeredCourseIds, newStatus) {
+                if (!token) {
+                    showResponseModal(false, 'Güvenlik Hatasý', 'Güvenlik tokeni bulunamadý. Sayfayý yenileyin.');
+                    return;
+                }
+
+                console.log('Processing approval:', { studentIds, offeredCourseIds, newStatus });
+
+                const requestData = {
+                    StudentIds: studentIds,
+                    OfferedCourseIds: offeredCourseIds,
+                    NewStatus: newStatus
+                };
+
+                // Butonlarý devre dýþý býrak
+                document.querySelectorAll('.approve-btn, .reject-btn').forEach(btn => btn.disabled = true);
+                if (approveSelectedBtn) approveSelectedBtn.disabled = true;
+                if (rejectSelectedBtn) rejectSelectedBtn.disabled = true;
+
+                fetch('/Advisor/UpdateApprovalStatus',
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'RequestVerificationToken': token,
+                                'authorization': `Bearer ${sessionStorage.getItem("bearerToken")}`
+                            },
+                            body: JSON.stringify(requestData)
+                        })
+                    .then(response => {
+                        console.log('Response status:', response.status);
+                        return response.json().then(data => ({ ok: response.ok, data }));
+                    })
+                    .then(({ ok, data }) => {
+                        console.log('Response data:', data);
+                        showResponseModal(ok, ok ? 'Ýþlem Baþarýlý' : 'Bir Hata Oluþtu', data.message);
+                        if (ok) {
+                            responseModalEl.addEventListener('hidden.bs.modal', () => location.reload(), { once: true });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Fetch Error:', error);
+                        showResponseModal(false, 'Að Hatasý', 'Sunucu ile iletiþim kurulamadý.');
+                    })
+                    .finally(() => {
+                        // Butonlarý tekrar etkinleþtir
+                        document.querySelectorAll('.approve-btn, .reject-btn').forEach(btn => btn.disabled = false);
+                        updateButtonStates();
+                    });
+            }
+
+            function showResponseModal(isSuccess, title, message) {
+                const modalHeader = document.getElementById('responseModalHeader');
+                const modalTitle = document.getElementById('responseModalLabel');
+                const modalBody = document.getElementById('responseModalBody');
+
+                modalHeader.className = isSuccess ? 'modal-header bg-success text-white' : 'modal-header bg-danger text-white';
+                const icon = isSuccess ? '<i class="bi bi-check-circle-fill me-2"></i>' : '<i class="bi bi-x-octagon-fill me-2"></i>';
+                modalTitle.innerHTML = `${icon} ${title}`;
+                modalBody.textContent = message;
+                responseModal.show();
+            }
+
+            // Ýlk yükleme için event handler'larý baðla
+            attachEventHandlers();
+            updateButtonStates();
+        });
+    </script>
+}

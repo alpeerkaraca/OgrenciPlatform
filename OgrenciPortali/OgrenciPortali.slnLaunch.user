@@ -1,0 +1,17 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "OgrenciPortali.csproj",
+        "Action": "Start",
+        "DebugTarget": "IIS Express (Zen)"
+      },
+      {
+        "Path": "..\\OgrenciPortalApi\\OgrenciPortalApi.csproj",
+        "Action": "Start",
+        "DebugTarget": "IIS Express (Zen)"
+      }
+    ]
+  }
+]

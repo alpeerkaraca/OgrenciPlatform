@@ -1,0 +1,220 @@
+﻿::after, ::before {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+
+a { text-decoration: none !important; }
+
+.navbar { height: 8vh !important; }
+
+li { list-style: none; }
+
+.wrapper { display: flex; }
+
+.main {
+    min-height: 100vh;
+    width: 100%;
+    overflow: hidden;
+    transition: all 0.35s ease-in-out;
+    background-color: #F8FAFC;
+}
+
+#sidebar {
+    width: 75px;
+    min-width: 75px;
+    z-index: 100;
+    transition: all .25s ease-in-out;
+    flex-direction: column;
+    background-color: #0e223e;
+}
+
+#sidebar.expand {
+    width: 260px;
+    min-width: 260px;
+}
+
+#toggle-btn {
+    background-color: transparent;
+    cursor: pointer;
+    border: 0;
+    padding: 1rem 1.5rem;
+}
+
+#toggle-btn i {
+/*    font-size: 1.5rem;
+*/    color: #fff;
+    animation-iteration-count: 1;
+    animation-duration: .5s
+}
+
+.sidebar-logo { margin: auto 0; }
+
+.sidebar-logo a {
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+#sidebar:not(.expand) .sidebar-logo,
+#sidebar:not(.expand) a.sidebar-link span { display: none; }
+
+.sidebar-nav {
+    padding: 2rem 0;
+    flex: 1 1 auto;
+}
+
+a.sidebar-link {
+    padding: .625rem 1.625rem;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    border-left: 3px solid transparent;
+    gap: .75rem;
+}
+
+.sidebar-link i {
+    font-size: 1.35rem;
+}
+
+/*.sidebar-link i {
+    font-size: 1.1rem;
+    margin: auto;
+}*/
+
+a.sidebar-link:hover {
+    background-color: rgba(255, 255, 255, .075);
+    border-left: 3px solid #3b7ddd;
+}
+
+.sidebar-item { position: relative; }
+
+#sidebar:not(.expand) .sidebar-item .sidebar-dropdown {
+    position: absolute;
+    top: 0;
+    left: 70px;
+    background-color: #0e2238;
+    padding: 0;
+    min-width: 15rem;
+    display: none;
+}
+
+#sidebar:not(.expand) .sidebar-item:hover .has-dropdown + .sidebar-dropdown {
+    display: block;
+    max-height: 15em;
+    width: 100%;
+    opacity: 1;
+}
+
+#sidebar.expand .sidebar-link[data-bs-toggle="collapse"]::after {
+    border: solid;
+    border-width: 0 .075rem .075rem 0;
+    content: "";
+    display: inline-block;
+    padding: 2px;
+    position: absolute;
+    right: 1.5rem;
+    top: 1.4rem;
+    transform: rotate(-135deg);
+    transition: all .2s ease-in-out;
+}
+
+#sidebar.expand .sidebar-link[data-bs-toggle="collapse"].collapsed::after {
+    transform: rotate(45deg);
+    transition: all .2s ease-in-out;
+}
+
+
+
+/* ------------- Form Düzenlemeleri ------------- */
+
+.form-control:focus {
+    box-shadow: 0 0 0 0.1rem rgba(26, 26, 26, 0.25) !important;
+    transition: all .2s ease-in-out;
+}
+
+.form-select:focus {
+    box-shadow: 0 0 0 0.1rem rgba(26, 26, 26, 0.25) !important;
+    transition: all .2s ease-in-out;
+}
+
+/* ------------- Genel Düzenlemeler ------------- */
+
+.op-icon {
+    cursor: pointer !important;
+    transition: all .2s ease-in-out
+}
+
+.op-icon:hover {
+    filter: brightness(95%);
+    box-shadow: 1px 1px 1px 1px rgba(0,0,0,.5);
+    transform: scale(1.04);
+    transition: all .2s ease-in-out
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+
+
+/*Ders seçim ekranı tabloları */
+@media (max-width: 992px) {
+    .table-transform {
+    }
+
+    .table-transform thead {
+        display: none;
+    }
+
+    .table-transform tr {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: .25rem;
+    }
+
+    .table-transform td {
+        display: block;
+        text-align: right; 
+        border: none;
+        border-bottom: 1px solid #f0f0f0;
+        position: relative; 
+        padding-left: 50%;
+    }
+
+    .table-transform td:last-child {
+        border-bottom: none;
+    }
+
+    .table-transform td::before {
+        content: attr(data-label); 
+        position: absolute;
+        left: 0.5rem;
+        width: 45%;
+        padding-right: 1rem;
+        text-align: left;
+        font-weight: bold;
+    }
+}
+
+.footer {
+    background-color: #0e223e !important;
+
+}
+
+.dropdown-menu .dropdown-menu-end {
+    transition: all .5s ease-in-out;
+}
+.modal-dialog {
+    box-shadow: none !important;
+}
