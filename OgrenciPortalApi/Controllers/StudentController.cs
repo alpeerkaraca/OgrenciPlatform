@@ -1,39 +1,44 @@
 ﻿using log4net;
 using OgrenciPortalApi.Attributes;
 using OgrenciPortalApi.Models;
-using OgrenciPortalApi.Utils;
 using OgrenciPortali.DTOs;
 using OgrenciPortali.Models;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.IdentityModel.Claims;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
+using System.Web.Http.Description;
 
 namespace OgrenciPortalApi.Controllers
 {
     [JwtAuth]
-    [RoutePrefix("api/students")]
-    public class StudentController : ApiController
+    [RoutePrefix("api/student")]
+    public class StudentController : BaseApiController
     {
-        private readonly ogrenci_portalEntities _db = new ogrenci_portalEntities();
-        private ILog Logger = LogManager.GetLogger(typeof(StudentController));
+        private readonly ILog Logger = LogManager.GetLogger(typeof(StudentController));
 
+        /// <summary>
+        /// Öğrencinin kayıt olabileceği ve onaya gönderdiği dersleri listeler.
+        /// </summary>
+        /// <returns>Öğrencinin ders kayıt sayfasının verilerini içeren bir HTTP yanıtı döner.</returns>
         [HttpGet]
         [Route("enroll")]
-        public async Task<IHttpActionResult> GetEnroll()
+        [ResponseType(typeof(EnrollPageDTO))]
+        public async Task<IHttpActionResult> GetEnrollableCourses()
         {
             try
             {
-                var userId = Guid.Parse(GetActiveUserId());
+                var userId = GetActiveUserId();
                 var user = await _db.Users.FindAsync(userId);
+                if (user == null)
+                {
+                    return Unauthorized();
+                }
 
                 var pendingStudentCourses = await _db.StudentCourses
-                    .Where(sc =>
-                        sc.StudentId == userId && sc.ApprovalStatus == (int)ApprovalStatus.Bekliyor &&
-                        !sc.OfferedCourses.IsDeleted)
+                    .Where(sc => sc.StudentId == userId && sc.ApprovalStatus == (int)ApprovalStatus.Bekliyor && !sc.OfferedCourses.IsDeleted)
                     .Select(sc => new EnrollDTO
                     {
                         CourseId = sc.OfferedCourses.CourseId,
@@ -45,12 +50,10 @@ namespace OgrenciPortalApi.Controllers
                     })
                     .ToListAsync();
 
-                var pendingCourseIds = new HashSet<Guid>(pendingStudentCourses
-                    .Where(p => p.CourseId.HasValue)
-                    .Select(p => p.CourseId.Value));
+                var pendingCourseIds = new HashSet<Guid>(pendingStudentCourses.Select(p => p.CourseId.Value));
 
                 var allDepartmentCourses = await _db.OfferedCourses
-                    .Where(oc => !oc.IsDeleted && oc.Courses.DepartmentId == user.DepartmentId)
+                    .Where(oc => !oc.IsDeleted && oc.Courses.DepartmentId == user.DepartmentId && oc.Semesters.IsActive)
                     .Where(oc => !pendingCourseIds.Contains(oc.CourseId))
                     .Select(s => new EnrollDTO
                     {
@@ -77,16 +80,21 @@ namespace OgrenciPortalApi.Controllers
             }
             catch (Exception ex)
             {
-                Logger.Error("Seçilebilir dersler çekilirken hata", ex);
-                return InternalServerError(ex);
+                Logger.Error("Seçilebilir dersler alınırken hata oluştu.", ex);
+                return InternalServerError(new Exception("Seçilebilir dersler alınırken bir hata oluştu."));
             }
         }
 
+        /// <summary>
+        /// Öğrencinin onay bekleyen tüm ders kayıtlarını sıfırlar.
+        /// </summary>
+        /// <returns>İşlem sonucunu bildiren bir HTTP yanıtı döner.</returns>
         [HttpPost]
         [Route("reset-enrollments")]
-        public async Task<IHttpActionResult> PostResetEnrollments()
+        [ResponseType(typeof(void))]
+        public async Task<IHttpActionResult> ResetEnrollments()
         {
-            var studentId = Guid.Parse(GetActiveUserId());
+            var studentId = GetActiveUserId();
             using (var transaction = _db.Database.BeginTransaction())
             {
                 try
@@ -97,82 +105,72 @@ namespace OgrenciPortalApi.Controllers
 
                     if (!enrollmentsToReset.Any())
                     {
-                        return Json(new { success = true, message = "Sıfırlanacak ders kaydınız bulunmamaktadır." });
+                        return Ok(new { message = "Sıfırlanacak, onay bekleyen bir ders kaydınız bulunmamaktadır." });
                     }
 
                     foreach (var enrollment in enrollmentsToReset)
                     {
                         var offeredCourse = await _db.OfferedCourses.FindAsync(enrollment.OfferedCourseId);
-                        if (offeredCourse != null)
+                        if (offeredCourse != null && offeredCourse.CurrentUserCount > 0)
                         {
                             offeredCourse.CurrentUserCount--;
                         }
-
                         _db.StudentCourses.Remove(enrollment);
                     }
 
                     await _db.SaveChangesAsync();
                     transaction.Commit();
 
-                    return Json(new
-                    {
-                        success = true,
-                        message = "Onay bekleyen tüm dersleriniz sıfırlandı. Şimdi yeniden seçim yapabilirsiniz."
-                    });
+                    return Ok(new { message = "Onay bekleyen tüm dersleriniz sıfırlandı. Şimdi yeniden seçim yapabilirsiniz." });
                 }
                 catch (Exception ex)
                 {
                     transaction.Rollback();
-                    Logger.Error("Ders sıfırlama sırasında hata.", ex);
-                    return Json(new
-                        { success = false, message = "Dersler sıfırlanırken bir hata oluştu: " + ex.Message });
+                    Logger.Error("Ders kayıtları sıfırlanırken hata oluştu.", ex);
+                    return InternalServerError(new Exception("Dersler sıfırlanırken bir hata oluştu."));
                 }
             }
         }
 
-
+        /// <summary>
+        /// Öğrencinin seçtiği derslere kaydını yapar ve danışman onayına gönderir.
+        /// </summary>
+        /// <param name="selectedOfferedCourseIds">Kaydolunacak açılmış derslerin ID listesi.</param>
+        /// <returns>İşlem sonucunu bildiren bir HTTP yanıtı döner.</returns>
         [HttpPost]
         [Route("enroll")]
-        public async Task<IHttpActionResult> PostEnrollments([FromBody] List<Guid> selectedCourseIds)
+        [ResponseType(typeof(void))]
+        public async Task<IHttpActionResult> EnrollCourses([FromBody] List<Guid> selectedOfferedCourseIds)
         {
-            var student = await _db.Users.FindAsync(Guid.Parse(GetActiveUserId()));
-            if (selectedCourseIds == null || !selectedCourseIds.Any())
+            if (selectedOfferedCourseIds == null || !selectedOfferedCourseIds.Any())
                 return BadRequest("Lütfen en az bir ders seçin.");
+
+            var studentId = GetActiveUserId();
             using (var transaction = _db.Database.BeginTransaction())
             {
                 try
                 {
-                    foreach (var courseId in selectedCourseIds)
+                    foreach (var offeredCourseId in selectedOfferedCourseIds)
                     {
-                        var offeredCourse = _db.OfferedCourses.Include(offeredCourse1 => offeredCourse1.Courses)
-                            .FirstOrDefault(oc => oc.CourseId == courseId && !oc.IsDeleted);
+                        var offeredCourse = await _db.OfferedCourses.Include(oc => oc.Courses)
+                            .FirstOrDefaultAsync(oc => oc.Id == offeredCourseId && !oc.IsDeleted);
+
                         if (offeredCourse == null)
-                        {
-                            throw new Exception("Seçilen derslerden biri sistemde bulunamadı: " + courseId);
-                        }
+                            return BadRequest($"Seçilen derslerden biri sistemde bulunamadı: ID {offeredCourseId}");
 
-                        var isAlreadyEnrolled = _db.StudentCourses
-                            .Any(sc => sc.StudentId == student.UserId && sc.OfferedCourseId == offeredCourse.Id);
-
-                        if (isAlreadyEnrolled)
-                        {
-                            throw new Exception("'" + offeredCourse.Courses.CourseName +
-                                                "' dersine zaten kayıtlısınız veya onay bekliyor.");
-                        }
+                        if (await _db.StudentCourses.AnyAsync(sc => sc.StudentId == studentId && sc.OfferedCourseId == offeredCourse.Id))
+                            return BadRequest($"'{offeredCourse.Courses.CourseName}' dersine zaten kayıtlısınız veya onay bekliyor.");
 
                         if (offeredCourse.CurrentUserCount >= offeredCourse.Quota)
-                        {
-                            throw new Exception("'" + offeredCourse.Courses.CourseName +
-                                                "' dersinin kontenjanı dolu.");
-                        }
+                            return BadRequest($"'{offeredCourse.Courses.CourseName}' dersinin kontenjanı dolu.");
 
                         var studentCourse = new StudentCourses()
                         {
-                            StudentId = student.UserId,
+                            StudentId = studentId,
                             OfferedCourseId = offeredCourse.Id,
                             ApprovalStatus = (int)ApprovalStatus.Bekliyor,
-                            CreatedBy = GetActiveUserId(),
-                            UpdatedBy = GetActiveUserId(),
+                            CreatedBy = studentId.ToString(),
+                            UpdatedBy = studentId.ToString(),
                             CreatedAt = DateTime.Now,
                             UpdatedAt = DateTime.Now,
                         };
@@ -183,74 +181,68 @@ namespace OgrenciPortalApi.Controllers
                     await _db.SaveChangesAsync();
                     transaction.Commit();
 
-
-                    return Json(new
-                    {
-                        success = true,
-                        message = "Ders seçimleriniz başarıyla danışman onayına gönderilmiştir."
-                    });
+                    return Ok(new { message = "Ders seçimleriniz başarıyla danışman onayına gönderilmiştir." });
                 }
                 catch (Exception ex)
                 {
                     transaction.Rollback();
-                    return Json(new { success = false, message = ex.Message });
+                    Logger.Error("Ders kaydı sırasında bir hata oluştu.", ex);
+                    return InternalServerError(new Exception("Ders kaydı sırasında beklenmedik bir hata oluştu."));
                 }
             }
         }
 
+        /// <summary>
+        /// Öğrencinin kayıtlı olduğu tüm dersleri ve durumlarını listeler.
+        /// </summary>
+        /// <returns>Öğrencinin derslerinin listesini ve özetini içeren bir HTTP yanıtı döner.</returns>
         [HttpGet]
         [Route("my-courses")]
+        [ResponseType(typeof(MyCoursesDTO))]
         public async Task<IHttpActionResult> GetMyCourses()
         {
             try
             {
-                var studentId = Guid.Parse(GetActiveUserId());
+                var studentId = GetActiveUserId();
                 var studentCoursesInDb = await _db.StudentCourses
                     .Include(sc => sc.OfferedCourses.Courses)
-                    .Include(sc => sc.OfferedCourses.Users) // Öğretmen bilgisi
+                    .Include(sc => sc.OfferedCourses.Users)
                     .Include(sc => sc.OfferedCourses.Semesters)
                     .Where(sc => sc.StudentId == studentId && !sc.IsDeleted)
                     .ToListAsync();
+
                 var pageDto = new MyCoursesDTO
                 {
                     Summary = new SummaryDto
                     {
                         TotalCount = studentCoursesInDb.Count,
-                        ApprovedCount =
-                            studentCoursesInDb.Count(c => c.ApprovalStatus == (int)ApprovalStatus.Onaylandı),
+                        ApprovedCount = studentCoursesInDb.Count(c => c.ApprovalStatus == (int)ApprovalStatus.Onaylandı),
                         PendingCount = studentCoursesInDb.Count(c => c.ApprovalStatus == (int)ApprovalStatus.Bekliyor),
-                        RejectedCount =
-                            studentCoursesInDb.Count(c => c.ApprovalStatus == (int)ApprovalStatus.Reddedildi)
+                        RejectedCount = studentCoursesInDb.Count(c => c.ApprovalStatus == (int)ApprovalStatus.Reddedildi)
                     },
                     Courses = studentCoursesInDb.Select(sc => new MyCourseDto
-                        {
-                            CourseCode = sc.OfferedCourses.Courses.CourseCode,
-                            CourseName = sc.OfferedCourses.Courses.CourseName,
-                            Credits = sc.OfferedCourses.Courses.Credits,
-                            TeacherFullName = sc.OfferedCourses.Users.Name + " " + sc.OfferedCourses.Users.Surname,
-                            SemesterName = sc.OfferedCourses.Semesters.SemesterName,
-                            DayOfWeek = ((DaysOfWeek)sc.OfferedCourses.DayOfWeek).ToString(),
-                            TimeSlot = $"{sc.OfferedCourses.StartTime:hh\\:mm} - {sc.OfferedCourses.EndTime:hh\\:mm}",
-                            ApprovalStatus = sc.ApprovalStatus,
-                            ApprovalStatusText = ((ApprovalStatus)sc.ApprovalStatus).ToString(),
-                            CreatedAt = sc.CreatedAt
-                        })
-                        .OrderByDescending(c => c.CreatedAt)
-                        .ToList()
+                    {
+                        CourseCode = sc.OfferedCourses.Courses.CourseCode,
+                        CourseName = sc.OfferedCourses.Courses.CourseName,
+                        Credits = sc.OfferedCourses.Courses.Credits,
+                        TeacherFullName = sc.OfferedCourses.Users.Name + " " + sc.OfferedCourses.Users.Surname,
+                        SemesterName = sc.OfferedCourses.Semesters.SemesterName,
+                        DayOfWeek = ((DaysOfWeek)sc.OfferedCourses.DayOfWeek).ToString(),
+                        TimeSlot = $"{sc.OfferedCourses.StartTime:hh\\:mm} - {sc.OfferedCourses.EndTime:hh\\:mm}",
+                        ApprovalStatus = sc.ApprovalStatus,
+                        ApprovalStatusText = ((ApprovalStatus)sc.ApprovalStatus).ToString(),
+                        CreatedAt = sc.CreatedAt
+                    })
+                    .OrderByDescending(c => c.CreatedAt)
+                    .ToList()
                 };
                 return Ok(pageDto);
             }
             catch (Exception ex)
             {
-                Logger.Error("Öğrencinin dersleri çekilirken hata oluştu.", ex);
-                return InternalServerError(ex);
+                Logger.Error("Öğrencinin dersleri alınırken hata oluştu.", ex);
+                return InternalServerError(new Exception("Dersleriniz alınırken bir hata oluştu."));
             }
-        }
-
-        public string GetActiveUserId()
-        {
-            return TokenManager.GetPrincipal(Request.Headers.Authorization.Parameter)
-                .FindFirst(ClaimTypes.NameIdentifier).Value;
         }
     }
 }

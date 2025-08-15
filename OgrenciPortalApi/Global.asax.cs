@@ -1,10 +1,11 @@
-﻿using System.IdentityModel.Claims;
+﻿using OgrenciPortalApi.Utils;
+using System.IdentityModel.Claims;
+using System.IO;
 using System.Web.Helpers;
 using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
-using OgrenciPortalApi.Utils;
 
 namespace OgrenciPortalApi
 {
@@ -12,7 +13,7 @@ namespace OgrenciPortalApi
     {
         protected void Application_Start()
         {
-            DotNetEnv.Env.Load();
+            DotNetEnv.Env.Load(Path.Combine(Server.MapPath("~/"), ""));
             AppSettings.Load();
             AreaRegistration.RegisterAllAreas();
             GlobalConfiguration.Configure(WebApiConfig.Register);

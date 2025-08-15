@@ -1,5 +1,5 @@
-﻿using OgrenciPortalApi.Attributes;
-using OgrenciPortalApi.Models;
+﻿using log4net;
+using OgrenciPortalApi.Attributes;
 using OgrenciPortali.Models;
 using System;
 using System.Data.Entity;
@@ -7,24 +7,29 @@ using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Http;
+using System.Web.Http.Description;
 
 namespace OgrenciPortalApi.Controllers
 {
+    [JwtAuth]
     [RoutePrefix("api/dashboard")]
-    public class DashboardController : ApiController
+    public class DashboardController : BaseApiController
     {
-        private readonly ogrenci_portalEntities db = new ogrenci_portalEntities();
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(DashboardController));
 
+        /// <summary>
+        /// Kullanıcının rolüne göre ilgili dashboard verilerini getirir.
+        /// </summary>
+        /// <returns>Kullanıcı rolüne uygun dashboard verilerini içeren bir HTTP yanıtı döner.</returns>
         [HttpGet]
-        [JwtAuth]
         [Route("data")]
-        public async Task<IHttpActionResult> GetDashboardDataAsync()
+        [ResponseType(typeof(object))]
+        public async Task<IHttpActionResult> GetDashboardData()
         {
             var claimsIdentity = User.Identity as ClaimsIdentity;
-            if (claimsIdentity == null || !claimsIdentity.IsAuthenticated)
+            if (claimsIdentity == null)
             {
-                return Content(HttpStatusCode.Unauthorized,
-                    new { success = false, message = "Geçerli bir oturum bulunamadı." });
+                return StatusCode(HttpStatusCode.Unauthorized);
             }
 
             try
@@ -61,24 +66,21 @@ namespace OgrenciPortalApi.Controllers
                         return BadRequest("Bilinmeyen kullanıcı rolü.");
                 }
 
-                return Ok(new { success = true, data = payload });
+                return Ok(payload);
             }
             catch (Exception ex)
             {
-                return InternalServerError(ex);
+                Logger.Error("Dashboard verileri alınırken bir hata oluştu.", ex);
+                return InternalServerError(new Exception("Dashboard verileri alınırken bir sunucu hatası oluştu."));
             }
         }
 
-        /// <summary>
-        /// Admin için dashboard verilerini asenkron olarak getirir.
-        /// </summary>
         private async Task<object> GetAdminDashboardDataAsync()
         {
-            // Sorguları sıralı olarak bekliyoruz (await).
-            var userCount = await db.Users.CountAsync(u => !u.IsDeleted);
-            var courseCount = await db.Courses.CountAsync(c => !c.IsDeleted);
-            var departmentCount = await db.Departments.CountAsync(d => !d.IsDeleted);
-            var pendingCount = await db.StudentCourses.CountAsync(sc =>
+            var userCount = await _db.Users.CountAsync(u => !u.IsDeleted);
+            var courseCount = await _db.Courses.CountAsync(c => !c.IsDeleted);
+            var departmentCount = await _db.Departments.CountAsync(d => !d.IsDeleted);
+            var pendingCount = await _db.StudentCourses.CountAsync(sc =>
                 sc.ApprovalStatus == (int)ApprovalStatus.Bekliyor && !sc.IsDeleted);
 
             return new
@@ -90,18 +92,13 @@ namespace OgrenciPortalApi.Controllers
             };
         }
 
-        /// <summary>
-        /// Danışman için dashboard verilerini asenkron olarak getirir.
-        /// </summary>
         private async Task<object> GetAdvisorDashboardDataAsync(Guid advisorId)
         {
-            var advisedStudentCount = await db.Users.CountAsync(u => u.AdvisorId == advisorId && !u.IsDeleted);
-
-            var pendingApprovalCount = await db.StudentCourses
+            var advisedStudentCount = await _db.Users.CountAsync(u => u.AdvisorId == advisorId && !u.IsDeleted);
+            var pendingApprovalCount = await _db.StudentCourses
                 .CountAsync(sc => sc.Users.AdvisorId == advisorId &&
                                   sc.ApprovalStatus == (int)ApprovalStatus.Bekliyor && !sc.IsDeleted);
-
-            var approvedCount = await db.StudentCourses
+            var approvedCount = await _db.StudentCourses
                 .CountAsync(sc => sc.Users.AdvisorId == advisorId &&
                                   sc.ApprovalStatus == (int)ApprovalStatus.Onaylandı && !sc.IsDeleted);
 
@@ -113,19 +110,14 @@ namespace OgrenciPortalApi.Controllers
             };
         }
 
-        /// <summary>
-        /// Öğrenci için dashboard verilerini asenkron olarak getirir.
-        /// </summary>
         private async Task<object> GetStudentDashboardDataAsync(Guid studentId)
         {
-            var enrolledCourseCount = await db.StudentCourses
+            var enrolledCourseCount = await _db.StudentCourses
                 .CountAsync(sc => sc.StudentId == studentId && !sc.IsDeleted);
-
-            var pendingCourseCount = await db.StudentCourses
+            var pendingCourseCount = await _db.StudentCourses
                 .CountAsync(sc => sc.StudentId == studentId &&
                                   sc.ApprovalStatus == (int)ApprovalStatus.Bekliyor && !sc.IsDeleted);
-
-            var approvedCourseCount = await db.StudentCourses
+            var approvedCourseCount = await _db.StudentCourses
                 .CountAsync(sc => sc.StudentId == studentId &&
                                   sc.ApprovalStatus == (int)ApprovalStatus.Onaylandı && !sc.IsDeleted);
 
@@ -135,16 +127,6 @@ namespace OgrenciPortalApi.Controllers
                 pendingCourseCount,
                 approvedCourseCount
             };
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-
-            base.Dispose(disposing);
         }
     }
 }

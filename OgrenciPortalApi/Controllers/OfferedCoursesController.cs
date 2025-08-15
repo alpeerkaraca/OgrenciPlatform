@@ -1,38 +1,40 @@
 ﻿using log4net;
+using OgrenciPortalApi.Attributes;
 using OgrenciPortalApi.Models;
-using OgrenciPortalApi.Utils;
 using OgrenciPortali.DTOs;
 using OgrenciPortali.Models;
 using System;
 using System.Data.Entity;
-using System.IdentityModel.Claims;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
+using System.Web.Http.Description;
 using System.Web.Mvc;
-using OgrenciPortalApi.Attributes;
 
 namespace OgrenciPortalApi.Controllers
 {
     [JwtAuth]
     [System.Web.Http.RoutePrefix("api/offered")]
-    public class OfferedCoursesController : ApiController
+    public class OfferedCoursesController : BaseApiController
     {
-        private readonly ogrenci_portalEntities db = new ogrenci_portalEntities();
-        private static readonly ILog Logger = LogManager.GetLogger(typeof(DepartmentController));
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(OfferedCoursesController));
 
-
+        /// <summary>
+        /// Sistemde açılmış olan tüm dersleri listeler.
+        /// </summary>
+        /// <returns>Açılmış derslerin listesini içeren bir HTTP yanıtı döner.</returns>
         [System.Web.Http.HttpGet]
-        [System.Web.Http.Route]
+        [System.Web.Http.Route("")]
+        [ResponseType(typeof(ListOfferedCoursesDTO))]
         public async Task<IHttpActionResult> GetOfferedCourses()
         {
             try
             {
-                var asd = await db.OfferedCourses
+                var offeredCourses = await _db.OfferedCourses
                     .Include(o => o.Courses.Departments)
                     .Include(o => o.Semesters)
                     .Include(o => o.Users)
-                    .Where(o => o.Users.UserId == o.TeacherId && !o.IsDeleted).Select(o => new ListOfferedCoursesDTO
+                    .Where(o => !o.IsDeleted).Select(o => new ListOfferedCoursesDTO
                     {
                         OfferedCourseId = o.Id,
                         DepartmentName = o.Courses.Departments.Name,
@@ -46,112 +48,129 @@ namespace OgrenciPortalApi.Controllers
                         EndTime = o.EndTime,
                         DayOfWeek = (DaysOfWeek)o.DayOfWeek,
                     }).ToListAsync();
-                if (!asd.Any())
-                {
-                    Logger.Warn("Ders listesinde ders bulunamadı!");
-                    return NotFound();
-                }
 
-                Logger.Info("Ders Listesi başarıyla çekildi.");
-                return Ok(asd);
+                Logger.Info("Açılan ders listesi başarıyla çekildi.");
+                return Ok(offeredCourses);
             }
             catch (Exception ex)
             {
-                Logger.Error("Dönem dersleri çekilirken hata oluştu", ex);
-                return InternalServerError(ex);
+                Logger.Error("Açılan dersler listesi alınırken hata oluştu.", ex);
+                return InternalServerError(new Exception("Açılan dersler listesi alınırken bir hata oluştu."));
             }
         }
 
+        /// <summary>
+        /// Yeni bir ders açma sayfası için gerekli verileri (danışman, dönem, ders listeleri vb.) getirir.
+        /// </summary>
+        /// <returns>Gerekli listeleri içeren bir HTTP yanıtı döner.</returns>
         [System.Web.Http.HttpGet]
         [System.Web.Http.Route("add")]
-        public async Task<IHttpActionResult> GetAddOfferedCourses()
-        {
-            var dto = new AddOfferedCourseDTO
-            {
-                AdvisorList = db.Users
-                    .Where(u => u.Role == (int)Roles.Danışman && !u.IsDeleted)
-                    .Select<Users, SelectListItem>(u => new SelectListItem
-                        { Value = u.UserId.ToString(), Text = u.Name + " " + u.Surname }),
-                SemesterList = db.Semesters
-                    .Select<Semesters, SelectListItem>(s => new SelectListItem
-                        { Value = s.SemesterId.ToString(), Text = s.SemesterName }),
-                CourseList = db.Courses.Select<Courses, SelectListItem>(c => new SelectListItem()
-                    { Value = c.CourseId.ToString(), Text = c.CourseName }),
-                DaysOfWeek = Enum.GetValues(typeof(DaysOfWeek))
-                    .Cast<DaysOfWeek>()
-                    .Select(d => new SelectListItem
-                    {
-                        Value = ((int)d).ToString(),
-                        Text = d.ToString()
-                    }),
-            };
-            var a = dto;
-            return Ok(dto);
-        }
-
-
-        [System.Web.Http.HttpPost]
-        [System.Web.Http.Route("add")]
-        public async Task<IHttpActionResult> PostAddOfferedCourses(AddOfferedCourseDTO dto)
-        {
-            if (!ModelState.IsValid)
-            {
-                Logger.Warn("Ders ekleme işlemi sırasında model geçersiz.");
-                return BadRequest(ModelState);
-            }
-
-            var offeredCourse = new OfferedCourses
-            {
-                Id = Guid.NewGuid(),
-                CourseId = dto.CourseId,
-                SemesterId = dto.SemesterId,
-                TeacherId = dto.AdvisorId,
-                Quota = dto.Quota,
-                StartTime = dto.StartTime,
-                EndTime = dto.EndTime,
-                DayOfWeek = (int)dto.DayOfWeek,
-                CreatedAt = DateTime.Now,
-                CreatedBy = GetActiveUserId(),
-                UpdatedAt = DateTime.Now,
-                UpdatedBy = GetActiveUserId(),
-                CurrentUserCount = 0
-            };
-            if (await db.OfferedCourses.AnyAsync(u =>
-                    u.CourseId == dto.CourseId && u.SemesterId == dto.SemesterId && u.TeacherId == dto.AdvisorId))
-                return BadRequest("Bu ders bu dönemde başka bir akademisyen tarafından verilmektedir.");
-            if (await db.OfferedCourses.AnyAsync(u =>
-                    u.CourseId == offeredCourse.CourseId && u.SemesterId == offeredCourse.SemesterId))
-                return BadRequest("Bu ders bu döneme zaten eklenmiş durumda. Tekrar ekleyemezsiniz.");
-
-            db.OfferedCourses.Add(offeredCourse);
-            await db.SaveChangesAsync();
-            Logger.Info("Yeni ders başarıyla eklendi.");
-            return Ok(new { Message = "Ders başarıyla eklendi." });
-        }
-
-        [System.Web.Http.HttpGet]
-        [System.Web.Http.Route("edit/{id:guid}")]
-        public async Task<IHttpActionResult> GetEditOfferedCourses(Guid id)
+        [ResponseType(typeof(AddOfferedCourseDTO))]
+        public IHttpActionResult GetAddOfferedCourses()
         {
             try
             {
-                var offeredCourseInDb = await db.OfferedCourses.FindAsync(id);
-                if (offeredCourseInDb == null)
+                var dto = new AddOfferedCourseDTO
                 {
-                    Logger.Warn("Ders bulunamadı.");
+                    AdvisorList = _db.Users
+                        .Where(u => u.Role == (int)Roles.Danışman && !u.IsDeleted && u.IsActive)
+                        .Select(u => new SelectListItem { Value = u.UserId.ToString(), Text = u.Name + " " + u.Surname }),
+                    SemesterList = _db.Semesters
+                        .Where(s => !s.IsDeleted && s.IsActive)
+                        .Select(s => new SelectListItem { Value = s.SemesterId.ToString(), Text = s.SemesterName }),
+                    CourseList = _db.Courses
+                        .Where(c => !c.IsDeleted)
+                        .Select(c => new SelectListItem() { Value = c.CourseId.ToString(), Text = c.CourseName }),
+                    DaysOfWeek = Enum.GetValues(typeof(DaysOfWeek))
+                        .Cast<DaysOfWeek>()
+                        .Select(d => new SelectListItem { Value = ((int)d).ToString(), Text = d.ToString() }),
+                };
+                return Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Ders açma sayfası için veriler alınırken hata oluştu.", ex);
+                return InternalServerError(new Exception("Ders açma sayfası için veriler alınırken bir hata oluştu."));
+            }
+        }
+
+        /// <summary>
+        /// Sisteme yeni bir açılan ders ekler.
+        /// </summary>
+        /// <param name="dto">Açılacak dersin bilgilerini içeren DTO.</param>
+        /// <returns>Oluşturma durumunu bildiren bir HTTP yanıtı döner.</returns>
+        [System.Web.Http.HttpPost]
+        [System.Web.Http.Route("add")]
+        [ResponseType(typeof(void))]
+        public async Task<IHttpActionResult> AddOfferedCourse(AddOfferedCourseDTO dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                if (await _db.OfferedCourses.AnyAsync(u =>
+                    u.CourseId == dto.CourseId && u.SemesterId == dto.SemesterId && !u.IsDeleted))
+                {
+                    return BadRequest("Bu ders bu döneme zaten eklenmiş durumda. Tekrar ekleyemezsiniz.");
+                }
+
+                var offeredCourse = new OfferedCourses
+                {
+                    Id = Guid.NewGuid(),
+                    CourseId = dto.CourseId,
+                    SemesterId = dto.SemesterId,
+                    TeacherId = dto.AdvisorId,
+                    Quota = dto.Quota,
+                    StartTime = dto.StartTime,
+                    EndTime = dto.EndTime,
+                    DayOfWeek = (int)dto.DayOfWeek,
+                    CreatedAt = DateTime.Now,
+                    CreatedBy = GetActiveUserIdString(),
+                    UpdatedAt = DateTime.Now,
+                    UpdatedBy = GetActiveUserIdString(),
+                    CurrentUserCount = 0
+                };
+
+                _db.OfferedCourses.Add(offeredCourse);
+                await _db.SaveChangesAsync();
+                Logger.Info("Yeni açılan ders başarıyla eklendi.");
+                return CreatedAtRoute("DefaultApi", new { id = offeredCourse.Id }, new { Message = "Ders başarıyla açıldı." });
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Yeni ders açılırken bir hata oluştu.", ex);
+                return InternalServerError(new Exception("Ders açılırken bir hata oluştu."));
+            }
+        }
+
+        /// <summary>
+        /// ID'si belirtilen açılmış dersin düzenleme bilgilerini getirir.
+        /// </summary>
+        /// <param name="id">Düzenlenecek olan açılmış dersin ID'si.</param>
+        /// <returns>Açılmış dersin düzenleme bilgilerini içeren bir HTTP yanıtı döner.</returns>
+        [System.Web.Http.HttpGet]
+        [System.Web.Http.Route("edit/{id:guid}")]
+        [ResponseType(typeof(EditOfferedCoursesDTO))]
+        public async Task<IHttpActionResult> GetEditOfferedCourse(Guid id)
+        {
+            if (id == Guid.Empty)
+            {
+                return BadRequest("Geçersiz ID.");
+            }
+            try
+            {
+                var offeredCourseInDb = await _db.OfferedCourses.FindAsync(id);
+                if (offeredCourseInDb == null || offeredCourseInDb.IsDeleted)
+                {
                     return NotFound();
                 }
 
-                if (offeredCourseInDb.IsDeleted)
-                {
-                    Logger.Warn("Silinmiş bir ders düzenlenmeye çalışıldı.");
-                    return BadRequest("Bu ders silinmiş, düzenleme yapılamaz.");
-                }
-
-                var course = await db.Courses.FindAsync(offeredCourseInDb.CourseId);
+                var course = await _db.Courses.FindAsync(offeredCourseInDb.CourseId);
                 if (course == null)
                 {
-                    Logger.Warn("Ders kodu bulunamadı.");
                     return NotFound();
                 }
 
@@ -166,55 +185,40 @@ namespace OgrenciPortalApi.Controllers
                     EndTime = offeredCourseInDb.EndTime,
                     Quota = offeredCourseInDb.Quota,
                     CourseCode = course.CourseCode,
-                    AdvisorList = db.Users
-                        .Where(u => u.Role == (int)Roles.Danışman && !u.IsDeleted)
-                        .Select<Users, SelectListItem>(u => new SelectListItem
-                            { Value = u.UserId.ToString(), Text = u.Name + " " + u.Surname }),
-                    SemesterList = db.Semesters
-                        .Select<Semesters, SelectListItem>(s => new SelectListItem
-                            { Value = s.SemesterId.ToString(), Text = s.SemesterName }),
-                    CourseList = db.Courses.Select<Courses, SelectListItem>(c => new SelectListItem()
-                        { Value = c.CourseId.ToString(), Text = c.CourseName }),
-                    DaysOfWeek = Enum.GetValues(typeof(DaysOfWeek))
-                        .Cast<DaysOfWeek>()
-                        .Select(d => new SelectListItem
-                        {
-                            Value = ((int)d).ToString(),
-                            Text = d.ToString()
-                        }),
+                    AdvisorList = _db.Users.Where(u => u.Role == (int)Roles.Danışman && !u.IsDeleted).Select(u => new SelectListItem { Value = u.UserId.ToString(), Text = u.Name + " " + u.Surname }),
+                    SemesterList = _db.Semesters.Select(s => new SelectListItem { Value = s.SemesterId.ToString(), Text = s.SemesterName }),
+                    CourseList = _db.Courses.Select(c => new SelectListItem() { Value = c.CourseId.ToString(), Text = c.CourseName }),
+                    DaysOfWeek = Enum.GetValues(typeof(DaysOfWeek)).Cast<DaysOfWeek>().Select(d => new SelectListItem { Value = ((int)d).ToString(), Text = d.ToString() }),
                 };
                 return Ok(dto);
             }
             catch (Exception ex)
             {
-                Logger.Error("Ders düzenleme sayfası yüklenirken hata oluştu", ex);
-                return InternalServerError(ex);
+                Logger.Error($"ID'si {id} olan açılmış dersin bilgileri alınırken hata oluştu.", ex);
+                return InternalServerError(new Exception("Açılan ders bilgileri alınırken bir hata oluştu."));
             }
         }
 
-        [System.Web.Http.HttpPost]
+        /// <summary>
+        /// Mevcut bir açılmış dersin bilgilerini günceller.
+        /// </summary>
+        /// <param name="dto">Güncellenecek açılmış dersin yeni bilgilerini içeren DTO.</param>
+        /// <returns>Güncelleme durumunu bildiren bir HTTP yanıtı döner.</returns>
+        [System.Web.Http.HttpPut]
         [System.Web.Http.Route("edit")]
-        public async Task<IHttpActionResult> PostEditOfferedCourses(EditOfferedCoursesDTO dto)
+        [ResponseType(typeof(void))]
+        public async Task<IHttpActionResult> EditOfferedCourse(EditOfferedCoursesDTO dto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             try
             {
-                if (!ModelState.IsValid)
+                var offeredCourseInDb = await _db.OfferedCourses.FindAsync(dto.OfferedCourseId);
+                if (offeredCourseInDb == null || offeredCourseInDb.IsDeleted)
                 {
-                    Logger.Warn("Ders düzenleme işlemi sırasında model geçersiz.");
-                    return BadRequest(ModelState);
-                }
-
-                var offeredCourseInDb = await db.OfferedCourses.FindAsync(dto.OfferedCourseId);
-                if (offeredCourseInDb == null)
-                {
-                    Logger.Warn("Ders bulunamadı.");
                     return NotFound();
-                }
-
-                if (offeredCourseInDb.IsDeleted)
-                {
-                    Logger.Warn("Silinmiş bir ders düzenlenmeye çalışıldı.");
-                    return BadRequest("Bu ders silinmiş, düzenleme yapılamaz.");
                 }
 
                 offeredCourseInDb.CourseId = dto.CourseId;
@@ -223,65 +227,66 @@ namespace OgrenciPortalApi.Controllers
                 offeredCourseInDb.Quota = dto.Quota;
                 offeredCourseInDb.StartTime = dto.StartTime;
                 offeredCourseInDb.EndTime = dto.EndTime;
-                offeredCourseInDb.DayOfWeek = (int)dto.DayOfWeek;
+                offeredCourseInDb.DayOfWeek = dto.DayOfWeek;
                 offeredCourseInDb.UpdatedAt = DateTime.Now;
-                offeredCourseInDb.UpdatedBy = GetActiveUserId();
-                await db.SaveChangesAsync();
-                Logger.Info("Ders başarıyla güncellendi.");
-                return Ok("Ders başarıyla güncellendi.");
+                offeredCourseInDb.UpdatedBy = GetActiveUserIdString();
+                await _db.SaveChangesAsync();
+                Logger.Info($"ID'si {dto.OfferedCourseId} olan açılmış ders başarıyla güncellendi.");
+                return Ok(new { Message = "Açılan ders başarıyla güncellendi." });
             }
             catch (Exception ex)
             {
-                Logger.Error("Ders düzenleme işlemi sırasında hata oluştu", ex);
-                return InternalServerError(ex);
+                Logger.Error($"ID'si {dto.OfferedCourseId} olan açılmış ders güncellenirken hata oluştu.", ex);
+                return InternalServerError(new Exception("Açılan ders güncellenirken bir hata oluştu."));
             }
         }
 
-        [System.Web.Http.HttpGet]
+        /// <summary>
+        /// Belirtilen ID'ye sahip açılmış dersi siler (soft delete).
+        /// </summary>
+        /// <param name="id">Silinecek açılmış dersin ID'si.</param>
+        /// <returns>Silme işleminin durumunu bildiren bir HTTP yanıtı döner.</returns>
+        [System.Web.Http.HttpDelete]
         [System.Web.Http.Route("delete/{id:guid}")]
+        [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> DeleteOfferedCourse(Guid id)
         {
+            if (id == Guid.Empty)
+            {
+                return BadRequest("Geçersiz ID.");
+            }
             try
             {
-                var offeredCourseInDb = await db.OfferedCourses.FindAsync(id);
+                var offeredCourseInDb = await _db.OfferedCourses.FindAsync(id);
                 if (offeredCourseInDb == null)
                 {
-                    Logger.Warn("Ders bulunamadı.");
                     return NotFound();
                 }
 
                 if (offeredCourseInDb.IsDeleted)
                 {
-                    Logger.Warn("Silinmiş bir ders tekrar silinmeye çalışıldı.");
                     return BadRequest("Bu ders zaten silinmiş.");
                 }
 
                 if (offeredCourseInDb.CurrentUserCount > 0)
                 {
-                    Logger.Warn("Ders silinmeye çalışıldı ancak kayıtlı öğrenciler var.");
-                    return BadRequest("Bu dersin kayıtlı öğrencileri var, silinemez.");
+                    return BadRequest("Bu derse kayıtlı öğrenciler bulunduğu için silinemez.");
                 }
 
                 offeredCourseInDb.IsDeleted = true;
                 offeredCourseInDb.UpdatedAt = DateTime.Now;
-                offeredCourseInDb.UpdatedBy = GetActiveUserId();
+                offeredCourseInDb.UpdatedBy = GetActiveUserIdString();
                 offeredCourseInDb.DeletedAt = DateTime.Now;
-                offeredCourseInDb.DeletedBy = GetActiveUserId();
-                await db.SaveChangesAsync();
-                Logger.Info("Ders başarıyla silindi.");
-                return Ok(new { Message = "Ders başarıyla silindi." });
+                offeredCourseInDb.DeletedBy = GetActiveUserIdString();
+                await _db.SaveChangesAsync();
+                Logger.Info($"ID'si {id} olan açılmış ders başarıyla silindi.");
+                return Ok(new { Message = "Açılan ders başarıyla silindi." });
             }
             catch (Exception ex)
             {
-                Logger.Error("Ders silme işlemi sırasında hata oluştu", ex);
-                return InternalServerError(ex);
+                Logger.Error($"ID'si {id} olan açılmış ders silinirken hata oluştu.", ex);
+                return InternalServerError(new Exception("Açılan ders silinirken bir hata oluştu."));
             }
-        }
-
-        private string GetActiveUserId()
-        {
-            return TokenManager.GetPrincipal(Request.Headers.Authorization.Parameter)
-                .FindFirst(ClaimTypes.NameIdentifier).Value;
         }
     }
 }

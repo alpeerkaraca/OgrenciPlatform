@@ -1,32 +1,35 @@
 ﻿using log4net;
 using OgrenciPortalApi.Attributes;
 using OgrenciPortalApi.Models;
-using OgrenciPortalApi.Utils;
 using OgrenciPortali.DTOs;
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.Entity.Migrations;
-using System.IdentityModel.Claims;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
+using System.Web.Http.Description;
 
 namespace OgrenciPortalApi.Controllers
 {
-    [RoutePrefix("api/departments")]
     [JwtAuth]
-    public class DepartmentController : ApiController
+    [RoutePrefix("api/departments")]
+    public class DepartmentController : BaseApiController
     {
-        private readonly ogrenci_portalEntities db = new ogrenci_portalEntities();
         private static readonly ILog Logger = LogManager.GetLogger(typeof(DepartmentController));
 
+        /// <summary>
+        /// Tüm aktif departmanları listeler.
+        /// </summary>
+        /// <returns>Departman listesini içeren bir HTTP yanıtı döner.</returns>
         [HttpGet]
         [Route("")]
+        [ResponseType(typeof(List<ListDepartmentsDTO>))]
         public async Task<IHttpActionResult> GetDepartments()
         {
             try
             {
-                var departments = await db.Departments.Where(d => !d.IsDeleted)
+                var departments = await _db.Departments.Where(d => !d.IsDeleted)
                     .Select(d => new ListDepartmentsDTO()
                     {
                         DepartmentId = d.DepartmentId,
@@ -35,26 +38,38 @@ namespace OgrenciPortalApi.Controllers
                         IsActive = d.IsActive
                     })
                     .ToListAsync();
-                if (!departments.Any())
-                    return NotFound();
+
                 return Ok(departments);
             }
             catch (Exception ex)
             {
-                Logger.Error("Departman Listesi Gönderilirken Hata: ", ex);
-                return InternalServerError();
+                Logger.Error("Departman listesi alınırken hata oluştu.", ex);
+                return InternalServerError(new Exception("Departman listesi alınırken bir hata oluştu."));
             }
         }
 
+        /// <summary>
+        /// Yeni bir departman ekler.
+        /// </summary>
+        /// <param name="dto">Eklenecek departmanın bilgilerini içeren DTO.</param>
+        /// <returns>Oluşturma durumunu bildiren bir HTTP yanıtı döner.</returns>
         [HttpPost]
         [Route("add")]
-        public async Task<IHttpActionResult> GetAddDepartment(AddDepartmentDTO dto)
+        [ResponseType(typeof(void))]
+        public async Task<IHttpActionResult> AddDepartment(AddDepartmentDTO dto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
             {
-                if (await db.Departments.AnyAsync(d =>
-                        d.Name == dto.DepartmentName || d.DepartmentCode == dto.DepartmentCode))
+                if (await _db.Departments.AnyAsync(d =>
+                        (d.Name == dto.DepartmentName || d.DepartmentCode == dto.DepartmentCode) && !d.IsDeleted))
+                {
                     return Conflict();
+                }
 
                 var department = new Departments
                 {
@@ -62,33 +77,46 @@ namespace OgrenciPortalApi.Controllers
                     Name = dto.DepartmentName,
                     DepartmentCode = dto.DepartmentCode,
                     IsActive = true,
-                    IsDeleted = false,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now,
-                    CreatedBy = GetActiveUserId(),
-                    UpdatedBy = GetActiveUserId(),
+                    CreatedBy = GetActiveUserIdString(),
+                    UpdatedBy = GetActiveUserIdString(),
                 };
 
-                db.Departments.Add(department);
-                await db.SaveChangesAsync();
-                return Ok("Kullanıcı kaydedildi");
+                _db.Departments.Add(department);
+                await _db.SaveChangesAsync();
+
+                Logger.Info($"Departman eklendi: {department.Name}");
+                return CreatedAtRoute("DefaultApi", new { id = department.DepartmentId }, new { Message = "Departman başarıyla eklendi." });
             }
             catch (Exception ex)
             {
-                Logger.Error("Departman Ekleme İşlemi Sırasında Hata: ", ex);
-                return InternalServerError();
+                Logger.Error("Departman eklenirken hata oluştu.", ex);
+                return InternalServerError(new Exception("Departman eklenirken bir hata oluştu."));
             }
         }
 
+        /// <summary>
+        /// Belirtilen ID'ye sahip departman bilgilerini getirir.
+        /// </summary>
+        /// <param name="id">Düzenlenecek departmanın ID'si.</param>
+        /// <returns>Departman bilgilerini içeren bir HTTP yanıtı döner.</returns>
         [HttpGet]
         [Route("edit/{id:guid}")]
-        public async Task<IHttpActionResult> GetEditDepartment(Guid id)
+        [ResponseType(typeof(EditDepartmentDTO))]
+        public async Task<IHttpActionResult> GetDepartment(Guid id)
         {
+            if (id == Guid.Empty)
+            {
+                return BadRequest("Geçersiz departman ID'si.");
+            }
+
             try
             {
-                var department = await db.Departments.FindAsync(id);
+                var department = await _db.Departments.FindAsync(id);
                 if (department == null || department.IsDeleted)
                     return NotFound();
+
                 var dto = new EditDepartmentDTO
                 {
                     DepartmentId = department.DepartmentId,
@@ -100,69 +128,88 @@ namespace OgrenciPortalApi.Controllers
             }
             catch (Exception ex)
             {
-                Logger.Error("Departman Düzenleme İşlemi Sırasında Hata: ", ex);
-                return InternalServerError();
+                Logger.Error($"ID'si {id} olan departman düzenleme için alınırken hata oluştu.", ex);
+                return InternalServerError(new Exception("Departman bilgileri alınırken bir hata oluştu."));
             }
         }
 
-        [HttpPost]
+        /// <summary>
+        /// Mevcut bir departmanın bilgilerini günceller.
+        /// </summary>
+        /// <param name="dto">Güncellenecek departmanın yeni bilgilerini içeren DTO.</param>
+        /// <returns>Güncelleme durumunu bildiren bir HTTP yanıtı döner.</returns>
+        [HttpPut]
         [Route("edit")]
-        public async Task<IHttpActionResult> PostEditDepartment(EditDepartmentDTO dto)
+        [ResponseType(typeof(void))]
+        public async Task<IHttpActionResult> EditDepartment(EditDepartmentDTO dto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             try
             {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
-                var department = await db.Departments.FindAsync(dto.DepartmentId);
+                var department = await _db.Departments.FindAsync(dto.DepartmentId);
                 if (department == null || department.IsDeleted)
                     return NotFound();
-                if (await db.Departments.AnyAsync(d =>
-                        d.Name == dto.DepartmentName && d.DepartmentId != dto.DepartmentId && d.IsActive &&
-                        !d.IsDeleted))
+
+                if (await _db.Departments.AnyAsync(d =>
+                        (d.Name == dto.DepartmentName || d.DepartmentCode == dto.DepartmentCode) &&
+                        d.DepartmentId != dto.DepartmentId && !d.IsDeleted))
+                {
                     return Conflict();
+                }
 
                 department.Name = dto.DepartmentName;
                 department.DepartmentCode = dto.DepartmentCode;
                 department.IsActive = dto.IsActive;
-                db.Departments.AddOrUpdate(department);
-                await db.SaveChangesAsync();
-                return Ok("Bölüm güncellendi");
+                department.UpdatedAt = DateTime.Now;
+                department.UpdatedBy = GetActiveUserIdString();
+
+                await _db.SaveChangesAsync();
+                Logger.Info($"Departman güncellendi: {department.Name}");
+                return Ok(new { Message = "Bölüm başarıyla güncellendi." });
             }
             catch (Exception ex)
             {
-                Logger.Error("Departman Güncelleme İşlemi Sırasında Hata: ", ex);
-                return InternalServerError();
+                Logger.Error($"ID'si {dto.DepartmentId} olan departman güncellenirken hata oluştu.", ex);
+                return InternalServerError(new Exception("Departman güncellenirken bir hata oluştu."));
             }
         }
 
-        [HttpGet]
+        /// <summary>
+        /// Belirtilen ID'ye sahip departmanı siler (soft delete).
+        /// </summary>
+        /// <param name="id">Silinecek departmanın ID'si.</param>
+        /// <returns>Silme işleminin durumunu bildiren bir HTTP yanıtı döner.</returns>
+        [HttpDelete]
         [Route("delete/{id:guid}")]
-        public async Task<IHttpActionResult> GetDeleteDepartment(Guid id)
+        [ResponseType(typeof(void))]
+        public async Task<IHttpActionResult> DeleteDepartment(Guid id)
         {
+            if (id == Guid.Empty)
+            {
+                return BadRequest("Geçersiz departman ID'si.");
+            }
+
             try
             {
-                var department = await db.Departments.FindAsync(id);
+                var department = await _db.Departments.FindAsync(id);
                 if (department == null || department.IsDeleted)
                     return NotFound();
+
                 department.IsDeleted = true;
                 department.UpdatedAt = DateTime.Now;
-                department.UpdatedBy = GetActiveUserId();
-                db.Departments.AddOrUpdate(department);
-                await db.SaveChangesAsync();
-                return Ok("Bölüm silindi");
+                department.UpdatedBy = GetActiveUserIdString();
+
+                await _db.SaveChangesAsync();
+                Logger.Info($"Departman silindi: {department.Name}");
+                return Ok(new { Message = "Bölüm başarıyla silindi." });
             }
             catch (Exception ex)
             {
-                Logger.Error("Departman Silme İşlemi Sırasında Hata: ", ex);
-                return InternalServerError();
+                Logger.Error($"ID'si {id} olan departman silinirken hata oluştu.", ex);
+                return InternalServerError(new Exception("Departman silinirken bir hata oluştu."));
             }
-        }
-
-
-        public string GetActiveUserId()
-        {
-            return TokenManager.GetPrincipal(Request.Headers.Authorization.Parameter)
-                .FindFirst(ClaimTypes.NameIdentifier).Value;
         }
     }
 }

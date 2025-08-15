@@ -1,33 +1,36 @@
 ﻿using log4net;
-using OgrenciPortalApi.Models;
-using OgrenciPortalApi.Utils;
+using OgrenciPortalApi.Attributes;
 using OgrenciPortali.DTOs;
 using OgrenciPortali.Models;
 using OgrenciPortali.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.IdentityModel.Claims;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
+using System.Web.Http.Description;
 
 namespace OgrenciPortalApi.Controllers
 {
-    //[JwtAuth]
+    [JwtAuth]
     [RoutePrefix("api/advisor")]
-    public class AdvisorController : ApiController
+    public class AdvisorController : BaseApiController
     {
-        private readonly ogrenci_portalEntities _db = new ogrenci_portalEntities();
         private static readonly ILog Logger = LogManager.GetLogger(typeof(AdvisorController));
 
+        /// <summary>
+        /// Danışmanın onayını bekleyen ders kayıtlarını listeler.
+        /// </summary>
+        /// <returns>Onay bekleyen ders kayıtlarının listesini içeren bir HTTP yanıtı döner.</returns>
         [HttpGet]
         [Route("approvals")]
+        [ResponseType(typeof(AdvisorApprovalDTO))]
         public async Task<IHttpActionResult> GetApprovals()
         {
             try
             {
-                var advisorId = Guid.Parse(GetActiveUserId());
+                var advisorId = GetActiveUserId();
 
                 var approvalsFromDb = await _db.StudentCourses
                     .Where(sc =>
@@ -60,18 +63,23 @@ namespace OgrenciPortalApi.Controllers
             }
             catch (Exception ex)
             {
-                Logger.Error("Error fetching approvals", ex);
-                return InternalServerError(ex);
+                Logger.Error("Danışman için onaylar alınırken hata oluştu.", ex);
+                return InternalServerError(new Exception("Onaylar alınırken bir sunucu hatası oluştu."));
             }
         }
 
+        /// <summary>
+        /// Danışmana atı olan öğrencileri listeler.
+        /// </summary>
+        /// <returns>Danışmanın öğrencilerinin listesini içeren bir HTTP yanıtı döner.</returns>
         [HttpGet]
         [Route("students")]
+        [ResponseType(typeof(AdvisedStudentsDTO))]
         public async Task<IHttpActionResult> GetAdvisedStudents()
         {
             try
             {
-                var advisorId = Guid.Parse(GetActiveUserId());
+                var advisorId = GetActiveUserId();
 
                 var students = await _db.Users
                     .Include(u => u.Departments)
@@ -87,6 +95,7 @@ namespace OgrenciPortalApi.Controllers
                         StudentNo = u.StudentNo
                     })
                     .ToListAsync();
+
                 var dto = new AdvisedStudentsDTO
                 {
                     AdvisedStudents = students
@@ -96,22 +105,35 @@ namespace OgrenciPortalApi.Controllers
             }
             catch (Exception ex)
             {
-                Logger.Error("Error fetching advised students", ex);
-                return InternalServerError(ex);
+                Logger.Error("Danışman öğrencileri alınırken hata oluştu.", ex);
+                return InternalServerError(new Exception("Danışman öğrencileri alınırken bir sunucu hatası oluştu."));
             }
         }
 
+        /// <summary>
+        /// Belirtilen ID'ye sahip öğrencinin detaylarını getirir.
+        /// </summary>
+        /// <param name="id">Detayları görüntülenecek öğrencinin ID'si.</param>
+        /// <returns>Öğrencinin detay bilgilerini içeren bir HTTP yanıtı döner.</returns>
         [HttpGet]
         [Route("student/{id:guid}")]
+        [ResponseType(typeof(StudentDetailDto))]
         public async Task<IHttpActionResult> GetStudent(Guid id)
         {
+            if (id == Guid.Empty)
+            {
+                return BadRequest("Geçersiz öğrenci ID'si.");
+            }
+
             try
             {
-                var advisorId = Guid.Parse(GetActiveUserId());
+                var advisorId = GetActiveUserId();
                 var student = await _db.Users.Include(s => s.Departments).FirstOrDefaultAsync(u =>
                     u.UserId == id && u.AdvisorId == advisorId && !u.IsDeleted && u.IsActive);
+
                 if (student == null)
                     return NotFound();
+
                 var studentCourses = await _db.StudentCourses.Where(s => s.StudentId == id && !s.IsDeleted)
                     .Include(s => s.OfferedCourses.Courses)
                     .Include(s => s.OfferedCourses.Semesters)
@@ -127,6 +149,7 @@ namespace OgrenciPortalApi.Controllers
                         RequestDate = s.CreatedAt,
                         StudentId = s.StudentId
                     }).ToListAsync();
+
                 var studentDetailDto = new StudentDetailDto
                 {
                     FullName = student.Name + " " + student.Surname,
@@ -140,66 +163,65 @@ namespace OgrenciPortalApi.Controllers
             }
             catch (Exception ex)
             {
-                Logger.Error("Öğrenci detayları alınırken bir hata oluştu: ", ex);
-                return InternalServerError();
+                Logger.Error($"ID'si {id} olan öğrencinin detayları alınırken hata oluştu.", ex);
+                return InternalServerError(new Exception("Öğrenci detayları alınırken bir hata oluştu."));
             }
         }
 
+        /// <summary>
+        /// Öğrenci ders kayıtlarının onay durumunu günceller (Onayla/Reddet).
+        /// </summary>
+        /// <param name="model">Onay durumu güncellenecek kayıtların bilgilerini içeren model.</param>
+        /// <returns>İşlem sonucunu bildiren bir HTTP yanıtı döner.</returns>
         [HttpPost]
         [Route("update-approval-status")]
-        public async Task<IHttpActionResult> PostUpdateStatus(ApprovalRequestModel model)
+        [ResponseType(typeof(void))]
+        public async Task<IHttpActionResult> UpdateApprovalStatus(ApprovalRequestModel model)
         {
-            var advisor = await _db.Users.FindAsync(Guid.Parse(GetActiveUserId()));
-            if (model.StudentIds == null || model.OfferedCourseIds == null ||
-                model.StudentIds.Count != model.OfferedCourseIds.Count)
+            if (model == null || model.StudentIds == null || model.OfferedCourseIds == null ||
+                model.StudentIds.Count != model.OfferedCourseIds.Count || model.StudentIds.Count == 0)
             {
-                return Json(new { success = false, message = "Geçersiz istek parametreleri." });
+                return BadRequest("Geçersiz veya eksik istek parametreleri.");
             }
 
+            var advisorId = GetActiveUserId();
             using (var transaction = _db.Database.BeginTransaction())
             {
                 try
                 {
-                    var successCount = 0;
-                    var failCount = 0;
+                    int successCount = 0;
+                    var failedRecords = new List<string>();
 
                     for (int i = 0; i < model.StudentIds.Count; i++)
                     {
                         var studentId = model.StudentIds[i];
                         var offeredCourseId = model.OfferedCourseIds[i];
 
-                        var studentCourse = _db.StudentCourses
+                        var studentCourse = await _db.StudentCourses
                             .Include(sc => sc.Users)
                             .Include(sc => sc.OfferedCourses)
-                            .FirstOrDefault(sc => sc.StudentId == studentId &&
+                            .FirstOrDefaultAsync(sc => sc.StudentId == studentId &&
                                                   sc.OfferedCourseId == offeredCourseId &&
-                                                  sc.Users.AdvisorId == advisor.UserId);
+                                                  sc.Users.AdvisorId == advisorId);
 
-                        if (studentCourse != null)
+                        if (studentCourse != null && studentCourse.ApprovalStatus == (int)ApprovalStatus.Bekliyor)
                         {
-                            if (studentCourse.ApprovalStatus == (int)ApprovalStatus.Bekliyor)
-                            {
-                                studentCourse.ApprovalStatus = (int)model.NewStatus;
-                                studentCourse.UpdatedBy = GetActiveUserId();
-                                studentCourse.UpdatedAt = DateTime.UtcNow;
-                                if (model.NewStatus == ApprovalStatus.Reddedildi)
-                                {
-                                    if (studentCourse.OfferedCourses.CurrentUserCount > 0)
-                                    {
-                                        studentCourse.OfferedCourses.CurrentUserCount--;
-                                    }
-                                }
+                            studentCourse.ApprovalStatus = (int)model.NewStatus;
+                            studentCourse.UpdatedBy = advisorId.ToString();
+                            studentCourse.UpdatedAt = DateTime.UtcNow;
 
-                                successCount++;
-                            }
-                            else
+                            if (model.NewStatus == ApprovalStatus.Reddedildi)
                             {
-                                failCount++;
+                                if (studentCourse.OfferedCourses.CurrentUserCount > 0)
+                                {
+                                    studentCourse.OfferedCourses.CurrentUserCount--;
+                                }
                             }
+                            successCount++;
                         }
                         else
                         {
-                            failCount++;
+                            failedRecords.Add($"Öğrenci ID: {studentId}, Ders ID: {offeredCourseId}");
                         }
                     }
 
@@ -209,36 +231,21 @@ namespace OgrenciPortalApi.Controllers
                     var statusText = model.NewStatus == ApprovalStatus.Onaylandı ? "onaylandı" : "reddedildi";
                     var message = $"{successCount} ders kaydı başarıyla {statusText}.";
 
-                    if (failCount > 0)
+                    if (failedRecords.Any())
                     {
-                        message += $" {failCount} kayıt işlenemedi.";
+                        message += $" {failedRecords.Count} kayıt işlenemedi (ya daha önce işlenmiş ya da yetkiniz dışında).";
+                        Logger.Warn($"Danışman {advisorId} için bazı onay kayıtları işlenemedi. Detaylar: {string.Join(", ", failedRecords)}");
                     }
 
-                    return Json(new { success = true, message = message });
+                    return Ok(new { message });
                 }
                 catch (Exception ex)
                 {
                     transaction.Rollback();
-                    return Json(new { success = false, message = "Bir hata oluştu: " + ex.Message });
+                    Logger.Error("Onay durumu güncellenirken bir hata oluştu.", ex);
+                    return InternalServerError(new Exception("Onay durumu güncellenirken bir hata oluştu."));
                 }
             }
-        }
-
-        private string GetActiveUserId()
-        {
-            return TokenManager.GetPrincipal(Request.Headers.Authorization.Parameter)
-                .FindFirst(ClaimTypes.NameIdentifier).Value;
-        }
-
-        private Task<List<DepartmentSelectionDTO>> FillDepartmentsList()
-        {
-            return _db.Departments
-                .Where(d => !d.IsDeleted)
-                .Select(d => new DepartmentSelectionDTO()
-                {
-                    DepartmentId = d.DepartmentId,
-                    DepartmentName = d.Name
-                }).ToListAsync();
         }
     }
 }
