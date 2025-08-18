@@ -526,6 +526,7 @@
     <Content Include="Views\Advisor\StudentDetail.cshtml" />
     <Content Include="Views\Student\MyCourses.cshtml" />
     <Content Include="Views\User\Edit.cshtml" />
+    <Content Include="Views\Shared\_FeedbackModal.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

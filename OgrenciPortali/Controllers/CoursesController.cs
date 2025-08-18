@@ -82,6 +82,16 @@ namespace OgrenciPortali.Controllers
         {
             if (!ModelState.IsValid)
             {
+                using (var client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri(_apiBaseAddress);
+                    var token = GetCurrentUserToken();
+                    if (!string.IsNullOrEmpty(token))
+                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                    viewModel.DepartmentList = await GetDepListFromApi(client);
+                }
+
                 return View(viewModel);
             }
 
@@ -91,6 +101,7 @@ namespace OgrenciPortali.Controllers
                 var token = GetCurrentUserToken();
                 if (!string.IsNullOrEmpty(token))
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
                 var dto = new AddCourseDTO
                 {
                     CourseCode = viewModel.CourseCode,
@@ -98,20 +109,22 @@ namespace OgrenciPortali.Controllers
                     Credits = viewModel.Credits,
                     DepartmentId = viewModel.DepartmentId
                 };
+
                 var response = await client.PostAsJsonAsync("api/courses/add", dto);
+
                 if (response.IsSuccessStatusCode)
                 {
-                    var json = await response.Content.ReadAsStringAsync();
+                    TempData["SuccessMessage"] = "Ders başarıyla eklendi.";
+                    return RedirectToAction("List", "Courses");
                 }
                 else
                 {
                     ModelState.AddModelError("", @"Ders eklenirken bir hata oluştu.");
 
+                    viewModel.DepartmentList = await GetDepListFromApi(client);
                     return View(viewModel);
                 }
             }
-
-            return RedirectToAction("Add", "Courses");
         }
 
         // GET: Courses/Edit/5
@@ -221,8 +234,7 @@ namespace OgrenciPortali.Controllers
             if (!res.IsSuccessStatusCode) return null;
             var json = await res.Content.ReadAsStringAsync();
             var courseDataDto = JsonConvert.DeserializeObject<AddCourseDTO>(json);
-            return new SelectList(courseDataDto.DepartmentsList, "DepartmentId",
-                "DepartmentName");
+            return new SelectList(courseDataDto.DepartmentsList, "DepartmentId", "DepartmentName");
         }
     }
 }

@@ -245,6 +245,7 @@ namespace OgrenciPortalApi.Controllers
                     DepartmentId = userInDb.DepartmentId,
                     AdvisorId = userInDb.AdvisorId,
                     StudentNo = userInDb.StudentNo,
+                    
                 };
                 FillEditModel(dto);
 
@@ -344,7 +345,7 @@ namespace OgrenciPortalApi.Controllers
                 .Select(d => new SelectListItem { Value = d.DepartmentId.ToString(), Text = d.Name });
             model.AdvisorsList = _db.Users
                 .Where(u => u.Role == (int)Roles.Danışman && !u.IsDeleted && u.IsActive)
-                .Select(u => new SelectListItem { Value = u.UserId.ToString(), Text = $@"{u.Name} {u.Surname}" });
+                .Select(u => new SelectListItem { Value = u.UserId.ToString(), Text = u.Name + " " + u.Surname });
         }
 
         private void FillRegisterModel(RegisterDataDto model)

@@ -67,6 +67,11 @@ namespace OgrenciPortalApi.Controllers
 
             try
             {
+                if (await _db.Semesters.AnyAsync(s => s.IsActive) && dto.IsActive)
+                    return BadRequest(
+                        "Aktif bir dönem bulunmakta lütfen diğer dönemi sonlandırın ya da dönemi pasif olarak ekleyin.");
+                if (await _db.Semesters.AnyAsync(s => s.SemesterName.ToLower() == dto.SemesterName.ToLower()))
+                    return BadRequest("Bu isme ait bir dönem mevcut. Yeni bir isim giriniz.");
                 var semester = new Semesters
                 {
                     SemesterId = Guid.NewGuid(),
@@ -83,7 +88,7 @@ namespace OgrenciPortalApi.Controllers
                 _db.Semesters.Add(semester);
                 await _db.SaveChangesAsync();
                 Logger.Info($"Yeni dönem eklendi: {dto.SemesterName}");
-                return CreatedAtRoute("DefaultApi", new { id = semester.SemesterId }, new { Message = "Dönem başarıyla eklendi." });
+                return Ok(new { Message = "Dönem başarıyla eklendi." });
             }
             catch (Exception ex)
             {
@@ -106,6 +111,7 @@ namespace OgrenciPortalApi.Controllers
             {
                 return BadRequest("Geçersiz dönem ID'si.");
             }
+
             try
             {
                 var semester = await _db.Semesters.FirstOrDefaultAsync(s => s.SemesterId == id && !s.IsDeleted);
@@ -145,13 +151,21 @@ namespace OgrenciPortalApi.Controllers
             {
                 return BadRequest(ModelState);
             }
+
             try
             {
-                var semester = await _db.Semesters.FirstOrDefaultAsync(s => s.SemesterId == dto.SemesterId && !s.IsDeleted);
+                var semester =
+                    await _db.Semesters.FirstOrDefaultAsync(s => s.SemesterId == dto.SemesterId && !s.IsDeleted);
                 if (semester == null)
                 {
                     return NotFound();
                 }
+
+                if (await _db.Semesters.AnyAsync(s => s.SemesterName.ToLower() == dto.SemesterName.ToLower()))
+                    return BadRequest("Bu isme sahip bir dönem bulunmakta. Lütfen başka bir isim giriniz.");
+                if (dto.IsActive && await _db.Semesters.AnyAsync(s => s.IsActive && !s.IsDeleted))
+                    return BadRequest(
+                        "Aktif bir dönem zaten mevcut. Lütfen diğer dönemi pasif yapın ve tekrar deneyin.");
 
                 semester.SemesterName = dto.SemesterName;
                 semester.StartDate = dto.StartDate;
@@ -184,6 +198,7 @@ namespace OgrenciPortalApi.Controllers
             {
                 return BadRequest("Geçersiz dönem ID'si.");
             }
+
             try
             {
                 var semester = await _db.Semesters.FirstOrDefaultAsync(s => s.SemesterId == id && !s.IsDeleted);
@@ -199,7 +214,7 @@ namespace OgrenciPortalApi.Controllers
                 semester.DeletedBy = GetActiveUserIdString();
                 await _db.SaveChangesAsync();
                 Logger.Info($"Dönem silindi: {semester.SemesterName}");
-                return Ok(new { Message = "Dönem başarıyla silindi." });
+                return Ok("Dönem Başarıyla Silindi");
             }
             catch (Exception ex)
             {

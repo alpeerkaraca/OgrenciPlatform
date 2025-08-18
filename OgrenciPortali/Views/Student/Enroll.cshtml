@@ -104,7 +104,7 @@
                                 var isQuotaFull = course.CurrentUserCount >= course.Quota;
                                 var rowClass = isQuotaFull ? "table-secondary text-muted" : "";
 
-                                <tr class="text-center @rowClass" data-course-id="@course.CourseId" data-code="@course.CourseCode" data-name="@course.CourseName" data-credit="@course.Credit">
+                                <tr class="text-center @rowClass" data-course-id="@course.OfferedCourseId" data-code="@course.CourseCode" data-name="@course.CourseName" data-credit="@course.Credit">
                                     <td>
                                         @if (isQuotaFull)
                                         {
@@ -112,7 +112,7 @@
                                         }
                                         else
                                         {
-                                            <input class="form-check-input" type="checkbox" name="selectedCourses" value="@course.CourseId">
+                                            <input class="form-check-input" type="checkbox" name="selectedCourses" value="@course.OfferedCourseId">
                                         }
                                     </td>
                                     <td>@course.CourseCode</td>
@@ -278,7 +278,7 @@
                         submitButton.disabled = true;
                         spinner.classList.remove('d-none');
 
-                        fetch('http://localhost:8000/api/students/enroll',
+                        fetch('http://localhost:8000/api/student/enroll',
                                 {
                                     method: 'POST',
                                     headers: {
@@ -289,7 +289,7 @@
                                 })
                             .then(response => response.json().then(data => ({ ok: response.ok, data })))
                             .then(({ ok, data }) => {
-                                showResponseModal(ok, ok ? 'İşlem Başarılı' : 'Bir Hata Oluştu', data.message);
+                                showResponseModal(ok, ok ? 'İşlem Başarılı' : 'Bir Hata Oluştu', data.Message);
                                 if (ok) {
                                     responseModalEl.addEventListener('hidden.bs.modal', () => location.reload(), { once: true });
                                 }
@@ -319,7 +319,7 @@
                         resetButton.disabled = true;
                         spinner.classList.remove('d-none');
 
-                        fetch('http://localhost:8000/api/students/reset-enrollments',
+                        fetch('http://localhost:8000/api/student/reset-enrollments',
                                 {
                                     method: 'POST',
                                     headers: {
@@ -328,7 +328,7 @@
                                 })
                             .then(response => response.json().then(data => ({ ok: response.ok, data })))
                             .then(({ ok, data }) => {
-                                showResponseModal(ok, ok ? 'İşlem Başarılı' : 'Hata', data.message);
+                                showResponseModal(ok, ok ? 'İşlem Başarılı' : 'Hata', data.Message);
                                 if (ok) {
                                     responseModalEl.addEventListener('hidden.bs.modal', () => location.reload(), { once: true });
                                 }

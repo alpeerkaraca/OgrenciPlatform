@@ -119,7 +119,7 @@
                     if (courseIdToDelete) {
                         fetch(`http://localhost:8000/api/courses/delete/${courseIdToDelete}`,
                                 {
-                                    method: 'GET',
+                                    method: 'DELETE',
                                     headers: { Authorization: `Bearer ${token}` }
                                 }
                             )

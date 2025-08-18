@@ -21,7 +21,9 @@ namespace OgrenciPortalApi.Utils
                 .Where(sc => sc.StudentId == studentId)
                 .Select(sc => new ConflictCheckDTO
                 {
-                    DayOfWeek = (DaysOfWeek)sc.OfferedCourses.DayOfWeek,
+                    CourseId = sc.OfferedCourseId,
+                    CourseName = sc.OfferedCourses.Courses.CourseName,
+                    DayOfWeek = sc.OfferedCourses.DayOfWeek,
                     EndTime = sc.OfferedCourses.StartTime,
                     StartTime = sc.OfferedCourses.EndTime
                 })

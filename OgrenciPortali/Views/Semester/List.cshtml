@@ -42,6 +42,7 @@
                         </td>
                         <td class="text-center">
                             @Html.ActionLink("Düzenle", "Edit", new { id = item.SemesterId }, new { @class = "btn btn-sm btn-info" })
+                            <a class="btn btn-sm btn-outline-danger delete-button text-center" data-id="@item.SemesterId" data-name="@item.SemesterName">Sil</a>
                         </td>
                     </tr>
                 }
@@ -54,12 +55,59 @@
 @section scripts {
     <script>
         $(document).ready(function() {
-            $('#semestersTable').DataTable({
+            var table = $('#semestersTable').DataTable({
                 language: {
                     url: '/Content/datatables/i18n/tr.json'
                 },
                 responsive: true
             });
+
+            $('#semestersTable tbody').on('click',
+                '.delete-button',
+                function() {
+                    var semesterIdToDelete = $(this).data('id');
+                    var semesterNameToDelete = $(this).data('name');
+
+                    showFeedbackModal('confirm',
+                        'Silmek İstediğine Emin Misin',
+                        `<p><b>${semesterNameToDelete}</b> adlı dönemi silmek istediğinize emin misiniz?</p>
+                         <div class="alert alert-warning mb-0">
+                             <i class="bi bi-exclamation-triangle me-2"></i>
+                             <strong>Uyarı:</strong> Bu işlem geri alınamaz!
+                         </div>`,
+                        async function() {
+                            try {
+                                var response = await fetch(`http://localhost:8000/api/semesters/delete/${semesterIdToDelete}`,
+                                    {
+                                        method: 'DELETE',
+                                        headers: {
+                                            'Authorization': `Bearer ${sessionStorage.getItem('bearerToken')}`
+                                        }
+                                    });
+
+                                var json = await response.json();
+
+                                if (response.ok) {
+                                    showFeedbackModal(
+                                        "success",
+                                        "İşlem Başarılı",
+                                        json.Message,
+                                        null,
+                                        null,
+                                        function() {
+                                            window.location.reload();
+                                        }
+                                    );
+                                } else {
+                                    showFeedbackModal('error', 'Silerken Hata', json.Message);
+                                }
+                            } catch (ex) {
+                                showFeedbackModal("error", "Beklenmeyen Hata", "Bağlantı Hatası veya sunucu yanıtı JSON formatında değil.");
+                            }
+                        },
+                        'Evet, Sil'
+                    );
+                });
         });
     </script>
 }

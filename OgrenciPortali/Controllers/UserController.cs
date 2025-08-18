@@ -310,8 +310,22 @@ namespace OgrenciPortali.Controllers
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync();
-                    var result = JsonConvert.DeserializeObject<UpdateUserViewModel>(json);
-                    return View(result);
+                    var result = JsonConvert.DeserializeObject<EditUserDTO>(json);
+                    var vm = new UpdateUserViewModel
+                    {
+                        UserId = result.UserId,
+                        Name = result.Name,
+                        Surname = result.Surname,
+                        Email = result.Email,
+                        StudentNo = result.StudentNo,
+                        Role = result.Role,
+                        AdvisorId = result.AdvisorId,
+                        AdvisorsList = result.AdvisorsList,
+                        DepartmentsList = result.DepartmentsList,
+                        RolesList = result.RolesList,
+                        DepartmentId = result.DepartmentId,
+                    };
+                    return View(vm);
                 }
 
                 return View(new UpdateUserViewModel());
