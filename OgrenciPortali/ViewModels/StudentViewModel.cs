@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using OgrenciPortali.DTOs;
-using OgrenciPortali.Models;
+using Shared.DTO;
+using Shared.Enums;
 
 namespace OgrenciPortali.ViewModels
 {
@@ -49,12 +49,5 @@ namespace OgrenciPortali.ViewModels
         public DateTime RequestDate { get; set; }
 
         public List<AdvisorApprovalViewModel> PendingApprovals { get; set; } = new List<AdvisorApprovalViewModel>();
-    }
-
-    public class ApprovalRequestModel
-    {
-        public List<Guid> StudentIds { get; set; }
-        public List<Guid> OfferedCourseIds { get; set; }
-        public ApprovalStatus NewStatus { get; set; }
     }
 }

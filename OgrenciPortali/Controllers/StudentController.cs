@@ -1,6 +1,5 @@
 ﻿using log4net;
 using OgrenciPortali.Attributes;
-using OgrenciPortali.Models;
 using OgrenciPortali.ViewModels;
 using System;
 using System.Net.Http;
@@ -8,7 +7,8 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Newtonsoft.Json;
-using OgrenciPortali.DTOs;
+using Shared.DTO;
+using Shared.Enums;
 
 namespace OgrenciPortali.Controllers
 {
@@ -19,7 +19,6 @@ namespace OgrenciPortali.Controllers
         private readonly string _apiBaseAddress = Utils.AppSettings.ApiBaseAddress;
 
         [HttpGet]
-        [CustomAuth(Roles.Öğrenci)]
         public async Task<ActionResult> Enroll()
         {
             using (var client = new HttpClient())
@@ -28,7 +27,7 @@ namespace OgrenciPortali.Controllers
                 var token = GetCurrentUserToken();
                 if (!string.IsNullOrEmpty(token))
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await client.GetAsync("api/students/enroll");
+                var response = await client.GetAsync("api/student/enroll");
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync();
@@ -49,7 +48,6 @@ namespace OgrenciPortali.Controllers
         /// <summary>
         /// Öğrencinin seçtiği dersleri görüntüler
         /// </summary>
-        [CustomAuth(Roles.Öğrenci)]
         public async Task<ActionResult> MyCourses()
         {
 

@@ -410,43 +410,46 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Models\BaseClass.cs" />
     <Compile Include="Models\Courses.cs">
-      <DependentUpon>OgrenciPortaAPIContext.tt</DependentUpon>
+      <DependentUpon>OgrenciPortalContext.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\Departments.cs">
-      <DependentUpon>OgrenciPortaAPIContext.tt</DependentUpon>
+      <DependentUpon>OgrenciPortalContext.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\OfferedCourses.cs">
-      <DependentUpon>OgrenciPortaAPIContext.tt</DependentUpon>
+      <DependentUpon>OgrenciPortalContext.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\OgrenciPortaAPIContext.Context.cs">
+    <Compile Include="Models\OgrenciPortalApiDB.Partial.cs" />
+    <Compile Include="Models\OgrenciPortalContext.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>OgrenciPortaAPIContext.Context.tt</DependentUpon>
+      <DependentUpon>OgrenciPortalContext.Context.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\OgrenciPortaAPIContext.cs">
+    <Compile Include="Models\OgrenciPortalContext.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>OgrenciPortaAPIContext.tt</DependentUpon>
+      <DependentUpon>OgrenciPortalContext.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\OgrenciPortaAPIContext.Designer.cs">
+    <Compile Include="Models\OgrenciPortalContext.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>OgrenciPortaAPIContext.edmx</DependentUpon>
+      <DependentUpon>OgrenciPortalContext.edmx</DependentUpon>
     </Compile>
     <Compile Include="Models\Semesters.cs">
-      <DependentUpon>OgrenciPortaAPIContext.tt</DependentUpon>
+      <DependentUpon>OgrenciPortalContext.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\StudentCourses.cs">
-      <DependentUpon>OgrenciPortaAPIContext.tt</DependentUpon>
+      <DependentUpon>OgrenciPortalContext.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\Users.cs">
-      <DependentUpon>OgrenciPortaAPIContext.tt</DependentUpon>
+      <DependentUpon>OgrenciPortalContext.tt</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utils\CheckEmail.cs" />
+    <Compile Include="Utils\ConflictCheck.cs" />
     <Compile Include="Utils\Settings.cs" />
     <Compile Include="Utils\TokenManager.cs" />
+    <Compile Include="Utils\Utils.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Areas\HelpPage\HelpPage.css" />
@@ -468,16 +471,6 @@
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
-    <Content Include="Models\OgrenciPortaAPIContext.Context.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>OgrenciPortaAPIContext.edmx</DependentUpon>
-      <LastGenOutput>OgrenciPortaAPIContext.Context.cs</LastGenOutput>
-    </Content>
-    <Content Include="Models\OgrenciPortaAPIContext.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>OgrenciPortaAPIContext.edmx</DependentUpon>
-      <LastGenOutput>OgrenciPortaAPIContext.cs</LastGenOutput>
-    </Content>
     <Content Include="Areas\HelpPage\Views\Web.config" />
     <Content Include="Areas\HelpPage\Views\Shared\_Layout.cshtml" />
     <Content Include="Areas\HelpPage\Views\Help\ResourceModel.cshtml" />
@@ -497,12 +490,15 @@
     <Content Include="Areas\HelpPage\Views\Help\DisplayTemplates\CollectionModelDescription.cshtml" />
     <Content Include="Areas\HelpPage\Views\Help\DisplayTemplates\ApiGroup.cshtml" />
     <Content Include="Areas\HelpPage\Views\Help\Api.cshtml" />
-    <EntityDeploy Include="Models\OgrenciPortaAPIContext.edmx">
-      <Generator>EntityModelCodeGenerator</Generator>
-      <LastGenOutput>OgrenciPortaAPIContext.Designer.cs</LastGenOutput>
-    </EntityDeploy>
-    <Content Include="Models\OgrenciPortaAPIContext.edmx.diagram">
-      <DependentUpon>OgrenciPortaAPIContext.edmx</DependentUpon>
+    <Content Include="Models\OgrenciPortalContext.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>OgrenciPortalContext.edmx</DependentUpon>
+      <LastGenOutput>OgrenciPortalContext.Context.cs</LastGenOutput>
+    </Content>
+    <Content Include="Models\OgrenciPortalContext.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>OgrenciPortalContext.edmx</DependentUpon>
+      <LastGenOutput>OgrenciPortalContext.cs</LastGenOutput>
     </Content>
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
@@ -512,6 +508,14 @@
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include=".env" />
     <Content Include=".env.example" />
+    <Content Include="README.md" />
+    <EntityDeploy Include="Models\OgrenciPortalContext.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>OgrenciPortalContext.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <Content Include="Models\OgrenciPortalContext.edmx.diagram">
+      <DependentUpon>OgrenciPortalContext.edmx</DependentUpon>
+    </Content>
     <None Include="Scripts\jquery-3.7.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.1.js" />
     <Content Include="Scripts\jquery-3.7.1.min.js" />
@@ -533,10 +537,6 @@
     <Content Include="Areas\HelpPage\Views\_ViewStart.cshtml" />
     <Content Include="Content\Site.css" />
     <Content Include="Views\Web.config" />
-    <Content Include="Views\_ViewStart.cshtml" />
-    <Content Include="Views\HomeApi\Index.cshtml" />
-    <Content Include="Views\Shared\Error.cshtml" />
-    <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Scripts\jquery-3.7.1.min.map" />
     <Content Include="Scripts\jquery-3.7.1.slim.min.map" />
   </ItemGroup>
@@ -572,9 +572,9 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OgrenciPortali\OgrenciPortali.csproj">
-      <Project>{77e42c2b-512d-4f57-a670-c18593a1425a}</Project>
-      <Name>OgrenciPortali</Name>
+    <ProjectReference Include="..\Shared\Shared.csproj">
+      <Project>{c1a1f8ae-f566-4cc3-a43a-ecdf08faae16}</Project>
+      <Name>Shared</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

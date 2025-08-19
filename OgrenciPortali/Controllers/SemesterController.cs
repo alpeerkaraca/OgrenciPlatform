@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using OgrenciPortali.Models;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using Microsoft.Ajax.Utilities;
 using Newtonsoft.Json;
 using OgrenciPortali.Attributes;
-using OgrenciPortali.DTOs;
+using Shared.DTO;
 using OgrenciPortali.ViewModels;
+using Shared.Enums;
 
 namespace OgrenciPortali.Controllers
 {

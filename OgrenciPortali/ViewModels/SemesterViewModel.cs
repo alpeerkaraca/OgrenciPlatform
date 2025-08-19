@@ -1,6 +1,5 @@
 ﻿using System;
-using OgrenciPortali.Models;
-
+using Shared.DTO;
 namespace OgrenciPortali.ViewModels
 {
     public class SemesterListViewModel : BaseClass

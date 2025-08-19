@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using OgrenciPortali.Models;
 using System.Web.Mvc;
-using OgrenciPortali.DTOs;
+using Shared.DTO;
+using Shared.Enums;
 
 namespace OgrenciPortali.ViewModels
 {

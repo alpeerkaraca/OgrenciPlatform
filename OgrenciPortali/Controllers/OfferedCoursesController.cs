@@ -1,6 +1,5 @@
 ﻿using log4net;
 using OgrenciPortali.Attributes;
-using OgrenciPortali.Models;
 using OgrenciPortali.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -10,14 +9,14 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Newtonsoft.Json;
-using OgrenciPortali.DTOs;
+using Shared.DTO;
+using Shared.Enums;
 
 namespace OgrenciPortali.Controllers
 {
     [CustomAuth(Roles.Admin)]
     public class OfferedCoursesController : Controller
     {
-        private readonly OgrenciPortalContext db = new OgrenciPortalContext();
         private static readonly ILog Logger = LogManager.GetLogger(typeof(CoursesController));
         private readonly string _apiBaseAddress = Utils.AppSettings.ApiBaseAddress;
 
@@ -246,15 +245,6 @@ namespace OgrenciPortali.Controllers
             return token;
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-
-            base.Dispose(disposing);
-        }
 
 
         private async Task<AddOfferedCourseViewModel> FillModel(AddOfferedCourseViewModel viewModel)

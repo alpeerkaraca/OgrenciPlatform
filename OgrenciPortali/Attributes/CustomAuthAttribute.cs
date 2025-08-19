@@ -1,6 +1,6 @@
 ﻿using log4net;
 using Microsoft.IdentityModel.Tokens;
-using OgrenciPortali.Models;
+using Shared.Enums;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -17,7 +17,7 @@ namespace OgrenciPortali.Attributes
         private readonly Roles[] _allowedRoles;
         private static readonly ILog Logger = LogManager.GetLogger(typeof(CustomAuthAttribute));
 
-public CustomAuthAttribute(params Roles[] roles)
+        public CustomAuthAttribute(params Roles[] roles)
         {
             this._allowedRoles = roles;
         }
@@ -136,12 +136,12 @@ public CustomAuthAttribute(params Roles[] roles)
         private bool CheckRoleAuthorization(ClaimsPrincipal principal)
         {
             if (_allowedRoles == null || !_allowedRoles.Any())
-                return true; 
+                return true;
 
             var userRoles = principal.FindAll("user_role").Select(c => c.Value).ToHashSet();
 
             if (!userRoles.Any())
-                return false; 
+                return false;
 
             foreach (var allowedRole in _allowedRoles)
             {

@@ -1,6 +1,5 @@
 ﻿using log4net;
 using OgrenciPortalApi.Attributes;
-using OgrenciPortali.Models;
 using System;
 using System.Data.Entity;
 using System.Net;
@@ -8,6 +7,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
+using Shared.Enums;
 
 namespace OgrenciPortalApi.Controllers
 {

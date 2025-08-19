@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using OgrenciPortali.DTOs;
+using Shared.DTO;
 
 namespace OgrenciPortali.ViewModels
 {

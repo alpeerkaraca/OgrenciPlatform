@@ -12,11 +12,11 @@ namespace OgrenciPortalApi.Controllers
     /// </summary>
     public class BaseApiController : ApiController
     {
-        protected readonly ogrenci_portalEntities _db;
+        protected readonly OgrenciPortalApiDB _db;
 
         public BaseApiController()
         {
-            _db = new ogrenci_portalEntities();
+            _db = new OgrenciPortalApiDB();
         }
 
         /// <summary>

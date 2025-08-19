@@ -31,9 +31,9 @@
                         </div>
                     }
 
-                    @using (Html.BeginForm("Add", "Semester", FormMethod.Post, new { @class = "needs-validation", novalidate = "novalidate" }))
+                    @using (Html.BeginForm("Add", "Semester", FormMethod.Post, new { @class = "needs-validation", novalidate = "novalidate", id = "semesterForm" }))
                     {
-                        @*@Html.AntiForgeryToken()*@ 
+                        @*@Html.AntiForgeryToken()*@
                         @Html.HiddenFor(model => model.IsActive)
                         <div class="row" id="form-area">
 
@@ -63,9 +63,13 @@
                                 </label> @Html.EditorFor(model => model.EndDate, new { htmlAttributes = new { @class = "form-control", required = true, type = "date" } })
                             </div>
 
+                            <div class="col-12 mb-3">
+                                <div id="dateError" class="text-danger"></div>
+                            </div>
+
 
                             <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary ">
+                                <button class="btn btn-primary" type="submit">
                                     <i class="bi bi-check-lg me-2"></i>Dönem Ekle
                                 </button>
                                 <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">
@@ -84,11 +88,12 @@
 {
     <script src="~/Scripts/jquery-3.7.1.min.js"></script>
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
 
             var isActiveInput = $('#IsActive');
             var btnYes = $('#btnYes');
             var btnNo = $('#btnNo');
+            var form = $('#semesterForm');
 
             function updateActiveButtons() {
                 var isActive = isActiveInput.val().toLowerCase() === 'true';
@@ -107,12 +112,12 @@
             updateActiveButtons();
 
 
-            btnYes.click(function () {
+            btnYes.click(function() {
                 isActiveInput.val('true');
                 updateActiveButtons();
             });
 
-            btnNo.click(function () {
+            btnNo.click(function() {
                 isActiveInput.val('false');
                 updateActiveButtons();
             });
@@ -120,7 +125,6 @@
             var startDateInput = $('#StartDate');
             var endDateInput = $('#EndDate');
             var dateError = $('#dateError');
-            var form = $('#semesterForm');
 
             function validateDates() {
                 var startDate = new Date(startDateInput.val());
@@ -128,7 +132,7 @@
 
                 if (!startDateInput.val() || !endDateInput.val()) {
                     dateError.text('');
-                    return true; 
+                    return true;
                 }
 
                 if (startDate > endDate) {
@@ -143,12 +147,49 @@
             startDateInput.on('change', validateDates);
             endDateInput.on('change', validateDates);
 
-            form.on('submit', function (e) {
-                if (!validateDates()) {
+            form.on('submit',
+                async function(e) {
                     e.preventDefault();
-                    alert('Lütfen tarih alanlarını kontrol edin. Bitiş tarihi başlangıçtan önce olamaz.');
-                }
-            });
+                    if (!validateDates()) {
+                        showFeedbackModal("error", "Tarih Hatası", 'Lütfen tarih alanlarını kontrol edin. Bitiş tarihi başlangıçtan önce olamaz.', null, null, null);
+                        return;
+                    }
+
+                    const formDataArray = $(this).serializeArray();
+                    let formDataObject = {};
+                    $.each(formDataArray,
+                        function(i, field) {
+                            formDataObject[field.name] = field.value;
+                        });
+                    formDataObject.IsActive = (formDataObject.IsActive.toLowerCase() === 'true');
+
+                    try {
+                        const response = await fetch('http://localhost:8000/api/semesters/add',
+                            {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${sessionStorage.getItem('bearerToken')}`
+                                },
+                                body: JSON.stringify(formDataObject)
+                            });
+
+                        if (response.ok) {
+                            // Success!
+                            const result = await response.json();
+                            //console.log('Success:', result["Message"]);
+                            showFeedbackModal('success', 'Dönem Başarıyla Eklendi', result["Message"]);
+                        } else {
+                            // Handle server errors (e.g., 400, 500)
+                            const errorMessage = await response.json();
+                            //const errorText = errorMessage["Message"];
+                            //console.error('Error:', response.status, errorText);
+                            showFeedbackModal('error', 'Dönem Ekleme Hatası', errorMessage["Message"]);
+                        }
+                    } catch (error) {
+                        showFeedbackModal('error', 'İşlem Hatası', 'Sunucuya bağlanırken bir hata oluştu.');
+                    }
+                });
         });
     </script>
 }

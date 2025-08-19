@@ -1,14 +1,14 @@
 using log4net;
 using OgrenciPortali.Attributes;
-using OgrenciPortali.Models;
 using System;
+using Shared.Enums;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Newtonsoft.Json;
-using OgrenciPortali.DTOs;
+using Shared.DTO;
 
 namespace OgrenciPortali.Controllers
 {
@@ -18,7 +18,6 @@ namespace OgrenciPortali.Controllers
     [CustomAuth(Roles.Danýþman)]
     public class AdvisorController : Controller
     {
-        private readonly OgrenciPortalContext db = new OgrenciPortalContext();
         private static readonly ILog Logger = LogManager.GetLogger(typeof(CoursesController));
         private readonly string _apiBaseAddress = Utils.AppSettings.ApiBaseAddress;
 
@@ -101,16 +100,6 @@ namespace OgrenciPortali.Controllers
             }
 
             return token;
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-
-            base.Dispose(disposing);
         }
     }
 }
