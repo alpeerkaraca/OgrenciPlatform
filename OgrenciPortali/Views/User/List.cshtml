@@ -333,8 +333,6 @@
 
 @section Scripts {
     <script>
-        if (sessionStorage.getItem('bearerToken') != null)
-            var token = sessionStorage.getItem('bearerToken');
         document.addEventListener('DOMContentLoaded',
             function () {
                 initializeFiltering();
@@ -415,7 +413,8 @@
                         fetch(`http://localhost:8000/api/user/delete/${userIdToDelete}`,
                             {
                                 method: 'POST',
-                                headers: { Authorization: `Bearer ${token}` }
+                                headers: { 'Content-Type': 'application/json' }
+
                             }
                         )
                             .then(resp => {

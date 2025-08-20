@@ -1,0 +1,15 @@
+﻿@{
+    ViewBag.Title = "Giriş Başarılı";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Kendi layout dosyanızın yolunu verin
+}
+
+<h2>Giriş Başarılı!</h2>
+<p>Anasayfaya yönlendiriliyorsunuz...</p>
+
+<script>
+    // Sayfa yüklendikten 1 saniye sonra anasayfaya yönlendir.
+    // Bu gecikme, tarayıcının cookie'yi sindirmesi için yeterli zamanı tanır.
+    setTimeout(function () {
+        window.location.href = '@Url.Action("Index", "Home")';
+    }, 1000);
+</script>

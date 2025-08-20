@@ -1,10 +1,10 @@
 ﻿using log4net;
-using OgrenciPortalApi.Attributes;
 using Shared.DTO;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
@@ -12,7 +12,7 @@ using Shared.Enums;
 
 namespace OgrenciPortalApi.Controllers
 {
-    [JwtAuth]
+    [Authorize(Roles = nameof(Roles.Danışman))]
     [RoutePrefix("api/advisor")]
     public class AdvisorController : BaseApiController
     {
@@ -29,7 +29,10 @@ namespace OgrenciPortalApi.Controllers
         {
             try
             {
-                var advisorId = GetActiveUserId();
+                var advisor = User.Identity as ClaimsIdentity;
+
+                var advisorId =
+                    Guid.Parse(advisor?.FindFirst(ClaimTypes.NameIdentifier).Value);
 
                 var approvalsFromDb = await _db.StudentCourses
                     .Where(sc =>
@@ -200,8 +203,8 @@ namespace OgrenciPortalApi.Controllers
                             .Include(sc => sc.Users)
                             .Include(sc => sc.OfferedCourses)
                             .FirstOrDefaultAsync(sc => sc.StudentId == studentId &&
-                                                  sc.OfferedCourseId == offeredCourseId &&
-                                                  sc.Users.AdvisorId == advisorId);
+                                                       sc.OfferedCourseId == offeredCourseId &&
+                                                       sc.Users.AdvisorId == advisorId);
 
                         if (studentCourse != null && studentCourse.ApprovalStatus == (int)ApprovalStatus.Bekliyor)
                         {
@@ -216,6 +219,7 @@ namespace OgrenciPortalApi.Controllers
                                     studentCourse.OfferedCourses.CurrentUserCount--;
                                 }
                             }
+
                             successCount++;
                         }
                         else
@@ -232,8 +236,10 @@ namespace OgrenciPortalApi.Controllers
 
                     if (failedRecords.Any())
                     {
-                        message += $" {failedRecords.Count} kayıt işlenemedi (ya daha önce işlenmiş ya da yetkiniz dışında).";
-                        Logger.Warn($"Danışman {advisorId} için bazı onay kayıtları işlenemedi. Detaylar: {string.Join(", ", failedRecords)}");
+                        message +=
+                            $" {failedRecords.Count} kayıt işlenemedi (ya daha önce işlenmiş ya da yetkiniz dışında).";
+                        Logger.Warn(
+                            $"Danışman {advisorId} için bazı onay kayıtları işlenemedi. Detaylar: {string.Join(", ", failedRecords)}");
                     }
 
                     return Ok(new { message });

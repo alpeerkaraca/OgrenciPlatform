@@ -21,7 +21,7 @@
                         </div>
                     }
 
-                    @using (Html.BeginForm("Add", "Courses", FormMethod.Post, new { @class = "needs-validation", novalidate = "novalidate" }))
+                    @using (Html.BeginForm("Add", "Courses", FormMethod.Post, new { @class = "needs-validation", novalidate = "novalidate", id = "add-form" }))
                     {
                         @*@Html.AntiForgeryToken()*@
                         @Html.ValidationSummary(false, "", new { @class = "text-danger", required = true })
@@ -50,7 +50,7 @@
                                 <label for="@Model.DepartmentId" class="form-label">
                                     <i class="bi bi-building me-1"></i> Bölüm
                                 </label>
-                                @Html.DropDownListFor(m => m.DepartmentId, Model.DepartmentList, "Bölüm Seçiniz", new { @class = "form-select"})
+                                @Html.DropDownListFor(m => m.DepartmentId, Model.DepartmentList, "Bölüm Seçiniz", new { @class = "form-select" })
                             </div>
 
                             <div class="d-grid gap-2">
@@ -68,3 +68,47 @@
         </div>
     </div>
 </div>
+
+@section scripts
+{
+    <script>
+
+        document.addEventListener('DOMContentLoaded',
+            async function() {
+                var form = $('#add-form');
+                form.on('submit',
+                    async function() {
+                        e.preventDefault();
+                        if (!sessionStorage.getItem('bearerToken')) {
+                            showFeedbackModal('error', 'Yetkisiz İşlem', 'Sistem işlemi yapan kişiyi doğrulayamıyor. Lütfen tekrar giriş yapınız.', null, null, null);
+                        }
+                        const formDataArray = $(this).serializeArray();
+                        let formDataObject = {};
+                        $.each(formDataArray,
+                            function(i, field) {
+                                formDataObject[field.name] = field.value;
+                            });
+
+                        try {
+                            const response = await fetch('http://localhost:8000/api/courses/add',
+                                {
+                                    method: 'POST',
+                                    headers: {
+                                        'Authorization': 'Bearer' + sessionStorage.getItem("bearerToken"),
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body:
+                                        json.stringify(formDataObject)
+                                });
+                            const res = await response.json();
+                            if (res.ok) {
+                                showFeedbackModal('success', 'İşlem Başarılı', res.Message, null, null, setTimeout(window.reload(), 2500));
+                            } else
+                                showFeedbackModal('error', 'İşlem Başarısız', res.Message, null, null, null);
+
+
+                        }
+                    })
+            });
+    </script>
+}

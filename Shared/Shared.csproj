@@ -62,6 +62,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Constants\AppRoles.cs" />
     <Compile Include="DTO\AdvisorDTO.cs" />
     <Compile Include="DTO\BaseClass.cs" />
     <Compile Include="DTO\ConflictsDTO.cs" />

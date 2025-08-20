@@ -1,4 +1,5 @@
 ﻿@using System.Security.Claims
+@using Roles = Shared.Enums.Roles
 @{
     ViewBag.Title = "Ana Sayfa";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -13,23 +14,29 @@
         var claimsIdentity = User.Identity as ClaimsIdentity;
         var department = claimsIdentity?.FindFirst("department")?.Value;
         var studentNo = claimsIdentity?.FindFirst("student_no")?.Value;
-        var userRole = claimsIdentity?.FindFirst("user_role")?.Value;
+        var userRole = claimsIdentity?.FindFirst(claimsIdentity.RoleClaimType)?.Value;
 
         <h1 class="display-4 mb-3">
             Hoş Geldniz, @User.Identity.Name
         </h1>
         <p class="lead mb-4">
-            @if (userRole == "1")
+            @switch (userRole)
             {
-                <text>Sistem yöneticisi olarak platformun tüm özelliklerini yönetebilirsiniz.</text>
-            }
-            else if (userRole == "2")
-            {
-                <text>Danışman olarak öğrencilerinizin akademik yolculuklarına rehberlik edebilirsiniz.</text>
-            }
-            else if (userRole == "3")
-            {
-                <text>Öğrenci portalına hoş geldiniz. Ders seçimi yapabilir ve akademik bilgilerinizi takip edebilirsiniz.</text>
+                case nameof(Roles.Admin):
+                    @:Sistem yöneticisi olarak platformun tüm özelliklerini yönetebilirsiniz.
+                    break;
+                case nameof(Roles.Danışman):
+                    @:Danışman olarak öğrencilerinizin akademik yolculuklarına rehberlik edebilirsiniz.
+                    break;
+                default:
+                {
+                    if (userRole == nameof(Roles.Danışman))
+                    {
+                        @:Öğrenci portalına hoş geldiniz. Ders seçimi yapabilir ve akademik bilgilerinizi takip edebilirsiniz.
+                    }
+
+                    break;
+                }
             }
         </p>
 
@@ -40,7 +47,7 @@
                     <i class="bi bi-building me-2"></i>@department
                 </span>
             }
-            @if ((userRole == "3" || User.IsInRole("Öğrenci")) && !string.IsNullOrEmpty(studentNo))
+            @if ((userRole == nameof(Roles.Öğrenci) || User.IsInRole("Öğrenci")) && !string.IsNullOrEmpty(studentNo))
             {
                 <span class="user-info-badge">
                     <i class="bi bi-card-text me-2"></i>@studentNo
@@ -48,15 +55,15 @@
             }
             <span class="user-info-badge">
                 <i class="bi bi-person-badge me-2"></i>
-                @if (userRole == "1")
+                @if (userRole == nameof(Roles.Admin))
                 {
                     <text>Admin</text>
                 }
-                else if (userRole == "2")
+                else if (userRole == nameof(Roles.Danışman))
                 {
                     <text>Danışman</text>
                 }
-                else if (userRole == "3")
+                else if (userRole == nameof(Roles.Öğrenci))
                 {
                     <text>Öğrenci</text>
                 }
@@ -81,7 +88,7 @@
 
 {
     var claims = User.Identity as ClaimsIdentity;
-    var userRole = claims?.FindFirst("user_role")?.Value;
+    var userRole = claims?.FindFirst(claims.RoleClaimType)?.Value;
     <div class="row mb-5">
         <div class="col-12 text-center">
             <h2 class="section-title">Sistem Durumu</h2>
@@ -90,7 +97,7 @@
     </div>
 
     <div class="row g-4 mb-5">
-        @if (userRole == "1")
+        @if (userRole == nameof(Roles.Admin))
         {
             <div class="col-lg-3 col-md-6">
                 <div class="card metric-card fade-in-up animation-delay-1">
@@ -129,7 +136,7 @@
                 </div>
             </div>
         }
-        else if (userRole == "2" || User.IsInRole("Danışman"))
+        else if (User.IsInRole(nameof(Roles.Danışman)))
         {
             <div class="col-lg-4 col-md-6">
                 <div class="card metric-card fade-in-up animation-delay-1">
@@ -159,7 +166,7 @@
                 </div>
             </div>
         }
-        else if (userRole == "3" || User.IsInRole("Öğrenci"))
+        else if (userRole == nameof(Roles.Öğrenci) || User.IsInRole("Öğrenci"))
         {
             <div class="col-lg-4 col-md-6">
                 <div class="card metric-card fade-in-up animation-delay-1">
@@ -199,7 +206,7 @@
     </div>
 
     <div class="row g-4">
-        @if (userRole == "1" || User.IsInRole("Admin"))
+        @if (userRole == nameof(Roles.Admin) || User.IsInRole("Admin"))
         {
             <div class="col-lg-4 col-md-6">
                 <a href="@Url.Action("Register", "User")" class="quick-action fade-in-up animation-delay-1">
@@ -229,7 +236,7 @@
                 </a>
             </div>
         }
-        else if (userRole == "2" || User.IsInRole("Danışman"))
+        else if (userRole == nameof(Roles.Danışman) || User.IsInRole("Danışman"))
         {
             <div class="col-lg-6 col-md-6">
                 <a href="@Url.Action("CourseApprovals", "Advisor")" class="quick-action fade-in-up animation-delay-1">
@@ -250,7 +257,7 @@
                 </a>
             </div>
         }
-        else if (userRole == "3" || User.IsInRole("Öğrenci"))
+        else if (userRole == nameof(Roles.Öğrenci) || User.IsInRole("Öğrenci"))
         {
             <div class="col-lg-6 col-md-6">
                 <a href="@Url.Action("Enroll", "Student")" class="quick-action fade-in-up animation-delay-1">
@@ -276,8 +283,6 @@
 
 @section Scripts {
     <script>
-        var token = sessionStorage.getItem("bearerToken");
-
         class DashboardManager {
             constructor() {
                 this.refreshInterval = 60000;
@@ -309,10 +314,13 @@
             async loadDashboardData() {
                 try {
                     const response = await fetch('http://localhost:8000/api/dashboard/data',
-                        { headers: { Authorization: `Bearer ${token}` } });
+                        {
+                            method: 'GET',
+                            headers: {},
+                            credentials: 'include'
+                        });
                     const result = await response.json();
-
-                    if (result.success) {
+                    if (result.ok) {
                         this.updateCounters(result.data);
                     } else {
                         console.error('Dashboard veri yükleme hatası:', result.message);

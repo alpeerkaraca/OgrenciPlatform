@@ -230,9 +230,9 @@ namespace OgrenciPortalApi.Areas.HelpPage.ModelDescriptions
             NonSerializedAttribute nonSerialized = member.GetCustomAttribute<NonSerializedAttribute>();
             ApiExplorerSettingsAttribute apiExplorerSetting = member.GetCustomAttribute<ApiExplorerSettingsAttribute>();
 
-            bool hasMemberAttribute = member.DeclaringType.IsEnum ?
+            bool hasMemberAttribute = member.DeclaringType != null && (member.DeclaringType.IsEnum ?
                 member.GetCustomAttribute<EnumMemberAttribute>() != null :
-                member.GetCustomAttribute<DataMemberAttribute>() != null;
+                member.GetCustomAttribute<DataMemberAttribute>() != null);
 
             // Display member only if all the followings are true:
             // no JsonIgnoreAttribute

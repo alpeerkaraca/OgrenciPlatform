@@ -154,7 +154,7 @@
                             </div>
 
                             <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary ">
+                                <button type="submit" class="btn btn-primary">
                                     <i class="bi bi-check-lg me-2"></i>Kullanıcı Ekle
                                 </button>
                                 <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">
@@ -172,7 +172,7 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded',
-            function() {
+            function () {
                 var roleSelect = document.querySelector("#role");
                 var passwordWrapper = document.querySelector('#password-wrapper');
                 var studentNoContainer = document.querySelector('#student-no-container');
@@ -212,17 +212,18 @@
                 var rulesContainer = document.querySelector("#password-rules-container");
 
                 passwordInput.addEventListener('focus',
-                    function() {
+                    function () {
                         rulesContainer.classList.remove('d-none');
                     });
 
                 passwordInput.addEventListener('blur',
-                    function() {
+                    function () {
                         rulesContainer.classList.add('d-none');
                     });
 
                 passwordInput.addEventListener('keyup',
-                    function() {
+                    function () {
+                        var submitButton = document.querySelector('button[type="submit"]');
                         var password = passwordInput.value;
                         var lengthRule = document.querySelector("#length");
                         var capitalRule = document.querySelector("#capital");
@@ -232,30 +233,42 @@
                         if (password.length >= 8) {
                             lengthRule.classList.add('valid');
                             lengthRule.classList.remove('invalid');
+                            submitButton.classList.remove('disabled');
                         } else {
                             lengthRule.classList.add('invalid');
                             lengthRule.classList.remove('valid');
+                            submitButton.classList.add('disabled');
+
                         }
                         if (/[A-Z]/.test(password)) {
                             capitalRule.classList.add('valid');
                             capitalRule.classList.remove('invalid');
+                            submitButton.classList.remove('disabled');
                         } else {
                             capitalRule.classList.add('invalid');
                             capitalRule.classList.remove('valid');
+                            submitButton.classList.add('disabled');
                         }
                         if (/[0-9]/.test(password)) {
                             numberRule.classList.add('valid');
                             numberRule.classList.remove('invalid');
+                            submitButton.classList.remove('disabled');
                         } else {
                             numberRule.classList.add('invalid');
                             numberRule.classList.remove('valid');
+                            submitButton.classList.add('disabled');
+
                         }
                         if (/[^A-Za-z0-9]/.test(password)) {
                             symbolRule.classList.add('valid');
                             symbolRule.classList.remove('invalid');
+                            submitButton.classList.remove('disabled');
+
                         } else {
                             symbolRule.classList.add('invalid');
                             symbolRule.classList.remove('valid');
+                            submitButton.classList.add('disabled');
+
                         }
                     });
             });

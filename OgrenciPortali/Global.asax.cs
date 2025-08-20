@@ -12,12 +12,15 @@ using System.Web.Helpers;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
+using Autofac;
+using Autofac.Integration.Mvc;
 
 namespace OgrenciPortali
 {
-    public class MvcApplication : System.Web.HttpApplication
+    public class MvcApplication : HttpApplication
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(MvcApplication));
+        private static TokenValidationParameters tokenValidationParameters;
 
         protected void Application_Start()
         {
@@ -29,59 +32,66 @@ namespace OgrenciPortali
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             AntiForgeryConfig.UniqueClaimTypeIdentifier = ClaimTypes.NameIdentifier;
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-            
+            InitializeTokenValidationParameters();
+
+            var builder = new ContainerBuilder();
+            builder.RegisterControllers(typeof(MvcApplication).Assembly);
+            builder.RegisterType(typeof(ApiClient)).AsSelf().InstancePerRequest();
+            var container = builder.Build();
+            DependencyResolver.SetResolver(new AutofacDependencyResolver(container));
         }
 
         protected void Application_AuthenticateRequest(object sender, EventArgs e)
         {
             try
             {
-                string token = null;
-                var authHeader = HttpContext.Current.Request.Headers["Authorization"];
-                if (authHeader != null && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-                {
-                    token = authHeader.Substring("Bearer ".Length).Trim();
-                }
-
-                if (string.IsNullOrEmpty(token))
+                var tokenCookie = HttpContext.Current.Request.Cookies["AuthToken"]; // Bulamýyor NULL geliyor.
+                if (tokenCookie == null || string.IsNullOrEmpty(tokenCookie.Value))
                 {
                     return;
                 }
 
+                var token = tokenCookie.Value;
+
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = AppSettings.JwtMasterKey;
-                var symmetricKey = Encoding.UTF8.GetBytes(key);
-
-                var validationParameters = new TokenValidationParameters()
-                {
-                    RequireExpirationTime = true,
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidIssuer = AppSettings.JwtIssuer,
-                    ValidAudience = AppSettings.JwtAudience,
-                    IssuerSigningKey = new SymmetricSecurityKey(symmetricKey),
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero
-                };
-
-                SecurityToken validatedToken;
-                var principal = tokenHandler.ValidateToken(token, validationParameters, out validatedToken);
+                var principal =
+                    tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken validatedToken);
 
                 HttpContext.Current.User = principal;
                 Thread.CurrentPrincipal = principal;
             }
             catch (SecurityTokenExpiredException ex)
             {
-                Logger.Error("Token Süresi Dolmuþ (Global.asax): ", ex);
+                Logger.Warn("Kullanýcýnýn token süresi dolmuþ (Global.asax). Cookie temizlenecek.", ex);
+                var expiredCookie = new HttpCookie("AuthToken", "") { Expires = DateTime.Now.AddDays(-1) };
+                HttpContext.Current.Response.Cookies.Add(expiredCookie);
             }
             catch (SecurityTokenException ex)
             {
-                Logger.Error("Token Doðrulanýrken Hata (Global.asax): ", ex);
+                Logger.Error("Token doðrulamasý baþarýsýz oldu (Global.asax): ", ex);
             }
             catch (Exception ex)
             {
-                Logger.Error("Authentication Request Hatasý (Global.asax): ", ex);
+                Logger.Error("Authentication Request sýrasýnda genel hata (Global.asax): ", ex);
             }
+        }
+
+        private void InitializeTokenValidationParameters()
+        {
+            var key = AppSettings.JwtMasterKey;
+            var symmetricKey = Encoding.UTF8.GetBytes(key);
+
+            tokenValidationParameters = new TokenValidationParameters()
+            {
+                RequireExpirationTime = true,
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidIssuer = AppSettings.JwtIssuer,
+                ValidAudience = AppSettings.JwtAudience,
+                IssuerSigningKey = new SymmetricSecurityKey(symmetricKey),
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
         }
     }
 }

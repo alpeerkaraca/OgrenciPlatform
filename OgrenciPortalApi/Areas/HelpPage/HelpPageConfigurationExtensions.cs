@@ -13,6 +13,7 @@ using System.Web.Http.Controllers;
 using System.Web.Http.Description;
 using OgrenciPortalApi.Areas.HelpPage.ModelDescriptions;
 using OgrenciPortalApi.Areas.HelpPage.Models;
+using OgrenciPortalApi.Areas.HelpPage.SampleGeneration;
 
 namespace OgrenciPortalApi.Areas.HelpPage
 {
@@ -445,9 +446,8 @@ namespace OgrenciPortalApi.Areas.HelpPage
             Collection<ApiDescription> apis = config.Services.GetApiExplorer().ApiDescriptions;
             foreach (ApiDescription api in apis)
             {
-                ApiParameterDescription parameterDescription;
                 Type parameterType;
-                if (TryGetResourceParameter(api, config, out parameterDescription, out parameterType))
+                if (TryGetResourceParameter(api, config, out _, out parameterType))
                 {
                     modelGenerator.GetOrCreateModelDescription(parameterType);
                 }

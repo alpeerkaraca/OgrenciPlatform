@@ -1,5 +1,4 @@
 ﻿using log4net;
-using OgrenciPortalApi.Attributes;
 using OgrenciPortalApi.Models;
 using Shared.DTO;
 using System;
@@ -9,10 +8,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
+using Shared.Enums;
 
 namespace OgrenciPortalApi.Controllers
 {
-    [JwtAuth]
+    [Authorize(Roles = nameof(Roles.Admin))]
     [RoutePrefix("api/courses")]
     public class CourseController : BaseApiController
     {
@@ -69,7 +69,8 @@ namespace OgrenciPortalApi.Controllers
             catch (Exception ex)
             {
                 Logger.Error("Ders ekleme sayfası için veriler alınırken hata oluştu.", ex);
-                return InternalServerError(new Exception("Ders ekleme sayfası için veriler alınırken bir hata oluştu."));
+                return InternalServerError(
+                    new Exception("Ders ekleme sayfası için veriler alınırken bir hata oluştu."));
             }
         }
 
@@ -93,8 +94,13 @@ namespace OgrenciPortalApi.Controllers
                 if (await _db.Courses.AnyAsync(c => c.CourseCode == dto.CourseCode && !c.IsDeleted) ||
                     await _db.Courses.AnyAsync(c => c.CourseName == dto.CourseName && !c.IsDeleted))
                 {
-                    return Conflict();
+                    return BadRequest("Aynı isim veya ders koduna sahip ders bulundu.");
                 }
+
+                if (dto.Credits > 10)
+                    return BadRequest("Ders kredisi 10dan fazla olamaz.");
+                if (!await _db.Departments.AnyAsync(d => d.DepartmentId == dto.DepartmentId))
+                    return BadRequest("Seçilen bölüm kayıtlar arasında bulunamadı.");
 
                 var course = new Courses()
                 {
@@ -112,7 +118,7 @@ namespace OgrenciPortalApi.Controllers
                 _db.Courses.Add(course);
                 await _db.SaveChangesAsync();
                 Logger.Info($"Ders Eklendi: {course.CourseName}");
-                return CreatedAtRoute("DefaultApi", new { id = course.CourseId }, new { Message = "Ders başarıyla eklendi." });
+                return Ok(new { Message = "Ders başarıyla eklendi." });
             }
             catch (Exception ex)
             {
@@ -177,8 +183,9 @@ namespace OgrenciPortalApi.Controllers
             try
             {
                 if (await _db.Courses.AnyAsync(c =>
-                    (c.CourseCode.ToLower() == dto.CourseCode.ToLower() || c.CourseName.ToLower() == dto.CourseName.ToLower())
-                    && c.CourseId != dto.CourseId && !c.IsDeleted))
+                        (c.CourseCode.ToLower() == dto.CourseCode.ToLower() ||
+                         c.CourseName.ToLower() == dto.CourseName.ToLower())
+                        && c.CourseId != dto.CourseId && !c.IsDeleted))
                 {
                     return Conflict();
                 }
