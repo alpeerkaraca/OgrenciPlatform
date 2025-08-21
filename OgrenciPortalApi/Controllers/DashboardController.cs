@@ -1,5 +1,4 @@
 ﻿using log4net;
-using OgrenciPortalApi.Attributes;
 using System;
 using System.Data.Entity;
 using System.Net;
@@ -11,7 +10,7 @@ using Shared.Enums;
 
 namespace OgrenciPortalApi.Controllers
 {
-    [JwtAuth]
+    [Authorize]
     [RoutePrefix("api/dashboard")]
     public class DashboardController : BaseApiController
     {
@@ -35,7 +34,7 @@ namespace OgrenciPortalApi.Controllers
             try
             {
                 var userIdClaim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-                var userRoleClaim = claimsIdentity.FindFirst("user_role");
+                var userRoleClaim = claimsIdentity.FindFirst(ClaimTypes.Role);
 
                 if (userIdClaim == null || string.IsNullOrEmpty(userIdClaim.Value) ||
                     userRoleClaim == null || string.IsNullOrEmpty(userRoleClaim.Value))
@@ -48,23 +47,20 @@ namespace OgrenciPortalApi.Controllers
                     return BadRequest("Kullanıcı ID formatı geçersiz.");
                 }
 
-                string currentUserRole = userRoleClaim.Value;
-                object payload;
+                object payload = null;
 
-                switch (currentUserRole)
-                {
-                    case "1": // Admin
-                        payload = await GetAdminDashboardDataAsync();
-                        break;
-                    case "2": // Danışman
-                        payload = await GetAdvisorDashboardDataAsync(currentUserId);
-                        break;
-                    case "3": // Öğrenci
-                        payload = await GetStudentDashboardDataAsync(currentUserId);
-                        break;
-                    default:
-                        return BadRequest("Bilinmeyen kullanıcı rolü.");
-                }
+                if (User.IsInRole(nameof(Roles.Admin)))
+                    payload = await GetAdminDashboardDataAsync();
+
+                if (User.IsInRole(nameof(Roles.Danışman)))
+                    payload = await GetAdvisorDashboardDataAsync(currentUserId);
+
+                if (User.IsInRole(nameof(Roles.Öğrenci)))
+                    payload = await GetStudentDashboardDataAsync(currentUserId);
+
+                if (payload == null)
+                    return BadRequest("Bilinmeyen veya yetkisiz rol.");
+
 
                 return Ok(payload);
             }

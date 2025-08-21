@@ -301,32 +301,12 @@
     </div>
 </div>
 
-<div class="modal fade" id="responseModal" tabindex="-1" aria-labelledby="responseModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header" id="responseModalHeader">
-                <h5 class="modal-title" id="responseModalLabel"></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="responseModalBody"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 @* Antiforgery Token (Hidden Field) *@
 @*@Html.AntiForgeryToken()*@
 
 @section Scripts {
     <script>
         $(document).ready(function() {
-            console.log('jQuery version:', $.fn.jquery);
-            console.log('DataTables available:', typeof $.fn.DataTable);
-
-            const responseModalEl = document.getElementById('responseModal');
-            const responseModal = new bootstrap.Modal(responseModalEl);
             const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
             const masterCheckbox = document.getElementById('master-checkbox');
             const selectAllBtn = document.getElementById('select-all-btn');
@@ -352,9 +332,7 @@
                             attachEventHandlers();
                         }
                     });
-                    console.log('DataTable initialized successfully');
                 } catch (error) {
-                    console.error('DataTable initialization failed:', error);
                 }
             }
 
@@ -481,11 +459,10 @@
 
             function processApproval(studentIds, offeredCourseIds, newStatus) {
                 if (!token) {
-                    showResponseModal(false, 'Güvenlik Hatasý', 'Güvenlik tokeni bulunamadý. Sayfayý yenileyin.');
+                    showFeedbackModal('error', "Güvenlik Hatasý", 'Lütfen sayfayý yenileyiniz.');
                     return;
                 }
 
-                console.log('Processing approval:', { studentIds, offeredCourseIds, newStatus });
 
                 const requestData = {
                     StudentIds: studentIds,
@@ -493,53 +470,37 @@
                     NewStatus: newStatus
                 };
 
-                // Butonlarý devre dýþý býrak
                 document.querySelectorAll('.approve-btn, .reject-btn').forEach(btn => btn.disabled = true);
                 if (approveSelectedBtn) approveSelectedBtn.disabled = true;
                 if (rejectSelectedBtn) rejectSelectedBtn.disabled = true;
 
-                fetch('/Advisor/UpdateApprovalStatus',
+                fetch('http://localhost:8000/Advisor/update-approval-status',
                         {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                                 'RequestVerificationToken': token,
-                                'authorization': `Bearer ${sessionStorage.getItem("bearerToken")}`
+                                'Authorization': `Bearer ${sessionStorage.getItem("bearerToken")}`
                             },
                             body: JSON.stringify(requestData)
                         })
-                    .then(response => {
-                        console.log('Response status:', response.status);
-                        return response.json().then(data => ({ ok: response.ok, data }));
-                    })
-                    .then(({ ok, data }) => {
-                        console.log('Response data:', data);
-                        showResponseModal(ok, ok ? 'Ýþlem Baþarýlý' : 'Bir Hata Oluþtu', data.message);
-                        if (ok) {
-                            responseModalEl.addEventListener('hidden.bs.modal', () => location.reload(), { once: true });
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.ok) {
+                            showFeedbackModal("success", "Ýþlem Baþarýlý", res.message, null, null, function() {setTimeout(window.reload(),2500) });
                         }
+                        if (res.statusCode === 400) {
+                            showFeedbackModal("error", "Baþarýsýz Ýþlem", res.Message, null, null, function () { setTimeout(window.reload(), 2500) });
+                        } else
+                            showFeedbackModal("error", "Baþarýsýz Ýþlem", res.message, null, null, function () { setTimeout(window.reload(), 2500) });
                     })
                     .catch(error => {
-                        console.error('Fetch Error:', error);
-                        showResponseModal(false, 'Að Hatasý', 'Sunucu ile iletiþim kurulamadý.');
+                        showFeedbackModal('error', 'Að Hatasý', 'Sunucu ile iletiþim kurulamadý.');
                     })
                     .finally(() => {
-                        // Butonlarý tekrar etkinleþtir
                         document.querySelectorAll('.approve-btn, .reject-btn').forEach(btn => btn.disabled = false);
                         updateButtonStates();
                     });
-            }
-
-            function showResponseModal(isSuccess, title, message) {
-                const modalHeader = document.getElementById('responseModalHeader');
-                const modalTitle = document.getElementById('responseModalLabel');
-                const modalBody = document.getElementById('responseModalBody');
-
-                modalHeader.className = isSuccess ? 'modal-header bg-success text-white' : 'modal-header bg-danger text-white';
-                const icon = isSuccess ? '<i class="bi bi-check-circle-fill me-2"></i>' : '<i class="bi bi-x-octagon-fill me-2"></i>';
-                modalTitle.innerHTML = `${icon} ${title}`;
-                modalBody.textContent = message;
-                responseModal.show();
             }
 
             // Ýlk yükleme için event handler'larý baðla

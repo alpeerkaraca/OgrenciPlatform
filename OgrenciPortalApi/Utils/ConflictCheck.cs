@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using OgrenciPortalApi.Models;
 using Shared.DTO;
-using Shared.Enums;
 
 namespace OgrenciPortalApi.Utils
 {

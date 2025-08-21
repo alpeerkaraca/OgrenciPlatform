@@ -1,4 +1,5 @@
 ﻿@using System.Security.Claims
+@using Roles = Shared.Enums.Roles
 <!DOCTYPE html>
 <html>
 <head>
@@ -36,10 +37,8 @@
                 var claimsIdentity = User.Identity as ClaimsIdentity;
                 var userFullName = claimsIdentity?.FindFirst("full_name").Value;
                 var userEmail = claimsIdentity?.FindFirst("user_email")?.Value;
-                var userRole = claimsIdentity?.FindFirst("user_role")?.Value;
                 var userDepartment = claimsIdentity?.FindFirst("department")?.Value;
                 var userStudentNo = claimsIdentity?.FindFirst("student_no")?.Value;
-                var userIsFirstLogin = claimsIdentity?.FindFirst("first_login")?.Value;
 
                 <div class="navbar-nav ms-auto d-flex align-items-center">
                     <!-- Kullanıcı bilgileri (sadece büyük ekranlarda görünür) -->
@@ -49,7 +48,7 @@
                         {
                             <small class="text-muted">@userDepartment</small>
                         }
-                        @if (userRole == "3" && !string.IsNullOrEmpty(userStudentNo))
+                        @if (User.IsInRole(nameof(Roles.Öğrenci)) && !string.IsNullOrEmpty(userStudentNo))
                         {
                             <small class="text-muted">@userStudentNo</small>
                         }
@@ -73,7 +72,7 @@
                                     {
                                         <div class="small text-muted">@userDepartment</div>
                                     }
-                                    @if (userRole == "3" && !string.IsNullOrEmpty(userStudentNo))
+                                    @if (User.IsInRole(nameof(Roles.Öğrenci)) && !string.IsNullOrEmpty(userStudentNo))
                                     {
                                         <div class="small text-muted">Öğrenci No: @userStudentNo</div>
                                     }
@@ -168,9 +167,8 @@
             @if (User.Identity.IsAuthenticated)
             {
                 var claimsIdentity = User.Identity as ClaimsIdentity;
-                var userRole = claimsIdentity?.FindFirst("user_role")?.Value;
                 // Öğrenci Menüsü
-                if (userRole == "3")
+                if (User.IsInRole(nameof(Shared.Enums.Roles.Öğrenci)))
                 {
                     <li class="sidebar-item">
                         <a class="sidebar-link" href="@Url.Action("Enroll", "Student")">
@@ -185,7 +183,7 @@
                 }
 
                 // Danışman Menüsü
-                if (userRole == "2")
+                if (User.IsInRole(nameof(Roles.Danışman)))
                 {
                     <li class="sidebar-item">
                         <a class="sidebar-link" href="@Url.Action("CourseApprovals", "Advisor")">
@@ -200,7 +198,7 @@
                 }
 
                 // Admin Menüsü
-                if (userRole == "1")
+                if (User.IsInRole(nameof(Roles.Admin)))
                 {
                     <li class="sidebar-item">
                         <a class="sidebar-link has-dropdown collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#auth" aria-expanded="false" aria-controls="auth">
@@ -334,7 +332,7 @@
 
 <script>
     function dismissPasswordModal() {
-        const modal = bootstrap.Modal.getInstance(document.getElementById('firstLoginModal'));
+        const modal = window.bootstrap.Modal.getInstance(document.getElementById('firstLoginModal'));
         if (modal) {
             modal.hide();
         }
@@ -356,8 +354,8 @@
                 var userIsFirstLogin = claimsIdentity?.FindFirst("first_login").Value;
 
                 <text>
-                    if (@Html.Raw(string.IsNullOrEmpty(userIsFirstLogin)).ToString().ToLower() && (@Html.Raw(userIsFirstLogin.ToLower() == "true").ToString().ToLower() && @Html.Raw(isIndexPage.ToString().ToLower()) && @(Session["PasswordChangeModalShown"] == null ? "true" : "false"))) {
-                        const firstLoginModal = new bootstrap.Modal(document.getElementById('firstLoginModal'));
+                    if (@Html.Raw(string.IsNullOrEmpty(userIsFirstLogin)).ToString().ToLower() && (@Html.Raw(userIsFirstLogin != null && userIsFirstLogin.ToLower() == "true").ToString().ToLower() && @Html.Raw(isIndexPage.ToString().ToLower()) && @(Session["PasswordChangeModalShown"] == null ? "true" : "false"))) {
+                        const firstLoginModal = new window.bootstrap.Modal(document.getElementById('firstLoginModal'));
                         firstLoginModal.show();
 
                         document.getElementById('firstLoginModal').addEventListener('hidden.bs.modal',

@@ -1,5 +1,4 @@
 ﻿using log4net;
-using OgrenciPortalApi.Attributes;
 using OgrenciPortalApi.Models;
 using Shared.DTO;
 using System;
@@ -13,7 +12,7 @@ using Shared.Enums;
 
 namespace OgrenciPortalApi.Controllers
 {
-    [JwtAuth]
+    [System.Web.Http.Authorize(Roles = nameof(Roles.Admin))]
     [System.Web.Http.RoutePrefix("api/offered")]
     public class OfferedCoursesController : BaseApiController
     {
@@ -33,7 +32,6 @@ namespace OgrenciPortalApi.Controllers
                 var offeredCourses = await _db.OfferedCourses
                     .Include(o => o.Courses.Departments)
                     .Include(o => o.Semesters)
-
                     .Include(o => o.Users)
                     .Where(o => !o.IsDeleted).Select(o => new ListOfferedCoursesDTO
                     {
@@ -75,7 +73,8 @@ namespace OgrenciPortalApi.Controllers
                 {
                     AdvisorList = _db.Users
                         .Where(u => u.Role == (int)Roles.Danışman && !u.IsDeleted && u.IsActive)
-                        .Select(u => new SelectListItem { Value = u.UserId.ToString(), Text = u.Name + " " + u.Surname }),
+                        .Select(u => new SelectListItem
+                            { Value = u.UserId.ToString(), Text = u.Name + " " + u.Surname }),
                     SemesterList = _db.Semesters
                         .Where(s => !s.IsDeleted && s.IsActive)
                         .Select(s => new SelectListItem { Value = s.SemesterId.ToString(), Text = s.SemesterName }),
@@ -113,7 +112,7 @@ namespace OgrenciPortalApi.Controllers
             try
             {
                 if (await _db.OfferedCourses.AnyAsync(u =>
-                    u.CourseId == dto.CourseId && u.SemesterId == dto.SemesterId && !u.IsDeleted))
+                        u.CourseId == dto.CourseId && u.SemesterId == dto.SemesterId && !u.IsDeleted))
                 {
                     return BadRequest("Bu ders bu döneme zaten eklenmiş durumda. Tekrar ekleyemezsiniz.");
                 }
@@ -138,7 +137,8 @@ namespace OgrenciPortalApi.Controllers
                 _db.OfferedCourses.Add(offeredCourse);
                 await _db.SaveChangesAsync();
                 Logger.Info("Yeni açılan ders başarıyla eklendi.");
-                return CreatedAtRoute("DefaultApi", new { id = offeredCourse.Id }, new { Message = "Ders başarıyla açıldı." });
+                return CreatedAtRoute("DefaultApi", new { id = offeredCourse.Id },
+                    new { Message = "Ders başarıyla açıldı." });
             }
             catch (Exception ex)
             {
@@ -161,6 +161,7 @@ namespace OgrenciPortalApi.Controllers
             {
                 return BadRequest("Geçersiz ID.");
             }
+
             try
             {
                 var offeredCourseInDb = await _db.OfferedCourses.FindAsync(id);
@@ -186,10 +187,14 @@ namespace OgrenciPortalApi.Controllers
                     EndTime = offeredCourseInDb.EndTime,
                     Quota = offeredCourseInDb.Quota,
                     CourseCode = course.CourseCode,
-                    AdvisorList = _db.Users.Where(u => u.Role == (int)Roles.Danışman && !u.IsDeleted).Select(u => new SelectListItem { Value = u.UserId.ToString(), Text = u.Name + " " + u.Surname }),
-                    SemesterList = _db.Semesters.Select(s => new SelectListItem { Value = s.SemesterId.ToString(), Text = s.SemesterName }),
-                    CourseList = _db.Courses.Select(c => new SelectListItem() { Value = c.CourseId.ToString(), Text = c.CourseName }),
-                    DaysOfWeek = Enum.GetValues(typeof(DaysOfWeek)).Cast<DaysOfWeek>().Select(d => new SelectListItem { Value = ((int)d).ToString(), Text = d.ToString() }),
+                    AdvisorList = _db.Users.Where(u => u.Role == (int)Roles.Danışman && !u.IsDeleted).Select(u =>
+                        new SelectListItem { Value = u.UserId.ToString(), Text = u.Name + " " + u.Surname }),
+                    SemesterList = _db.Semesters.Select(s => new SelectListItem
+                        { Value = s.SemesterId.ToString(), Text = s.SemesterName }),
+                    CourseList = _db.Courses.Select(c => new SelectListItem()
+                        { Value = c.CourseId.ToString(), Text = c.CourseName }),
+                    DaysOfWeek = Enum.GetValues(typeof(DaysOfWeek)).Cast<DaysOfWeek>().Select(d => new SelectListItem
+                        { Value = ((int)d).ToString(), Text = d.ToString() }),
                 };
                 return Ok(dto);
             }
@@ -214,6 +219,7 @@ namespace OgrenciPortalApi.Controllers
             {
                 return BadRequest(ModelState);
             }
+
             try
             {
                 var offeredCourseInDb = await _db.OfferedCourses.FindAsync(dto.OfferedCourseId);
@@ -256,6 +262,7 @@ namespace OgrenciPortalApi.Controllers
             {
                 return BadRequest("Geçersiz ID.");
             }
+
             try
             {
                 var offeredCourseInDb = await _db.OfferedCourses.FindAsync(id);

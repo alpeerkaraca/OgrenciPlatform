@@ -306,31 +306,18 @@
                         })
                     .then(response => response.json().then(data => ({ ok: response.ok, data })))
                     .then(({ ok, data }) => {
-                        showResponseModal(ok, ok ? 'Ýþlem Baþarýlý' : 'Bir Hata Oluþtu', data.message);
+                        showFeedbackModal(ok ? 'success' : 'error', ok ? 'Ýþlem Baþarýlý' : 'Hata Oluþtu', data.message)
                         if (ok) {
-                            setTimeout(() => location.reload(), 1500);
+                            setTimeout(() => location.reload(), 2500);
                         }
                     })
                     .catch(error => {
                         console.error('Fetch Error:', error);
-                        showResponseModal(false, 'Að Hatasý', 'Sunucu ile iletiþim kurulamadý.');
+                        showFeedbackModal('error', 'Að Hatasý', 'Sunucu ile iletiþim kurulamadý.')
                     });
             }
 
-            /**
-             * Sonuç modal'ýný gösterir
-             */
-            function showResponseModal(isSuccess, title, message) {
-                const modalHeader = document.getElementById('responseModalHeader');
-                const modalTitle = document.getElementById('responseModalLabel');
-                const modalBody = document.getElementById('responseModalBody');
 
-                modalHeader.className = isSuccess ? 'modal-header bg-success text-white' : 'modal-header bg-danger text-white';
-                const icon = isSuccess ? '<i class="bi bi-check-circle-fill me-2"></i>' : '<i class="bi bi-x-octagon-fill me-2"></i>';
-                modalTitle.innerHTML = `${icon} ${title}`;
-                modalBody.textContent = message;
-                responseModal.show();
-            }
         }
     </script>
 }

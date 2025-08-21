@@ -22,7 +22,7 @@
                         </div>
                     }
 
-                    @using (Html.BeginForm("Edit", "Courses", FormMethod.Post, new { @class = "needs-validation", novalidate = "novalidate" }))
+                    @using (Html.BeginForm("Edit", "Courses", FormMethod.Post, new { @class = "needs-validation", novalidate = "novalidate", id = "edit-form" }))
                     {
                         @*@Html.AntiForgeryToken()*@
                         @Html.ValidationSummary(false, "", new { @class = "text-danger", required = true })
@@ -70,3 +70,17 @@
         </div>
     </div>
 </div>
+
+@section scripts
+{
+    <script>
+        document.addEventListener('DOMContentLoaded',
+            async function() {
+                var form = $('#edit-form');
+                form.on('submit', async function() {
+                    e.preventDefault();
+
+                })
+            });
+    </script>
+}

@@ -4,7 +4,7 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema Namespace="ogrenciPortalContext.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+    <Schema Namespace="ogrenciPortalContext.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <EntityType Name="Courses">
           <Key>
             <PropertyRef Name="CourseId" />
@@ -114,6 +114,8 @@
           <Property Name="IsDeleted" Type="bit" Nullable="false" />
           <Property Name="DeletedAt" Type="datetime" />
           <Property Name="DeletedBy" Type="nvarchar" MaxLength="100" />
+          <Property Name="RefreshToken" Type="nvarchar" MaxLength="128" />
+          <Property Name="RefreshTokenExpTime" Type="datetime" />
         </EntityType>
         <Association Name="FK_dbo_Courses_dbo_Departments_DepartmentId">
           <End Role="Departments" Type="Self.Departments" Multiplicity="1" />
@@ -251,8 +253,7 @@
             <End Role="Users1" EntitySet="Users" />
           </AssociationSet>
         </EntityContainer>
-      </Schema>
-    </edmx:StorageModels>
+      </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="ogrenciPortalContext" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
@@ -381,6 +382,8 @@
           <NavigationProperty Name="StudentCourses" Relationship="Self.FK_dbo_StudentCourses_dbo_Users_StudentId" FromRole="Users" ToRole="StudentCourses" />
           <NavigationProperty Name="Users1" Relationship="Self.FK_dbo_Users_dbo_Users_AdvisorId" FromRole="Users" ToRole="Users1" />
           <NavigationProperty Name="Users2" Relationship="Self.FK_dbo_Users_dbo_Users_AdvisorId" FromRole="Users1" ToRole="Users" />
+          <Property Name="RefreshToken" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="RefreshTokenExpTime" Type="DateTime" Precision="3" />
         </EntityType>
         <Association Name="FK_dbo_Courses_dbo_Departments_DepartmentId">
           <End Role="Departments" Type="Self.Departments" Multiplicity="1" />
@@ -618,6 +621,8 @@
           <EntitySetMapping Name="Users">
             <EntityTypeMapping TypeName="ogrenciPortalContext.Users">
               <MappingFragment StoreEntitySet="Users">
+                <ScalarProperty Name="RefreshTokenExpTime" ColumnName="RefreshTokenExpTime" />
+                <ScalarProperty Name="RefreshToken" ColumnName="RefreshToken" />
                 <ScalarProperty Name="UserId" ColumnName="UserId" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="Surname" ColumnName="Surname" />

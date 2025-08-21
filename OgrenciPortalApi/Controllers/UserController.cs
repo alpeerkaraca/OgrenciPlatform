@@ -1,12 +1,17 @@
 ﻿using log4net;
-using OgrenciPortalApi.Attributes;
 using OgrenciPortalApi.Models;
 using OgrenciPortalApi.Utils;
 using Shared.DTO;
 using Shared.Enums;
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
@@ -15,6 +20,7 @@ using System.Web.Mvc;
 namespace OgrenciPortalApi.Controllers
 {
     [System.Web.Http.RoutePrefix("api/user")]
+    [System.Web.Http.Authorize]
     public class UserController : BaseApiController
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(UserController));
@@ -28,31 +34,49 @@ namespace OgrenciPortalApi.Controllers
         [System.Web.Http.AllowAnonymous]
         [System.Web.Http.Route("login")]
         [ResponseType(typeof(object))]
-        public async Task<IHttpActionResult> Login([FromBody] LoginRequestDTO model)
+        public async Task<HttpResponseMessage> Login([FromBody] LoginRequestDTO model)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             try
             {
+                if (model == null || !ModelState.IsValid)
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, new { Message = "Form verisi hatalı." });
+
                 var user =
-                    await _db.Users.FirstOrDefaultAsync(u => u.Email == model.Email && !u.IsDeleted && u.IsActive);
+                    await _db.Users.Include(users => users.Departments)
+                        .FirstOrDefaultAsync(u => u.Email == model.Email && !u.IsDeleted && u.IsActive);
                 if (user == null || !BCrypt.Net.BCrypt.Verify(model.Password, user.Password))
                 {
-                    return Unauthorized();
+                    return Request.CreateResponse(HttpStatusCode.Unauthorized);
                 }
 
-                var token = TokenManager.GenerateJwtToken(user);
-                return Ok(new
+                var claims = TokenManager.GetClaimsFromUser(user);
+
+                var accessToken = TokenManager.GenerateAccessToken(claims);
+                var refreshToken = TokenManager.GenerateRefreshToken();
+                user.RefreshTokenExpTime = DateTime.UtcNow.AddDays(Convert.ToInt32(AppSettings.RefreshTokenExpDays));
+                user.RefreshToken = refreshToken;
+                await _db.SaveChangesAsync();
+
+
+                var cookie = new CookieHeaderValue("RefreshToken", refreshToken)
                 {
-                    Token = token,
-                    Message = "Giriş başarılı.",
-                });
+                    Expires = DateTimeOffset.UtcNow.AddDays(Convert.ToInt32(AppSettings.RefreshTokenExpDays)),
+                    Domain = Request.RequestUri.Host,
+                    Path = "/",
+                    HttpOnly = true,
+                    Secure = true,
+                };
+                var res = Request.CreateResponse(HttpStatusCode.OK,
+                    new { Message = "Giriş Başarılı", Token = accessToken });
+                res.Headers.AddCookies(new[] { cookie });
+
+                return res;
             }
             catch (Exception ex)
             {
                 Logger.Error("Giriş yapılırken hata oluştu.", ex);
-                return InternalServerError(new Exception("Giriş yapılırken bir sunucu hatası oluştu."));
+                return Request.CreateResponse(HttpStatusCode.InternalServerError,
+                    new Exception("Giriş yapılırken bir sunucu hatası oluştu."));
             }
         }
 
@@ -61,7 +85,7 @@ namespace OgrenciPortalApi.Controllers
         /// </summary>
         /// <returns>Gerekli listeleri içeren bir HTTP yanıtı döner.</returns>
         [System.Web.Http.HttpGet]
-        [JwtAuth]
+        [System.Web.Http.Authorize(Roles = nameof(Roles.Admin))]
         [System.Web.Http.Route("register")]
         [ResponseType(typeof(RegisterDataDto))]
         public IHttpActionResult GetRegisterData()
@@ -85,7 +109,7 @@ namespace OgrenciPortalApi.Controllers
         /// <param name="model">Kaydedilecek kullanıcının bilgilerini içeren model.</param>
         /// <returns>Kayıt durumunu bildiren bir HTTP yanıtı döner.</returns>
         [System.Web.Http.HttpPost]
-        [JwtAuth]
+        [System.Web.Http.Authorize(Roles = nameof(Roles.Admin))]
         [System.Web.Http.Route("register")]
         [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> Register([FromBody] RegisterDataDto model)
@@ -138,7 +162,7 @@ namespace OgrenciPortalApi.Controllers
         /// </summary>
         /// <returns>Kullanıcıların listesini içeren bir HTTP yanıtı döner.</returns>
         [System.Web.Http.HttpGet]
-        [JwtAuth]
+        [System.Web.Http.Authorize(Roles = nameof(Roles.Admin))]
         [System.Web.Http.Route("list")]
         [ResponseType(typeof(object))]
         public async Task<IHttpActionResult> GetUsers()
@@ -175,7 +199,7 @@ namespace OgrenciPortalApi.Controllers
         /// <param name="model">Mevcut ve yeni şifre bilgilerini içeren model.</param>
         /// <returns>İşlem sonucunu bildiren bir HTTP yanıtı döner.</returns>
         [System.Web.Http.HttpPost]
-        [JwtAuth]
+        [System.Web.Http.Authorize]
         [System.Web.Http.Route("ChangePassword")]
         [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> ChangePassword([FromBody] ChangePasswordDTO model)
@@ -222,7 +246,7 @@ namespace OgrenciPortalApi.Controllers
         /// <param name="id">Düzenlenecek kullanıcının ID'si.</param>
         /// <returns>Kullanıcının düzenleme bilgilerini içeren bir HTTP yanıtı döner.</returns>
         [System.Web.Http.HttpGet]
-        [JwtAuth]
+        [System.Web.Http.Authorize(Roles = nameof(Roles.Admin))]
         [System.Web.Http.Route("edit/{id:guid}")]
         [ResponseType(typeof(EditUserDTO))]
         public async Task<IHttpActionResult> GetUserForEdit(Guid id)
@@ -245,7 +269,6 @@ namespace OgrenciPortalApi.Controllers
                     DepartmentId = userInDb.DepartmentId,
                     AdvisorId = userInDb.AdvisorId,
                     StudentNo = userInDb.StudentNo,
-                    
                 };
                 FillEditModel(dto);
 
@@ -264,7 +287,7 @@ namespace OgrenciPortalApi.Controllers
         /// <param name="model">Güncellenecek kullanıcının yeni bilgilerini içeren model.</param>
         /// <returns>Güncelleme durumunu bildiren bir HTTP yanıtı döner.</returns>
         [System.Web.Http.HttpPut]
-        [JwtAuth]
+        [System.Web.Http.Authorize(Roles = nameof(Roles.Admin))]
         [System.Web.Http.Route("edit")]
         [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> EditUser(EditUserDTO model)
@@ -307,7 +330,7 @@ namespace OgrenciPortalApi.Controllers
         /// <param name="id">Silinecek kullanıcının ID'si.</param>
         /// <returns>Silme işleminin durumunu bildiren bir HTTP yanıtı döner.</returns>
         [System.Web.Http.HttpDelete]
-        [JwtAuth]
+        [System.Web.Http.Authorize(Roles = nameof(Roles.Admin))]
         [System.Web.Http.Route("delete/{id:guid}")]
         [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> DeleteUser(Guid id)
@@ -358,7 +381,7 @@ namespace OgrenciPortalApi.Controllers
                 .Select(d => new SelectListItem { Value = d.DepartmentId.ToString(), Text = d.Name });
             model.AdvisorsList = _db.Users
                 .Where(u => u.Role == (int)Roles.Danışman && !u.IsDeleted && u.IsActive)
-                .Select(u => new SelectListItem { Value = u.UserId.ToString(), Text = $@"{u.Name} {u.Surname}" });
+                .Select(u => new SelectListItem { Value = u.UserId.ToString(), Text = u.Name + " " + u.Surname });
         }
     }
 }

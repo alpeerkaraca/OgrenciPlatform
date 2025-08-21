@@ -175,15 +175,10 @@
                             });
 
                         if (response.ok) {
-                            // Success!
                             const result = await response.json();
-                            //console.log('Success:', result["Message"]);
                             showFeedbackModal('success', 'Dönem Başarıyla Eklendi', result["Message"]);
                         } else {
-                            // Handle server errors (e.g., 400, 500)
                             const errorMessage = await response.json();
-                            //const errorText = errorMessage["Message"];
-                            //console.error('Error:', response.status, errorText);
                             showFeedbackModal('error', 'Dönem Ekleme Hatası', errorMessage["Message"]);
                         }
                     } catch (error) {

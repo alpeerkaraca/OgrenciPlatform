@@ -1,6 +1,6 @@
 ﻿using StackExchange.Redis;
 
-namespace OgrenciPortali.Utils
+namespace OgrenciPortalApi.Utils
 {
     public class CheckEmail
     {

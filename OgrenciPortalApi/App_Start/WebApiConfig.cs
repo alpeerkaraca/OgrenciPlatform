@@ -12,10 +12,12 @@ namespace OgrenciPortalApi
             // Web API routes
 
             var cors = new EnableCorsAttribute(
-                origins: "http://localhost:3000",
+                origins: "https://localhost:3000",
                 headers: "*",
                 methods: "*"
             );
+            cors.SupportsCredentials = true;
+
             config.EnableCors(cors);
 
             config.MapHttpAttributeRoutes();

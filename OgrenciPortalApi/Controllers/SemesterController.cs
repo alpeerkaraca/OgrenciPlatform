@@ -1,5 +1,4 @@
 ﻿using log4net;
-using OgrenciPortalApi.Attributes;
 using OgrenciPortalApi.Models;
 using Shared.DTO;
 using System;
@@ -9,10 +8,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
+using Shared.Enums;
 
 namespace OgrenciPortalApi.Controllers
 {
-    [JwtAuth]
+    [Authorize(Roles = nameof(Roles.Admin))]
     [RoutePrefix("api/semesters")]
     public class SemesterController : BaseApiController
     {

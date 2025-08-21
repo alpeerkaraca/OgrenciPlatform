@@ -15,10 +15,6 @@ namespace OgrenciPortalApi.Models
     
     public partial class OgrenciPortalApiDB : DbContext
     {
-        //public OgrenciPortalApiDB()
-        //    : base("name=OgrenciPortalApiDB")
-        //{
-        //}
     
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
