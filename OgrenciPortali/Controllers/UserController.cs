@@ -71,7 +71,11 @@ namespace OgrenciPortali.Controllers
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<LoginSuccessResponse>();
-                if (result == null || string.IsNullOrEmpty(result.Token)) return RedirectToAction("Index", "Home");
+                if (result == null || string.IsNullOrEmpty(result.Token))
+                {
+                    ModelState.AddModelError("", "Giriş işlemi başarısız oldu. Lütfen bilgilerinizi kontrol edin ve tekrar deneyin.");
+                    return View(viewModel);
+                }
                 var userCookie = new HttpCookie("AuthToken", result.Token)
                 {
                     HttpOnly = true,
