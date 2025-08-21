@@ -18,7 +18,8 @@ namespace OgrenciPortali.Controllers
     public class StudentController : Controller
     {
         private static ApiClient _apiClient;
-        private static IMapper _mapper;
+        private ApiClient _apiClient;
+        private IMapper _mapper;
 
         public StudentController(ApiClient apiClient, IMapper mapper)
         {
