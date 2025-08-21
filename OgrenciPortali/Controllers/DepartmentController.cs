@@ -86,7 +86,7 @@ namespace OgrenciPortali.Controllers
         //GET: Department/Edit/{id}
         public async Task<ActionResult> Edit(Guid id)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, $"api/departments/add/{id}");
+            var request = new HttpRequestMessage(HttpMethod.Get, $"api/departments/edit/{id}");
             var response = await _apiClient.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
