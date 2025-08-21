@@ -15,14 +15,15 @@ using Shared.DTO;
 namespace OgrenciPortali.Controllers
 {
     /// <summary>
-    /// Danışman işlemlerini yöneten controller sınıfı
+    /// DanÃ½Ã¾man iÃ¾lemlerini yÃ¶neten controller sÃ½nÃ½fÃ½
     /// </summary>
-    [CustomAuth(Roles.Danışman)]
+    [CustomAuth(Roles.DanÃ½Ã¾man)]
     public class AdvisorController : Controller
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(CoursesController));
         private static ApiClient _apiClient;
-        private static IMapper _mapper;
+        private readonly ApiClient _apiClient;
+        private readonly IMapper _mapper;
 
         public AdvisorController(ApiClient apiClient, IMapper mapper)
         {
@@ -61,7 +62,7 @@ namespace OgrenciPortali.Controllers
         }
 
         /// <summary>
-        /// Öğrenci detay sayfasını görüntüler
+        /// Ã–Ã°renci detay sayfasÃ½nÃ½ gÃ¶rÃ¼ntÃ¼ler
         /// </summary>
         public async Task<ActionResult> StudentDetail(Guid id)
         {
