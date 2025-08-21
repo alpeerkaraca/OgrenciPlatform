@@ -108,7 +108,7 @@ namespace OgrenciPortali.Controllers
         //[ValidateAntiForgeryToken]
 
         // TODO: Burada kaldın, _apiClient'e entegre etmeye devam et.
-        public async Task<ActionResult> Edit(DepartmentEditViewModel viewModel)
+                public async Task<ActionResult> Edit(DepartmentEditViewModel viewModel)
         {
             if (!ModelState.IsValid)
             {
