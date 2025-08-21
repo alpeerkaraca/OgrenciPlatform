@@ -20,7 +20,8 @@ namespace OgrenciPortali.Controllers
     public class SemesterController : Controller
     {
         private static ApiClient _apiClient;
-        private static IMapper _mapper;
+        private ApiClient _apiClient;
+        private IMapper _mapper;
 
         public SemesterController(ApiClient apiClient, IMapper mapper)
         {
