@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using AutoMapper;
 using log4net;
 using Newtonsoft.Json;
 using OgrenciPortali.Attributes;
+using OgrenciPortali.Utils;
 using Shared.DTO;
 using OgrenciPortali.ViewModels;
 using Shared.Enums;
@@ -15,35 +18,34 @@ using Shared.Enums;
 namespace OgrenciPortali.Controllers
 {
     [CustomAuth(Roles.Admin)]
-    public class DepartmentController : Controller
+    public class DepartmentController : BaseController
     {
-        private readonly string _apiBaseAddress = Utils.AppSettings.ApiBaseAddress;
-        private readonly ILog Logger = LogManager.GetLogger(typeof(DepartmentController));
+        private static ApiClient _apiClient;
+
+        private static IMapper _mapper;
+
+        public DepartmentController(ApiClient apiClient, IMapper mapper)
+        {
+            _apiClient = apiClient;
+            _mapper = mapper;
+        }
+
         // GET: Department/List
         public async Task<ActionResult> List()
         {
-            using (var client = new HttpClient())
+            var request = new HttpRequestMessage(HttpMethod.Get, "api/departments");
+            var response = await _apiClient.SendAsync(request);
+            if (response.IsSuccessStatusCode)
             {
-                client.BaseAddress = new Uri(_apiBaseAddress);
-
-                var token = GetCurrentUserToken();
-                if (!string.IsNullOrEmpty(token))
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-                var response = await client.GetAsync("api/departments");
-                if (response.IsSuccessStatusCode)
+                var deps = await response.Content.ReadAsAsync<List<ListDepartmentsDTO>>();
+                var viewModel = new DepartmentListViewModel
                 {
-                    var json = await response.Content.ReadAsStringAsync();
-                    var deps = JsonConvert.DeserializeObject<List<ListDepartmentsDTO>>(json);
-                    var viewModel = new DepartmentListViewModel
-                    {
-                        Departments = deps
-                    };
-                    return View(viewModel);
-                }
-
-                return View(new DepartmentListViewModel());
+                    Departments = deps
+                };
+                return View(viewModel);
             }
+
+            return View(new DepartmentListViewModel());
         }
 
         // GET: Department/Add
@@ -58,79 +60,55 @@ namespace OgrenciPortali.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ModelState.AddModelError("", "Gönderilen formda hata mevcut. Tekrar deneyiniz.");
+                ModelState.AddModelError("", "Model geçersiz.");
                 return View(viewModel);
             }
 
-            var dto = new AddDepartmentDTO
+            var dto = _mapper.Map<AddDepartmentDTO>(viewModel);
+            var request = new HttpRequestMessage(HttpMethod.Post, "api/departments/add")
             {
-                DepartmentCode = viewModel.DepartmentCode,
-                DepartmentName = viewModel.DepartmentName
+                Content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json")
             };
 
-            using (var client = new HttpClient())
+            var response = await _apiClient.SendAsync(request);
+            ;
+            if (response.IsSuccessStatusCode)
             {
-                client.BaseAddress = new Uri(_apiBaseAddress);
-                var token = GetCurrentUserToken();
-                if (!string.IsNullOrEmpty(token))
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await client.PostAsJsonAsync("api/departments/add", dto);
-                if (response.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("List", "Department");
-                }
-                else
-                {
-                    ModelState.AddModelError("", "Bölüm eklenirken bir hata oluştu.");
-                    return View(viewModel);
-                }
+                return RedirectToAction("List", "Department");
+            }
+            else
+            {
+                ModelState.AddModelError("", "Bölüm eklenirken bir hata oluştu.");
+                return View(viewModel);
             }
         }
 
         //GET: Department/Edit/{id}
-
         public async Task<ActionResult> Edit(Guid id)
         {
-            using (var client = new HttpClient())
+            var request = new HttpRequestMessage(HttpMethod.Get, $"api/departments/edit/{id}");
+            var response = await _apiClient.SendAsync(request);
+            if (response.IsSuccessStatusCode)
             {
-                client.BaseAddress = new Uri(_apiBaseAddress);
-                var token = GetCurrentUserToken();
-                if (!string.IsNullOrEmpty(token))
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await client.GetAsync($"api/departments/edit/{id}");
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    var dto = JsonConvert.DeserializeObject<EditDepartmentDTO>(json);
-                    if (dto == null)
-                    {
-                        ModelState.AddModelError("", "Bölüm bulunamadı.");
-                        return RedirectToAction("List", "Department");
-                    }
-
-                    var viewModel = new DepartmentEditViewModel
-                    {
-                        DepartmentCode = dto.DepartmentCode,
-                        DepartmentId = dto.DepartmentId,
-                        IsActive = dto.IsActive,
-                        DepartmentName = dto.DepartmentName
-                    };
-                    return View(viewModel);
-                }
-
-                ModelState.AddModelError("",
-                    response.StatusCode == HttpStatusCode.NotFound
-                        ? "Bölüm bulunamadı."
-                        : "Bölüm düzenlenirken bir hata oluştu.");
-
-                return RedirectToAction("List", "Department");
+                var dto = await response.Content.ReadAsAsync<EditDepartmentDTO>();
+                var viewModel = _mapper.Map<DepartmentEditViewModel>(dto);
+                return View(viewModel);
             }
+
+            ModelState.AddModelError("",
+                response.StatusCode == HttpStatusCode.NotFound
+                    ? "Bölüm bulunamadı."
+                    : "Bölüm düzenlenirken bir hata oluştu.");
+
+            return RedirectToAction("List", "Department");
         }
 
         //POST: Department/Edit/
         [HttpPost]
         //[ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(DepartmentEditViewModel viewModel)
+
+        // TODO: Burada kaldın, _apiClient'e entegre etmeye devam et.
+                public async Task<ActionResult> Edit(DepartmentEditViewModel viewModel)
         {
             if (!ModelState.IsValid)
             {
@@ -138,46 +116,22 @@ namespace OgrenciPortali.Controllers
                 return View(viewModel);
             }
 
-            var dto = new EditDepartmentDTO
+            var dto = _mapper.Map<EditDepartmentDTO>(viewModel);
+            var request = new HttpRequestMessage(HttpMethod.Post, "api/departments/edit")
             {
-                DepartmentId = viewModel.DepartmentId,
-                DepartmentCode = viewModel.DepartmentCode,
-                DepartmentName = viewModel.DepartmentName,
-                IsActive = viewModel.IsActive
+                Content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json")
             };
 
-            using (var client = new HttpClient())
+            var response = await _apiClient.SendAsync(request);
+            if (response.IsSuccessStatusCode)
             {
-                client.BaseAddress = new Uri(_apiBaseAddress);
-                var token = GetCurrentUserToken();
-                if (!string.IsNullOrEmpty(token))
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-                var response = await client.PostAsJsonAsync("api/departments/edit", dto);
-                if (response.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("List", "Department");
-                }
-                else
-                {
-                    ModelState.AddModelError("", "Bölüm güncellenirken bir hata oluştu.");
-                    return View(viewModel);
-                }
+                return RedirectToAction("List", "Department");
             }
-        }
-
-
-        private string GetCurrentUserToken()
-        {
-            var token = TempData["BearerToken"] as string ?? Session["bearerToken"] as string;
-
-            // Keep token in TempData for next request
-            if (!string.IsNullOrEmpty(token))
+            else
             {
-                TempData.Keep("BearerToken");
+                ModelState.AddModelError("", "Bölüm güncellenirken bir hata oluştu.");
+                return View(viewModel);
             }
-
-            return token;
         }
     }
 }

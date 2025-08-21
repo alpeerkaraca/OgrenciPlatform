@@ -14,6 +14,8 @@ using System.Web.Optimization;
 using System.Web.Routing;
 using Autofac;
 using Autofac.Integration.Mvc;
+using AutoMapper;
+using Microsoft.Extensions.Logging;
 
 namespace OgrenciPortali
 {
@@ -37,6 +39,18 @@ namespace OgrenciPortali
             var builder = new ContainerBuilder();
             builder.RegisterControllers(typeof(MvcApplication).Assembly);
             builder.RegisterType(typeof(ApiClient)).AsSelf().InstancePerRequest();
+
+            var mapperConfig = new MapperConfiguration(cfg =>
+            {
+                cfg.AddMaps(typeof(MvcApplication).Assembly);
+            }, new LoggerFactory());
+
+            // 2. Oluþturulan mapper nesnesini DI container'a tek bir instance olarak kaydet.
+            builder.RegisterInstance(mapperConfig.CreateMapper())
+                .As<IMapper>()
+                .SingleInstance();
+
+
             var container = builder.Build();
             DependencyResolver.SetResolver(new AutofacDependencyResolver(container));
         }
@@ -45,7 +59,7 @@ namespace OgrenciPortali
         {
             try
             {
-                var tokenCookie = HttpContext.Current.Request.Cookies["AuthToken"]; // Bulamýyor NULL geliyor.
+                var tokenCookie = HttpContext.Current.Request.Cookies["AuthToken"];
                 if (tokenCookie == null || string.IsNullOrEmpty(tokenCookie.Value))
                 {
                     return;

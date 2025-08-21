@@ -9,8 +9,10 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using AutoMapper;
 using Newtonsoft.Json;
 using Shared.Enums;
 
@@ -20,52 +22,41 @@ namespace OgrenciPortali.Controllers
     public class CoursesController : Controller
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(CoursesController));
-        private readonly string _apiBaseAddress = AppSettings.ApiBaseAddress;
+        private static ApiClient _apiClient;
+        private static IMapper _mapper;
 
+        public CoursesController(ApiClient apiClient, IMapper mapper)
+        {
+            _apiClient = apiClient;
+            _mapper = mapper;
+        }
 
         // GET: Courses/List
         public async Task<ActionResult> List()
         {
-            using (var client = new HttpClient())
+            var request = new HttpRequestMessage(HttpMethod.Get, "api/courses/list");
+            var response = await _apiClient.SendAsync(request);
+            if (response.IsSuccessStatusCode)
             {
-                client.BaseAddress = new Uri(_apiBaseAddress);
-                var token = GetCurrentUserToken();
-                if (!string.IsNullOrEmpty(token))
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await client.GetAsync("api/courses/list");
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    var dto = JsonConvert.DeserializeObject<List<ListCoursesDTO>>(json);
-                    return View(dto);
-                }
-                else
-                {
-                    return null;
-                }
+                var dto = await response.Content.ReadAsAsync<List<ListCoursesDTO>>();
+                return View(dto);
+            }
+            else
+            {
+                return null;
             }
         }
 
         // GET: Courses/Add
         public async Task<ActionResult> Add()
         {
-            using (var client = new HttpClient())
+            var request = new HttpRequestMessage(HttpMethod.Get, "api/courses/add");
+            var response = await _apiClient.SendAsync(request);
+            if (response.IsSuccessStatusCode)
             {
-                client.BaseAddress = new Uri(_apiBaseAddress);
-                var token = GetCurrentUserToken();
-                if (!string.IsNullOrEmpty(token))
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await client.GetAsync("api/courses/add");
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = response.Content.ReadAsStringAsync().Result;
-                    var courseDataDto = JsonConvert.DeserializeObject<AddCourseDTO>(json);
-                    var viewModel = new AddCourseViewModel
-                    {
-                        DepartmentList = new SelectList(courseDataDto.DepartmentsList, "DepartmentId", "DepartmentName")
-                    };
-                    return View(viewModel);
-                }
+                var courseDataDto = await response.Content.ReadAsAsync<AddCourseDTO>();
+                var viewModel = _mapper.Map<AddCourseViewModel>(courseDataDto);
+                return View(viewModel);
             }
 
             var emptyViewModel = new AddCourseViewModel
@@ -82,48 +73,29 @@ namespace OgrenciPortali.Controllers
         {
             if (!ModelState.IsValid)
             {
-                using (var client = new HttpClient())
-                {
-                    client.BaseAddress = new Uri(_apiBaseAddress);
-                    var token = GetCurrentUserToken();
-                    if (!string.IsNullOrEmpty(token))
-                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-                    viewModel.DepartmentList = await GetDepListFromApi(client);
-                }
-
+                viewModel.DepartmentList = await GetDepListFromApiForAddCourses();
                 return View(viewModel);
             }
 
-            using (var client = new HttpClient())
+            var addCourseDto = _mapper.Map<AddCourseDTO>(viewModel);
+            var request = new HttpRequestMessage(HttpMethod.Post, "api/courses/add")
             {
-                client.BaseAddress = new Uri(_apiBaseAddress);
-                var token = GetCurrentUserToken();
-                if (!string.IsNullOrEmpty(token))
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                Content = new StringContent(JsonConvert.SerializeObject(addCourseDto), Encoding.UTF8,
+                    "application/json"),
+            };
 
-                var dto = new AddCourseDTO
-                {
-                    CourseCode = viewModel.CourseCode,
-                    CourseName = viewModel.CourseName,
-                    Credits = viewModel.Credits,
-                    DepartmentId = viewModel.DepartmentId
-                };
+            var response = await _apiClient.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+            {
+                TempData["SuccessMessage"] = "Ders başarıyla eklendi.";
+                return RedirectToAction("List", "Courses");
+            }
+            else
+            {
+                ModelState.AddModelError("", "Ders eklenirken bir hata oluştu.");
 
-                var response = await client.PostAsJsonAsync("api/courses/add", dto);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    TempData["SuccessMessage"] = "Ders başarıyla eklendi.";
-                    return RedirectToAction("List", "Courses");
-                }
-                else
-                {
-                    ModelState.AddModelError("", @"Ders eklenirken bir hata oluştu.");
-
-                    viewModel.DepartmentList = await GetDepListFromApi(client);
-                    return View(viewModel);
-                }
+                viewModel.DepartmentList = await GetDepListFromApiForAddCourses();
+                return View(viewModel);
             }
         }
 
@@ -131,40 +103,23 @@ namespace OgrenciPortali.Controllers
         [CustomAuth(Roles.Admin)]
         public async Task<ActionResult> Edit(Guid id)
         {
-            if (id == Guid.Empty)
-                return RedirectToAction("List", "Courses");
-            using (var client = new HttpClient())
+            var request = new HttpRequestMessage(HttpMethod.Get, $"api/courses/edit/{id}");
+            var res = await _apiClient.SendAsync(request);
+
+            if (res.IsSuccessStatusCode)
             {
-                client.BaseAddress = new Uri(_apiBaseAddress);
-                var token = GetCurrentUserToken();
-                if (!string.IsNullOrEmpty(token))
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-                var res = await client.GetAsync($"/api/courses/edit/{id}");
-
-                if (res.IsSuccessStatusCode)
-                {
-                    var json = await res.Content.ReadAsStringAsync();
-                    var dto = JsonConvert.DeserializeObject<EditCourseDTO>(json);
-                    var viewModel = new EditCourseViewModel()
-                    {
-                        CourseId = dto.CourseId,
-                        CourseCode = dto.CourseCode,
-                        CourseName = dto.CourseName,
-                        Credits = dto.Credits,
-                        DepartmentId = dto.DepartmentId,
-                        DepartmentList = await GetDepListFromApi(client),
-                    };
-                    return View(viewModel);
-                }
-
-                if (res.StatusCode == HttpStatusCode.BadRequest)
-                    ModelState.AddModelError("", "Gönderilen ID Geçersiz");
-                if (res.StatusCode == HttpStatusCode.NotFound)
-                    ModelState.AddModelError("", "Ders Bulunamadı");
-
-                return RedirectToAction("List", "Courses");
+                var dto = await res.Content.ReadAsAsync<EditCourseDTO>();
+                var viewModel = _mapper.Map<EditCourseViewModel>(dto);
+                viewModel.DepartmentList = await GetDepListFromApiForAddCourses();
+                return View(viewModel);
             }
+
+            if (res.StatusCode == HttpStatusCode.BadRequest)
+                ModelState.AddModelError("", "Gönderilen ID Geçersiz");
+            if (res.StatusCode == HttpStatusCode.NotFound)
+                ModelState.AddModelError("", "Ders Bulunamadı");
+
+            return RedirectToAction("List", "Courses");
         }
 
         // POST: Courses/Edit
@@ -174,66 +129,37 @@ namespace OgrenciPortali.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ModelState.AddModelError("", @"Model Geçerli Değil");
-                //viewModel.DepartmentList =
-                //    await GetDepListFromApi(new HttpClient().BaseAddress = new Uri(_apiBaseAddress));
-                //TODO Burada Kaldın
+                ModelState.AddModelError("", "Model Geçerli Değil");
+                viewModel.DepartmentList = await GetDepListFromApiForAddCourses();
                 return View(viewModel);
             }
 
-            using (var client = new HttpClient())
+
+            var dto = _mapper.Map<EditCourseDTO>(viewModel);
+            var request = new HttpRequestMessage(HttpMethod.Post, "api/courses/edit")
             {
-                client.BaseAddress = new Uri(_apiBaseAddress);
-                var token = GetCurrentUserToken();
-                if (!string.IsNullOrEmpty(token))
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                Content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json"),
+            };
 
-                var dto = new EditCourseDTO
-                {
-                    CourseName = viewModel.CourseName,
-                    CourseCode = viewModel.CourseCode,
-                    CourseId = viewModel.CourseId,
-                    DepartmentId = viewModel.DepartmentId,
-                    Credits = viewModel.Credits,
-                };
-
-                var res = await client.PostAsJsonAsync("/api/courses/edit", dto);
-
-                if (res.IsSuccessStatusCode)
-                {
-                }
-                else
-                {
-                    ModelState.AddModelError("", @"Ders Eklenirken Hata Oluştu");
-                }
-
-                viewModel.DepartmentList = await GetDepListFromApi(client);
+            var res = await _apiClient.SendAsync(request);
+            if (res.IsSuccessStatusCode)
+            {
+                return RedirectToAction("List", "Courses");
+            }
+            else
+            {
+                ModelState.AddModelError("", @"Ders Eklenirken Hata Oluştu");
+                viewModel.DepartmentList = await GetDepListFromApiForAddCourses();
                 return View(viewModel);
             }
         }
 
-        /// <summary>
-        /// Gets the current user's Bearer token from session/TempData
-        /// </summary>
-        private string GetCurrentUserToken()
+        private async Task<SelectList> GetDepListFromApiForAddCourses()
         {
-            var token = TempData["BearerToken"] as string ?? Session["bearerToken"] as string;
-
-            // Keep token in TempData for next request
-            if (!string.IsNullOrEmpty(token))
-            {
-                TempData.Keep("BearerToken");
-            }
-
-            return token;
-        }
-
-        private async Task<SelectList> GetDepListFromApi(HttpClient client)
-        {
-            var res = await client.GetAsync("/api/courses/add");
+            var res = await _apiClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, "/api/courses/add"));
             if (!res.IsSuccessStatusCode) return null;
             var json = await res.Content.ReadAsStringAsync();
-            var courseDataDto = JsonConvert.DeserializeObject<AddCourseDTO>(json);
+            var courseDataDto = await res.Content.ReadAsAsync<AddCourseDTO>();
             return new SelectList(courseDataDto.DepartmentsList, "DepartmentId", "DepartmentName");
         }
     }

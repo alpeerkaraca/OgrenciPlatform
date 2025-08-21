@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using log4net;
 using OgrenciPortalApi.Utils;
-using Shared.DTO;
 
 namespace OgrenciPortalApi.Controllers
 {

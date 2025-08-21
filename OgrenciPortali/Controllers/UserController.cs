@@ -1,7 +1,5 @@
-﻿using Azure;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using OgrenciPortali.Attributes;
-using OgrenciPortali.Utils;
 using OgrenciPortali.ViewModels;
 using Shared.DTO;
 using Shared.Enums;
@@ -9,12 +7,14 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using AutoMapper;
 using log4net;
+using OgrenciPortali.Utils;
 
 namespace OgrenciPortali.Controllers
 {
@@ -23,12 +23,16 @@ namespace OgrenciPortali.Controllers
     /// </summary>
     public class UserController : BaseController
     {
-        private static readonly HttpClient client = new HttpClient()
-        {
-            BaseAddress = new Uri(AppSettings.ApiBaseAddress)
-        };
-
         private static readonly ILog Logger = LogManager.GetLogger(typeof(UserController));
+        private readonly ApiClient _apiClient;
+        private readonly IMapper _mapper;
+
+        public UserController(ApiClient apiClient, IMapper mapper)
+        {
+            _apiClient = apiClient;
+            _mapper = mapper;
+        }
+
 
         /// <summary>
         /// Kullanıcı giriş sayfasını görüntüler
@@ -55,40 +59,46 @@ namespace OgrenciPortali.Controllers
         {
             if (!ModelState.IsValid)
                 return View(viewModel);
-            var response = await client.PostAsJsonAsync("api/user/login",
-                new LoginRequestDTO { Email = viewModel.Email, Password = viewModel.Password });
+            var loginUserDto = _mapper.Map<LoginUserDTO>(viewModel);
+            var request = new HttpRequestMessage(HttpMethod.Post, "api/user/login")
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(loginUserDto), System.Text.Encoding.UTF8,
+                    "application/json"),
+            };
+
+            var response = await _apiClient.SendAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<LoginSuccessResponse>();
-                if (result != null && !string.IsNullOrEmpty(result.Token))
+                if (result == null || string.IsNullOrEmpty(result.Token))
                 {
-                    var userCookie = new HttpCookie("AuthToken", result.Token)
-                    {
-                        HttpOnly = true,
-                        Secure = Request.IsSecureConnection,
-                        Expires = DateTime.Now.AddMinutes(15),
-                        Path = "/",
-                        SameSite = SameSiteMode.Strict,
-                    };
-
-                    Response.Cookies.Add(userCookie);
+                    ModelState.AddModelError("", "Giriş işlemi başarısız oldu. Lütfen bilgilerinizi kontrol edin ve tekrar deneyin.");
+                    return View(viewModel);
                 }
+                var userCookie = new HttpCookie("AuthToken", result.Token)
+                {
+                    HttpOnly = true,
+                    Secure = Request.IsSecureConnection,
+                    Expires = DateTime.Now.AddMinutes(15),
+                    Path = "/",
+                    SameSite = SameSiteMode.Strict,
+                };
 
-                //return View("LoginSuccess");
+                Response.Cookies.Add(userCookie);
+
                 return RedirectToAction("Index", "Home");
             }
-            else if (response.StatusCode == HttpStatusCode.Unauthorized)
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 ModelState.AddModelError("", "E-posta veya şifre hatalı.");
                 return View(viewModel);
             }
-            else
-            {
-                ModelState.AddModelError("",
-                    "Giriş işlemi sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
-                return View(viewModel);
-            }
+
+            ModelState.AddModelError("",
+                "Giriş işlemi sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
+            return View(viewModel);
         }
 
         /// <summary>
@@ -105,39 +115,37 @@ namespace OgrenciPortali.Controllers
                 return View(model);
             }
 
-            var authenticatedClient = await GetAuthenticatedHttpClient();
-
             var currentUser = User.Identity as ClaimsIdentity;
             var userIdClaim = currentUser?.FindFirst(ClaimTypes.NameIdentifier).Value;
             if (userIdClaim == null)
                 return View(model);
 
-            Guid userId = Guid.Parse(userIdClaim);
-            var response = await authenticatedClient.PostAsJsonAsync("api/user/ChangePassword",
-                new ChangePasswordRequestDTO()
-                {
-                    UserId = userId,
-                    CurrentPassword = model.CurrentPassword,
-                    NewPassword = model.NewPassword,
-                });
+            var changePasswordDto = _mapper.Map<ChangePasswordDTO>(model);
+            changePasswordDto.UserId = Guid.Parse(userIdClaim);
+
+            var request = new HttpRequestMessage(HttpMethod.Post, "api/user/change-password")
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(changePasswordDto), Encoding.UTF8,
+                    "application/json")
+            };
+
+            var response = await _apiClient.SendAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
                 TempData["SuccessMessage"] = "Şifreniz başarıyla değiştirildi.";
+                return RedirectToAction("Index", "Home");
             }
-            else if (response.StatusCode == HttpStatusCode.Unauthorized)
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 ModelState.AddModelError("", "Mevcut şifre yanlış.");
                 return View(model);
             }
-            else
-            {
-                ModelState.AddModelError("",
-                    "Şifre değiştirme işlemi sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
-                return View(model);
-            }
 
-            return RedirectToAction("Index", "Home");
+            ModelState.AddModelError("",
+                "Şifre değiştirme işlemi sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
+            return View(model);
         }
 
         /// <summary>
@@ -146,7 +154,7 @@ namespace OgrenciPortali.Controllers
         [CustomAuth]
         public ActionResult ChangePassword()
         {
-            return View();
+            return View(new ChangePasswordViewModel());
         }
 
         /// <summary>
@@ -174,15 +182,14 @@ namespace OgrenciPortali.Controllers
         [CustomAuth(Roles.Admin)]
         public async Task<ActionResult> Register()
         {
-            RegisterViewModel viewModel = new RegisterViewModel();
-            var authenticatedClient = await GetAuthenticatedHttpClient();
+            var viewModel = new RegisterViewModel();
+            var request = new HttpRequestMessage(HttpMethod.Get, "api/user/register");
             var response =
-                await authenticatedClient.GetAsync("api/user/register");
+                await _apiClient.SendAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
-                var json = await response.Content.ReadAsStringAsync();
-                var registerDto = JsonConvert.DeserializeObject<RegisterDataDto>(json);
+                var registerDto = await response.Content.ReadAsAsync<RegisterDataDto>();
                 viewModel.RolesList = new SelectList(registerDto.RolesList, "Value", "Text");
                 viewModel.DepartmentsList = new SelectList(registerDto.DepartmentsList, "Value", "Text");
                 viewModel.AdvisorsList = new SelectList(registerDto.AdvisorsList, "Value", "Text");
@@ -202,22 +209,20 @@ namespace OgrenciPortali.Controllers
         public async Task<ActionResult> Register(RegisterViewModel viewModel)
         {
             if (!ModelState.IsValid)
-                return View(viewModel);
-
-            var authenticatedClient = await GetAuthenticatedHttpClient();
-            var registerDataDto = new RegisterDataDto()
             {
-                AdvisorId = viewModel.AdvisorId,
-                DepartmentId = viewModel.DepartmentId,
-                Email = viewModel.Email,
-                Name = viewModel.Name,
-                Password = viewModel.Password,
-                Role = viewModel.Role,
-                Surname = viewModel.Surname,
-                StudentNo = viewModel.StudentNo,
+                viewModel = await FillModel(viewModel);
+
+                return View(viewModel);
+            }
+
+            var registerDataDto = _mapper.Map<RegisterDataDto>(viewModel);
+            var request = new HttpRequestMessage(HttpMethod.Post, "api/user/register")
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(registerDataDto), Encoding.UTF8,
+                    "application/json")
             };
-            var response = await authenticatedClient.PostAsJsonAsync("/api/user/register",
-                registerDataDto);
+
+            var response = await _apiClient.SendAsync(request);
 
 
             if (response.IsSuccessStatusCode)
@@ -225,12 +230,11 @@ namespace OgrenciPortali.Controllers
                 TempData["SuccessMessage"] = "Kullanıcı başarıyla kaydedildi.";
                 return RedirectToAction("List", "User");
             }
-            else
-            {
-                ModelState.AddModelError("",
-                    "Kullanıcı kaydı sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
-                return View(viewModel);
-            }
+
+            ModelState.AddModelError("",
+                "Kullanıcı kaydı sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
+            viewModel = await FillModel(viewModel);
+            return View(viewModel);
         }
 
         /// <summary>
@@ -239,12 +243,11 @@ namespace OgrenciPortali.Controllers
         [CustomAuth(Roles.Admin)]
         public async Task<ActionResult> List()
         {
-            var authenticatedClient = await GetAuthenticatedHttpClient();
-            var response = await authenticatedClient.GetAsync("/api/user/list");
+            var request = new HttpRequestMessage(HttpMethod.Get, "/api/user/list");
+            var response = await _apiClient.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                var json = await response.Content.ReadAsStringAsync();
-                var userList = JsonConvert.DeserializeObject<List<UserDTO>>(json);
+                var userList = await response.Content.ReadAsAsync<List<UserDTO>>();
                 return View(userList);
             }
 
@@ -259,10 +262,13 @@ namespace OgrenciPortali.Controllers
         {
             try
             {
-                var authenticatedClient = await GetAuthenticatedHttpClient();
-                await authenticatedClient.PostAsync("api/auth/logout", null);
+                var request = new HttpRequestMessage(HttpMethod.Post, "api/auth/logout")
+                {
+                    Content = null
+                };
 
-                // Tarayıcıdaki cookie'leri temizle
+                var response = await _apiClient.SendAsync(request);
+
                 if (Request.Cookies["AuthToken"] != null)
                 {
                     Response.Cookies.Add(new HttpCookie("AuthToken", "") { Expires = DateTime.Now.AddDays(-1) });
@@ -301,33 +307,20 @@ namespace OgrenciPortali.Controllers
         /// <summary>
         /// Kullanıcı düzenleme sayfasını görüntüler
         /// </summary>
+        [HttpGet]
         [CustomAuth(Roles.Admin)]
         public async Task<ActionResult> Edit(Guid id)
         {
-            var authenticatedClient = await GetAuthenticatedHttpClient();
-            var response = await authenticatedClient.GetAsync($"api/user/edit/{id}");
+            var request = new HttpRequestMessage(HttpMethod.Get, $"api/user/edit/{id}");
+            var response = await _apiClient.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                var json = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<EditUserDTO>(json);
-                var vm = new UpdateUserViewModel
-                {
-                    UserId = result.UserId,
-                    Name = result.Name,
-                    Surname = result.Surname,
-                    Email = result.Email,
-                    StudentNo = result.StudentNo,
-                    Role = result.Role,
-                    AdvisorId = result.AdvisorId,
-                    AdvisorsList = result.AdvisorsList,
-                    DepartmentsList = result.DepartmentsList,
-                    RolesList = result.RolesList,
-                    DepartmentId = result.DepartmentId,
-                };
-                return View(vm);
+                var editUserDto = await response.Content.ReadAsAsync<EditUserDTO>();
+                var viewModel = _mapper.Map<UpdateUserViewModel>(editUserDto);
+                return View(viewModel);
             }
 
-            return View(new UpdateUserViewModel());
+            return View("Error");
         }
 
         /// <summary>
@@ -338,19 +331,20 @@ namespace OgrenciPortali.Controllers
         //[ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(UpdateUserViewModel viewModel)
         {
-            var authenticatedClient = await GetAuthenticatedHttpClient();
-            var dto = new EditUserDTO()
+            if (!ModelState.IsValid)
             {
-                Name = viewModel.Name,
-                Email = viewModel.Email,
-                Role = viewModel.Role,
-                DepartmentId = viewModel.DepartmentId,
-                StudentNo = viewModel.StudentNo,
-                AdvisorId = viewModel.AdvisorId,
-                Surname = viewModel.Surname,
-                UserId = viewModel.UserId,
+                ModelState.AddModelError("", "Model verileri geçersiz.");
+                viewModel = await FillModel(viewModel);
+                return View(viewModel);
+            }
+
+            var dto = _mapper.Map<EditUserDTO>(viewModel);
+            var request = new HttpRequestMessage(HttpMethod.Post, "api/user/edit")
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json"),
             };
-            var response = await authenticatedClient.PostAsJsonAsync("api/user/edit", dto);
+
+            var response = await _apiClient.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
                 return RedirectToAction("Edit", "User");
@@ -360,74 +354,49 @@ namespace OgrenciPortali.Controllers
                 ModelState.AddModelError("", "Bu bilgilere ait bir kullanıcı sistemde mevcut.");
             if (response.StatusCode == HttpStatusCode.InternalServerError)
                 ModelState.AddModelError("", "Kullanıcı güncellenirken bir hata oluştu. Tekrar deneyin.");
+            else
+            {
+                var msg = await response.Content.ReadAsAsync<dynamic>();
+                var message = msg.Message;
+                ModelState.AddModelError("", message.ToString());
+            }
+
+            viewModel = await FillModel(viewModel);
             return View(viewModel);
         }
 
-        /// <summary>
-        /// Kullanıcı şifresinin doğruluğunu kontrol eder
-        /// </summary>
-        public bool IsUserPasswordValid(string password, string hashInDb)
+        private async Task<RegisterViewModel> FillModel(RegisterViewModel viewModel)
         {
-            if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(hashInDb))
+            var request_back = new HttpRequestMessage(HttpMethod.Get, "api/user/register");
+            var response_back =
+                await _apiClient.SendAsync(request_back);
+
+            if (response_back.IsSuccessStatusCode)
             {
-                return false;
+                var registerDto = await response_back.Content.ReadAsAsync<RegisterDataDto>();
+                viewModel.RolesList = new SelectList(registerDto.RolesList, "Value", "Text");
+                viewModel.DepartmentsList = new SelectList(registerDto.DepartmentsList, "Value", "Text");
+                viewModel.AdvisorsList = new SelectList(registerDto.AdvisorsList, "Value", "Text");
             }
 
-            return BCrypt.Net.BCrypt.Verify(password, hashInDb);
+            return viewModel;
         }
 
-        /// <summary>
-        /// Mevcut kullanıcının token'ını okuyarak API istekleri için yetkilendirilmiş bir HttpClient nesnesi döner.
-        /// </summary>
-        private async Task<HttpClient> GetAuthenticatedHttpClient(bool forceRefresh = false)
+        private async Task<UpdateUserViewModel> FillModel(UpdateUserViewModel viewModel)
         {
-            var tokenCookie = Request.Cookies["AuthToken"];
+            var request_back = new HttpRequestMessage(HttpMethod.Get, "api/user/register");
+            var response_back =
+                await _apiClient.SendAsync(request_back);
 
-            if (forceRefresh || tokenCookie == null || string.IsNullOrEmpty(tokenCookie.Value))
+            if (response_back.IsSuccessStatusCode)
             {
-                var refreshSuccess = await RefreshAccessTokenAsync();
-                if (!refreshSuccess)
-                {
-                    client.DefaultRequestHeaders.Authorization = null;
-                    return client;
-                }
-
-                tokenCookie = Request.Cookies["AuthToken"];
+                var registerDto = await response_back.Content.ReadAsAsync<RegisterDataDto>();
+                viewModel.RolesList = new SelectList(registerDto.RolesList, "Value", "Text");
+                viewModel.DepartmentsList = new SelectList(registerDto.DepartmentsList, "Value", "Text");
+                viewModel.AdvisorsList = new SelectList(registerDto.AdvisorsList, "Value", "Text");
             }
 
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenCookie.Value);
-            return client;
-        }
-
-        /// <summary>
-        /// Kullanıcının tokeninin süresi dolduysa refresh tokenini kullanarak yeni bir erişim tokeni döndürür.
-        /// </summary>>
-        private async Task<bool> RefreshAccessTokenAsync()
-        {
-            try
-            {
-                var response = await client.PostAsync("api/auth/refresh-token", null);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsStringAsync();
-                    var tokenData = JsonConvert.DeserializeObject<dynamic>(result);
-                    var newAuthCookie = new HttpCookie("AuthToken", tokenData.accessToken)
-                    {
-                        HttpOnly = true,
-                        Secure = Request.IsSecureConnection,
-                        Expires = DateTime.UtcNow.AddMinutes(Convert.ToInt32(15)),
-                        Path = "/"
-                    };
-                    Response.SetCookie(newAuthCookie);
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Error("Token Yenilerken Hata: ", ex);
-            }
-
-            return false;
+            return viewModel;
         }
     }
 }
