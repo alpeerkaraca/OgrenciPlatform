@@ -139,7 +139,7 @@ namespace OgrenciPortalApi.Controllers
         /// </summary>
         /// <param name="dto">Güncellenecek departmanın yeni bilgilerini içeren DTO.</param>
         /// <returns>Güncelleme durumunu bildiren bir HTTP yanıtı döner.</returns>
-        [HttpPut]
+        [HttpPost]
         [Route("edit")]
         [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> EditDepartment(EditDepartmentDTO dto)
@@ -182,7 +182,7 @@ namespace OgrenciPortalApi.Controllers
         /// </summary>
         /// <param name="id">Silinecek departmanın ID'si.</param>
         /// <returns>Silme işleminin durumunu bildiren bir HTTP yanıtı döner.</returns>
-        [HttpDelete]
+        [HttpPost]
         [Route("delete/{id:guid}")]
         [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> DeleteDepartment(Guid id)

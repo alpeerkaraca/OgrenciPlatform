@@ -142,7 +142,7 @@ namespace OgrenciPortalApi.Controllers
         /// </summary>
         /// <param name="dto">Güncellenecek dönemin yeni bilgilerini içeren DTO.</param>
         /// <returns>Güncelleme durumunu bildiren bir HTTP yanıtı döner.</returns>
-        [HttpPut]
+        [HttpPost]
         [Route("edit")]
         [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> EditSemester(EditSemesterDTO dto)
@@ -189,7 +189,7 @@ namespace OgrenciPortalApi.Controllers
         /// </summary>
         /// <param name="id">Silinecek dönemin ID'si.</param>
         /// <returns>Silme işleminin durumunu bildiren bir HTTP yanıtı döner.</returns>
-        [HttpDelete]
+        [HttpPost]
         [Route("delete/{id:guid}")]
         [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> DeleteSemester(Guid id)

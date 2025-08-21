@@ -43,8 +43,9 @@ li { list-style: none; }
 }
 
 #toggle-btn i {
-/*    font-size: 1.5rem;
-*/    color: #fff;
+    /*    font-size: 1.5rem;
+*/
+    color: #fff;
     animation-iteration-count: 1;
     animation-duration: .5s
 }
@@ -76,9 +77,7 @@ a.sidebar-link {
     gap: .75rem;
 }
 
-.sidebar-link i {
-    font-size: 1.35rem;
-}
+.sidebar-link i { font-size: 1.35rem; }
 
 /*.sidebar-link i {
     font-size: 1.1rem;
@@ -132,11 +131,25 @@ a.sidebar-link:hover {
 /* ------------- Form Düzenlemeleri ------------- */
 
 .form-control:focus {
-    box-shadow: 0 0 0 0.1rem rgba(26, 26, 26, 0.25) !important;
+    box-shadow: 0 0 0 0.1rem #1a1a1a;
+    box-shadow: 0 0 0 0.1rem rgba(26, 26, 26, 0.25);
+    transition: all .2s ease-in-out;
+}
+
+.is-invalid {
+    box-shadow: 0 0 0 0.1rem #bb2124;
+    box-shadow: 0 0 0 0.1rem rgba(187, 33, 36, 0.5);
+    transition: all .2s ease-in-out;
+}
+
+.is-invalid:focus {
+    box-shadow: 0 0 0 .2rem #bb2124 !important;
+    box-shadow: 0 0 0 .2rem rgba(187, 33, 36, 0.7) !important;
     transition: all .2s ease-in-out;
 }
 
 .form-select:focus {
+    box-shadow: 0 0 0 0.1rem #1a1a1a !important;
     box-shadow: 0 0 0 0.1rem rgba(26, 26, 26, 0.25) !important;
     transition: all .2s ease-in-out;
 }
@@ -150,7 +163,7 @@ a.sidebar-link:hover {
 
 .op-icon:hover {
     filter: brightness(95%);
-    box-shadow: 1px 1px 1px 1px rgba(0,0,0,.5);
+    box-shadow: 1px 1px 1px 1px rgba(0, 0, 0, .5);
     transform: scale(1.04);
     transition: all .2s ease-in-out
 }
@@ -161,20 +174,16 @@ input::-webkit-inner-spin-button {
     margin: 0;
 }
 
-input[type=number] {
-    -moz-appearance: textfield;
-}
+input[type=number] { -moz-appearance: textfield; }
 
 
 
 /*Ders seçim ekranı tabloları */
-@media (max-width: 992px) {
-    .table-transform {
-    }
 
-    .table-transform thead {
-        display: none;
-    }
+@media (max-width: 992px) {
+    .table-transform { }
+
+    .table-transform thead { display: none; }
 
     .table-transform tr {
         display: block;
@@ -185,19 +194,17 @@ input[type=number] {
 
     .table-transform td {
         display: block;
-        text-align: right; 
+        text-align: right;
         border: none;
         border-bottom: 1px solid #f0f0f0;
-        position: relative; 
+        position: relative;
         padding-left: 50%;
     }
 
-    .table-transform td:last-child {
-        border-bottom: none;
-    }
+    .table-transform td:last-child { border-bottom: none; }
 
     .table-transform td::before {
-        content: attr(data-label); 
+        content: attr(data-label);
         position: absolute;
         left: 0.5rem;
         width: 45%;
@@ -207,14 +214,8 @@ input[type=number] {
     }
 }
 
-.footer {
-    background-color: #0e223e !important;
+.footer { background-color: #0e223e !important; }
 
-}
+.dropdown-menu .dropdown-menu-end { transition: all .5s ease-in-out; }
 
-.dropdown-menu .dropdown-menu-end {
-    transition: all .5s ease-in-out;
-}
-.modal-dialog {
-    box-shadow: none !important;
-}
+.modal-dialog { box-shadow: none !important; }

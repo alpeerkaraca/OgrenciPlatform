@@ -23,38 +23,43 @@
 
                     @using (Html.BeginForm("Add", "Courses", FormMethod.Post, new { @class = "needs-validation", novalidate = "novalidate", id = "add-form" }))
                     {
-                        @*@Html.AntiForgeryToken()*@
                         @Html.ValidationSummary(false, "", new { @class = "text-danger", required = true })
                         <div class="row" id="form-area">
 
-                            <div class=" col-md-6 col-12 mb-3">
-                                <label for="@Model.CourseCode" class="form-label">
+                            <div class="col-md-6 col-12 mb-3">
+                                <label for="CourseCode" class="form-label">
                                     <i class="bi bi-journal me-1"></i>Ders Kodu
                                 </label>
                                 @Html.EditorFor(model => model.CourseCode, new { htmlAttributes = new { @class = "form-control", required = true } })
+                                <div class="invalid-feedback" id="CourseCodeError"></div>
                             </div>
-                            <div class=" col-md-6 col-12 mb-3">
-                                <label for="@Model.CourseName" class="form-label">
+
+                            <div class="col-md-6 col-12 mb-3">
+                                <label for="CourseName" class="form-label">
                                     <i class="bi bi-book me-1"></i>Ders Adı
                                 </label>
                                 @Html.EditorFor(model => model.CourseName, new { htmlAttributes = new { @class = "form-control", required = true } })
+                                <div class="invalid-feedback" id="CourseNameError"></div>
                             </div>
+
                             <div class="col-md-6 col-12 mb-3">
-                                <label for="@Model.Credits" class="form-label">
+                                <label for="Credits" class="form-label">
                                     <i class="bi bi-123 me-1"></i>Kredi
-                                </label> @Html.EditorFor(model => model.Credits, new { htmlAttributes = new { @class = "form-control", required = true, type = "number" } })
+                                </label>
+                                @Html.EditorFor(model => model.Credits, new { htmlAttributes = new { @class = "form-control", required = true, type = "number" } })
+                                <div class="invalid-feedback" id="CreditsError"></div>
                             </div>
 
-
                             <div class="col-md-6 col-12 mb-3">
-                                <label for="@Model.DepartmentId" class="form-label">
+                                <label for="DepartmentId" class="form-label">
                                     <i class="bi bi-building me-1"></i> Bölüm
                                 </label>
                                 @Html.DropDownListFor(m => m.DepartmentId, Model.DepartmentList, "Bölüm Seçiniz", new { @class = "form-select" })
+                                <div class="invalid-feedback" id="DepartmentIdError"></div>
                             </div>
 
                             <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary ">
+                                <button type="submit" class="btn btn-primary" id="addCourseBtn">
                                     <i class="bi bi-check-lg me-2"></i>Ders Ekle
                                 </button>
                                 <a href="@Url.Action("List", "Courses")" class="btn btn-secondary">
@@ -74,13 +79,104 @@
     <script>
 
         document.addEventListener('DOMContentLoaded',
-            async function() {
+            function() {
+
+                const courseCodeInput = document.getElementById('CourseCode');
+                const courseNameInput = document.getElementById('CourseName');
+                const creditsInput = document.getElementById('Credits');
+                const departmentSelect = document.getElementById('DepartmentId');
+                const addCourseBtn = document.getElementById('addCourseBtn');
+
+                const courseCodeError = document.getElementById('CourseCodeError');
+                const courseNameError = document.getElementById('CourseNameError');
+                const creditsError = document.getElementById('CreditsError');
+                const departmentError = document.getElementById('DepartmentIdError');
+
+                const originalButtonHtml = addCourseBtn.innerHTML;
+
+                const showError = (input, errorDiv, message) => {
+                    input.classList.add('is-invalid');
+                    errorDiv.textContent = message;
+                };
+                const clearError = (input) => {
+                    input.classList.remove('is-invalid');
+
+                };
+
+                function validateForm() {
+                    let isFormValid = true;
+
+                    const codeValue = courseCodeInput.value.trim();
+                    if (codeValue === '') {
+                        showError(courseCodeInput, courseCodeError, 'Ders kodu boş olamaz.');
+                        isFormValid = false;
+                    } else if (codeValue.length > 10) {
+                        showError(courseCodeInput, courseCodeError, 'Ders kodu en fazla 10 karakter olabilir.');
+                        isFormValid = false;
+                    } else {
+                        clearError(courseCodeInput);
+                    }
+
+                    const nameValue = courseNameInput.value.trim();
+                    if (nameValue === '') {
+                        showError(courseNameInput, courseNameError, 'Ders adı boş olamaz.');
+                        isFormValid = false;
+                    } else if (nameValue.length > 100) {
+                        showError(courseNameInput, courseNameError, 'Ders adı en fazla 100 karakter olabilir.');
+                        isFormValid = false;
+                    } else {
+                        clearError(courseNameInput);
+                    }
+
+                    const creditValue = creditsInput.value;
+                    if (creditValue === '') {
+                        showError(creditsInput, creditsError, 'Kredi alanı boş olamaz.');
+                        isFormValid = false;
+                    } else {
+                        const creditNum = parseFloat(creditValue);
+                        if (isNaN(creditNum) || creditNum <= 0 || creditNum > 10) {
+                            showError(creditsInput, creditsError, 'Kredi 0 ile 10 arasında bir sayı olmalıdır.');
+                            isFormValid = false;
+                        } else {
+                            clearError(creditsInput);
+                        }
+                    }
+
+                    if (departmentSelect.value === '') {
+                        showError(departmentSelect, departmentError, 'Lütfen bir bölüm seçiniz.');
+                        isFormValid = false;
+                    } else {
+                        clearError(departmentSelect);
+                    }
+
+                    addCourseBtn.disabled = !isFormValid;
+                    if (!isFormValid) {
+                        addCourseBtn.classList.add('button-disabled');
+                    } else {
+                        addCourseBtn.classList.remove('button-disabled');
+                    }
+                }
+
+                const inputs = [courseCodeInput, courseNameInput, creditsInput, departmentSelect];
+                inputs.forEach(input => {
+                    input.addEventListener('input', validateForm);
+                    input.addEventListener('change', validateForm);
+                });
+
+                validateForm();
+
                 var form = $('#add-form');
                 form.on('submit',
-                    async function() {
+                    async function(e) {
                         e.preventDefault();
+                        addCourseBtn.disabled = true;
+                        addCourseBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Kaydediliyor...`;
+
                         if (!sessionStorage.getItem('bearerToken')) {
                             showFeedbackModal('error', 'Yetkisiz İşlem', 'Sistem işlemi yapan kişiyi doğrulayamıyor. Lütfen tekrar giriş yapınız.', null, null, null);
+                            addCourseBtn.innerHTML = originalButtonHtml;
+                            validateForm();
+                            return;
                         }
                         const formDataArray = $(this).serializeArray();
                         let formDataObject = {};
@@ -98,17 +194,25 @@
                                         'Content-Type': 'application/json'
                                     },
                                     body:
-                                        json.stringify(formDataObject)
+                                        JSON.stringify(formDataObject)
                                 });
                             const res = await response.json();
-                            if (res.ok) {
-                                showFeedbackModal('success', 'İşlem Başarılı', res.Message, null, null, setTimeout(window.reload(), 2500));
-                            } else
-                                showFeedbackModal('error', 'İşlem Başarısız', res.Message, null, null, null);
-
-
+                            if (response.ok) {
+                                form[0].reset();
+                                showFeedbackModal('success', 'İşlem Başarılı', res.message || 'Ders başarıyla eklendi.', null, null, null);
+                            } else {
+                                showFeedbackModal('error', 'İşlem Başarısız', res.message || 'Bir hata oluştu.', null, null, null);
+                            }
+                        } catch
+                        (e) {
+                            console.error(e);
+                            showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya bağlanırken bir hata oluştu.', null, null, null);
+                        } finally {
+                            addCourseBtn.innerHTML = originalButtonHtml;
+                            validateForm();
                         }
-                    })
+
+                    });
             });
     </script>
 }

@@ -65,7 +65,7 @@ namespace OgrenciPortalApi.Controllers
         [System.Web.Http.HttpGet]
         [System.Web.Http.Route("add")]
         [ResponseType(typeof(AddOfferedCourseDTO))]
-        public IHttpActionResult GetAddOfferedCourses()
+        public async Task<IHttpActionResult> GetAddOfferedCourses()
         {
             try
             {
@@ -106,7 +106,7 @@ namespace OgrenciPortalApi.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest("Form verisi geçersiz.");
             }
 
             try
@@ -137,8 +137,8 @@ namespace OgrenciPortalApi.Controllers
                 _db.OfferedCourses.Add(offeredCourse);
                 await _db.SaveChangesAsync();
                 Logger.Info("Yeni açılan ders başarıyla eklendi.");
-                return CreatedAtRoute("DefaultApi", new { id = offeredCourse.Id },
-                    new { Message = "Ders başarıyla açıldı." });
+
+                return Ok(new { Message = "Dönem dersi başarıyla eklendi" });
             }
             catch (Exception ex)
             {
@@ -155,7 +155,7 @@ namespace OgrenciPortalApi.Controllers
         [System.Web.Http.HttpGet]
         [System.Web.Http.Route("edit/{id:guid}")]
         [ResponseType(typeof(EditOfferedCoursesDTO))]
-        public async Task<IHttpActionResult> GetEditOfferedCourse(Guid id)
+        public async Task<IHttpActionResult> GetEditOfferedCourse([FromUri]Guid id)
         {
             if (id == Guid.Empty)
             {
@@ -210,7 +210,7 @@ namespace OgrenciPortalApi.Controllers
         /// </summary>
         /// <param name="dto">Güncellenecek açılmış dersin yeni bilgilerini içeren DTO.</param>
         /// <returns>Güncelleme durumunu bildiren bir HTTP yanıtı döner.</returns>
-        [System.Web.Http.HttpPut]
+        [System.Web.Http.HttpPost]
         [System.Web.Http.Route("edit")]
         [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> EditOfferedCourse(EditOfferedCoursesDTO dto)
@@ -253,7 +253,7 @@ namespace OgrenciPortalApi.Controllers
         /// </summary>
         /// <param name="id">Silinecek açılmış dersin ID'si.</param>
         /// <returns>Silme işleminin durumunu bildiren bir HTTP yanıtı döner.</returns>
-        [System.Web.Http.HttpDelete]
+        [System.Web.Http.HttpPost]
         [System.Web.Http.Route("delete/{id:guid}")]
         [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> DeleteOfferedCourse(Guid id)

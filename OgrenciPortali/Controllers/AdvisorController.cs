@@ -7,7 +7,9 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using AutoMapper;
 using Newtonsoft.Json;
+using OgrenciPortali.Utils;
 using Shared.DTO;
 
 namespace OgrenciPortali.Controllers
@@ -19,44 +21,37 @@ namespace OgrenciPortali.Controllers
     public class AdvisorController : Controller
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(CoursesController));
-        private readonly string _apiBaseAddress = Utils.AppSettings.ApiBaseAddress;
+        private static ApiClient _apiClient;
+        private static IMapper _mapper;
+
+        public AdvisorController(ApiClient apiClient, IMapper mapper)
+        {
+            _apiClient = apiClient;
+            _mapper = mapper;
+        }
 
 
         public async Task<ActionResult> CourseApprovals()
         {
-            using (var client = new HttpClient())
+            var request = new HttpRequestMessage(HttpMethod.Get, "api/advisor/approvals");
+            var response = await _apiClient.SendAsync(request);
+            if (response.IsSuccessStatusCode)
             {
-                client.BaseAddress = new Uri(_apiBaseAddress);
-                var token = GetCurrentUserToken();
-                if (!string.IsNullOrEmpty(token))
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await client.GetAsync("api/advisor/approvals");
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    var dto = JsonConvert.DeserializeObject<AdvisorApprovalDTO>(json);
-                    return View(dto);
-                }
-
-                return View(new AdvisorApprovalDTO());
+                var dto = await response.Content.ReadAsAsync<AdvisorApprovalDTO>();
+                return View(dto);
             }
+
+            return View(new AdvisorApprovalDTO());
         }
 
         public async Task<ActionResult> AdvisedStudentList()
         {
-            using (var client = new HttpClient())
+            var request = new HttpRequestMessage(HttpMethod.Get, "api/advisor/students");
+            var response = await _apiClient.SendAsync(request);
+            if (response.IsSuccessStatusCode)
             {
-                client.BaseAddress = new Uri(_apiBaseAddress);
-                var token = GetCurrentUserToken();
-                if (!string.IsNullOrEmpty(token))
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await client.GetAsync("api/advisor/students");
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    var dto = JsonConvert.DeserializeObject<AdvisedStudentsDTO>(json);
-                    return View(dto);
-                }
+                var dto = await response.Content.ReadAsAsync<AdvisedStudentsDTO>();
+                return View(dto);
             }
 
             return View(new AdvisedStudentsDTO
@@ -68,38 +63,17 @@ namespace OgrenciPortali.Controllers
         /// <summary>
         /// Öðrenci detay sayfasýný görüntüler
         /// </summary>
-        [CustomAuth(Roles.Danýþman)]
         public async Task<ActionResult> StudentDetail(Guid id)
         {
-            using (var client = new HttpClient())
+            var request = new HttpRequestMessage(HttpMethod.Get, $"api/advisor/student/{id}");
+            var response = await _apiClient.SendAsync(request);
+            if (response.IsSuccessStatusCode)
             {
-                client.BaseAddress = new Uri(_apiBaseAddress);
-                var token = GetCurrentUserToken();
-                if (!string.IsNullOrEmpty(token))
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await client.GetAsync($"api/advisor/student/{id}");
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    var studentDto = JsonConvert.DeserializeObject<StudentDetailDto>(json);
-                    return View(studentDto);
-                }
-
-                return View(new StudentDetailDto() { StudentCourses = new List<StudentCourseInfoDto>() });
-            }
-        }
-
-        private string GetCurrentUserToken()
-        {
-            var token = TempData["BearerToken"] as string ?? Session["bearerToken"] as string;
-
-            // Keep token in TempData for next request
-            if (!string.IsNullOrEmpty(token))
-            {
-                TempData.Keep("BearerToken");
+                var studentDto = await response.Content.ReadAsAsync<StudentDetailDto>();
+                return View(studentDto);
             }
 
-            return token;
+            return View(new StudentDetailDto() { StudentCourses = new List<StudentCourseInfoDto>() });
         }
     }
 }

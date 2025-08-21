@@ -6,8 +6,6 @@ namespace OgrenciPortali.ViewModels
 {
     public class AddCourseViewModel
     {
-        public Guid CourseId { get; set; }
-
         [Required(ErrorMessage = "Ders Adı Girilmesi Zorunludur")]
         public string CourseName { get; set; }
 

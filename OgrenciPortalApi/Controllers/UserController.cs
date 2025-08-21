@@ -4,9 +4,7 @@ using OgrenciPortalApi.Utils;
 using Shared.DTO;
 using Shared.Enums;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -34,7 +32,7 @@ namespace OgrenciPortalApi.Controllers
         [System.Web.Http.AllowAnonymous]
         [System.Web.Http.Route("login")]
         [ResponseType(typeof(object))]
-        public async Task<HttpResponseMessage> Login([FromBody] LoginRequestDTO model)
+        public async Task<HttpResponseMessage> Login([FromBody] LoginUserDTO model)
         {
             try
             {
@@ -126,6 +124,9 @@ namespace OgrenciPortalApi.Controllers
                     await _db.Users.AnyAsync(u => u.StudentNo == model.StudentNo && !u.IsDeleted))
                     return BadRequest("Bu öğrenci numarası zaten kayıtlı.");
 
+                var userClaim = User.Identity as ClaimsIdentity;
+                var userId = userClaim.FindFirst(ClaimTypes.NameIdentifier).Value;
+
                 var newUser = new Users
                 {
                     UserId = Guid.NewGuid(),
@@ -133,16 +134,16 @@ namespace OgrenciPortalApi.Controllers
                     Surname = model.Surname,
                     Email = model.Email,
                     Password = BCrypt.Net.BCrypt.HashPassword(model.Password),
-                    Role = (int)model.Role,
+                    Role = model.Role,
                     IsActive = true,
                     IsFirstLogin = true,
                     StudentNo = model.StudentNo,
                     DepartmentId = model.DepartmentId,
                     AdvisorId = model.AdvisorId,
                     CreatedAt = DateTime.Now,
-                    CreatedBy = GetActiveUserIdString(),
+                    CreatedBy = userId,
                     UpdatedAt = DateTime.Now,
-                    UpdatedBy = GetActiveUserIdString(),
+                    UpdatedBy = userId,
                     IsDeleted = false
                 };
 
@@ -200,15 +201,10 @@ namespace OgrenciPortalApi.Controllers
         /// <returns>İşlem sonucunu bildiren bir HTTP yanıtı döner.</returns>
         [System.Web.Http.HttpPost]
         [System.Web.Http.Authorize]
-        [System.Web.Http.Route("ChangePassword")]
+        [System.Web.Http.Route("change-password")]
         [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> ChangePassword([FromBody] ChangePasswordDTO model)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             try
             {
                 var userId = GetActiveUserId();
@@ -249,7 +245,7 @@ namespace OgrenciPortalApi.Controllers
         [System.Web.Http.Authorize(Roles = nameof(Roles.Admin))]
         [System.Web.Http.Route("edit/{id:guid}")]
         [ResponseType(typeof(EditUserDTO))]
-        public async Task<IHttpActionResult> GetUserForEdit(Guid id)
+        public async Task<IHttpActionResult> GetUserForEdit([FromUri] Guid id)
         {
             try
             {
@@ -286,19 +282,23 @@ namespace OgrenciPortalApi.Controllers
         /// </summary>
         /// <param name="model">Güncellenecek kullanıcının yeni bilgilerini içeren model.</param>
         /// <returns>Güncelleme durumunu bildiren bir HTTP yanıtı döner.</returns>
-        [System.Web.Http.HttpPut]
+        [System.Web.Http.HttpPost]
         [System.Web.Http.Authorize(Roles = nameof(Roles.Admin))]
         [System.Web.Http.Route("edit")]
         [ResponseType(typeof(void))]
-        public async Task<IHttpActionResult> EditUser(EditUserDTO model)
+        public async Task<IHttpActionResult> EditUser([FromBody] EditUserDTO model)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             try
             {
-                if (await _db.Users.AnyAsync(u => u.Email == model.Email && u.UserId != model.UserId && !u.IsDeleted))
-                    return Conflict();
+                if (await _db.Users.AnyAsync(u =>
+                        u.Email.ToLower() == model.Email.ToLower() && u.UserId != model.UserId))
+                    return BadRequest("Bu e-posta adresine sahip bir kullanıcı bulunmakta.");
+                if (await _db.Users.AnyAsync(u =>
+                        u.StudentNo.ToLower() == model.StudentNo.ToLower() && u.UserId != model.UserId))
+                    return BadRequest("Bu öğrenci numarasına sahip bir öğrenci bulunmakta.");
 
                 var userInDb = await _db.Users.FindAsync(model.UserId);
                 if (userInDb == null || userInDb.IsDeleted)
@@ -329,16 +329,16 @@ namespace OgrenciPortalApi.Controllers
         /// </summary>
         /// <param name="id">Silinecek kullanıcının ID'si.</param>
         /// <returns>Silme işleminin durumunu bildiren bir HTTP yanıtı döner.</returns>
-        [System.Web.Http.HttpDelete]
+        [System.Web.Http.HttpPost]
         [System.Web.Http.Authorize(Roles = nameof(Roles.Admin))]
         [System.Web.Http.Route("delete/{id:guid}")]
         [ResponseType(typeof(void))]
-        public async Task<IHttpActionResult> DeleteUser(Guid id)
+        public async Task<IHttpActionResult> DeleteUser([FromUri] Guid id)
         {
             try
             {
                 var userInDb = await _db.Users.FindAsync(id);
-                if (userInDb == null)
+                if (userInDb == null || userInDb.IsDeleted)
                 {
                     return NotFound();
                 }

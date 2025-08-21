@@ -3,9 +3,22 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Web.Mvc;
+using Shared.Enums;
 
 namespace OgrenciPortali.ViewModels
 {
+    public class UserViewModel
+    {
+        public Guid UserId { get; set; }
+        public string FullName { get; set; }
+        public string Email { get; set; }
+        public string StudentNo { get; set; }
+        public Roles Role { get; set; }
+        public string DepartmentName { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public bool IsFirstLogin { get; set; }
+    }
+
     /// <summary>
     /// Kullanıcı kayıt işlemi için view model
     /// </summary>
@@ -16,8 +29,8 @@ namespace OgrenciPortali.ViewModels
         public string Email { get; set; }
         public int Role { get; set; }
         public string Password { get; set; }
-        public Guid DepartmentId { get; set; }
-        public Guid AdvisorId { get; set; }
+        public Guid? DepartmentId { get; set; }
+        public Guid? AdvisorId { get; set; }
         public string StudentNo { get; set; }
         public SelectList RolesList { get; set; }
         public SelectList DepartmentsList { get; set; }

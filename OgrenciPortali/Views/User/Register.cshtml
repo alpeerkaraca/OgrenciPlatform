@@ -73,8 +73,6 @@
 
                     @{
                         var claim = User.Identity as ClaimsIdentity;
-                        var nameid = claim?.FindFirst("nameid").Value;
-                        var nameprovider = claim?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                     }
 
                     @if (TempData["SuccessMessage"] != null)
@@ -172,7 +170,7 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded',
-            function () {
+            function() {
                 var roleSelect = document.querySelector("#role");
                 var passwordWrapper = document.querySelector('#password-wrapper');
                 var studentNoContainer = document.querySelector('#student-no-container');
@@ -212,17 +210,17 @@
                 var rulesContainer = document.querySelector("#password-rules-container");
 
                 passwordInput.addEventListener('focus',
-                    function () {
+                    function() {
                         rulesContainer.classList.remove('d-none');
                     });
 
                 passwordInput.addEventListener('blur',
-                    function () {
+                    function() {
                         rulesContainer.classList.add('d-none');
                     });
 
                 passwordInput.addEventListener('keyup',
-                    function () {
+                    function() {
                         var submitButton = document.querySelector('button[type="submit"]');
                         var password = passwordInput.value;
                         var lengthRule = document.querySelector("#length");

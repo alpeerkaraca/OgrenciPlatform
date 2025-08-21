@@ -22,7 +22,7 @@ namespace Shared.DTO
         public bool IsFirstLogin { get; set; }
     }
 
-    public class LoginRequestDTO
+    public class LoginUserDTO
     {
         public string Email { get; set; }
         public string Password { get; set; }
@@ -34,12 +34,6 @@ namespace Shared.DTO
         public string Message { get; set; }
     }
 
-    public class ChangePasswordRequestDTO
-    {
-        public Guid UserId { get; set; }
-        public string CurrentPassword { get; set; }
-        public string NewPassword { get; set; }
-    }
 
     public class RegisterDataDto
     {
@@ -48,8 +42,8 @@ namespace Shared.DTO
         public string Email { get; set; }
         public int Role { get; set; }
         public string Password { get; set; }
-        public Guid DepartmentId { get; set; }
-        public Guid AdvisorId { get; set; }
+        public Guid? DepartmentId { get; set; }
+        public Guid? AdvisorId { get; set; }
         public string StudentNo { get; set; }
         public IEnumerable<SelectListItem> RolesList { get; set; }
         public IEnumerable<SelectListItem> DepartmentsList { get; set; }
