@@ -48,10 +48,17 @@ namespace OgrenciPortali.Controllers
             return View(new DepartmentListViewModel());
         }
 
-        // GET: Department/Add
+        // GET: Department/Add - Return data for modal or redirect to List
         public ActionResult Add()
         {
-            return View(new DepartmentAddViewModel());
+            // If it's an AJAX request, return JSON data for the modal
+            if (Request.IsAjaxRequest() || Request.Headers["Content-Type"] == "application/json" || Request.Headers["Accept"].Contains("application/json"))
+            {
+                return Json(new { success = true }, JsonRequestBehavior.AllowGet);
+            }
+            
+            // Regular request - redirect to List page where modal will be available
+            return RedirectToAction("List", "Department");
         }
 
         //POST: Department/Add

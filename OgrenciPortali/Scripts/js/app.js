@@ -14,12 +14,30 @@ function showFeedbackModal(status, title, message, confirmCallback, confirmButto
     icon.removeClass();
 
     switch (status) {
-        case 'success': header.addClass('bg-success'); icon.addClass('bi bi-check-circle-fill'); break;
-        case 'error': header.addClass('bg-danger'); icon.addClass('bi bi-x-circle-fill'); break;
-        case 'warning': header.addClass('bg-warning'); icon.addClass('bi bi-exclamation-triangle-fill'); break;
-        case 'info': header.addClass('bg-info'); icon.addClass('bi bi-info-circle-fill'); break;
-        case 'confirm': header.addClass('bg-danger'); icon.addClass('bi bi-exclamation-triangle-fill'); break;
-        default: header.addClass('bg-secondary'); icon.addClass('bi bi-question-circle-fill'); break;
+    case 'success':
+        header.addClass('bg-success');
+        icon.addClass('bi bi-check-circle-fill');
+        break;
+    case 'error':
+        header.addClass('bg-danger');
+        icon.addClass('bi bi-x-circle-fill');
+        break;
+    case 'warning':
+        header.addClass('bg-warning');
+        icon.addClass('bi bi-exclamation-triangle-fill');
+        break;
+    case 'info':
+        header.addClass('bg-info');
+        icon.addClass('bi bi-info-circle-fill');
+        break;
+    case 'confirm':
+        header.addClass('bg-danger');
+        icon.addClass('bi bi-exclamation-triangle-fill');
+        break;
+    default:
+        header.addClass('bg-secondary');
+        icon.addClass('bi bi-question-circle-fill');
+        break;
     }
 
     modalTitle.text(title);
@@ -33,23 +51,26 @@ function showFeedbackModal(status, title, message, confirmCallback, confirmButto
         confirmBtn.prop('disabled', false);
         closeBtn.prop('disabled', false);
 
-        confirmBtn.off('click').on('click', async function () {
-            confirmBtn.prop('disabled', true);
-            closeBtn.prop('disabled', true);
-            confirmBtn.html('<span class="spinner-border spinner-border-sm"></span> Ýþleniyor...');
+        confirmBtn.off('click').on('click',
+            async function() {
+                confirmBtn.prop('disabled', true);
+                closeBtn.prop('disabled', true);
+                confirmBtn.html('<span class="spinner-border spinner-border-sm"></span> Ýþleniyor...');
 
-            try {
-                await confirmCallback();
-            } catch (err) { console.error("Callback hatasý:", err); }
-            finally {
-                modal.modal('hide');
-                modal.one('hidden.bs.modal', function () {
-                    confirmBtn.prop('disabled', false);
-                    closeBtn.prop('disabled', false);
-                    confirmBtn.html(originalButtonText);
-                });
-            }
-        });
+                try {
+                    await confirmCallback();
+                } catch (err) {
+                    console.error("Callback hatasý:", err);
+                } finally {
+                    modal.modal('hide');
+                    modal.one('hidden.bs.modal',
+                        function() {
+                            confirmBtn.prop('disabled', false);
+                            closeBtn.prop('disabled', false);
+                            confirmBtn.html(originalButtonText);
+                        });
+                }
+            });
     } else {
         confirmBtn.hide();
     }
@@ -57,8 +78,9 @@ function showFeedbackModal(status, title, message, confirmCallback, confirmButto
     modal.modal('show');
 
     if (typeof onCloseCallback === 'function') {
-        modal.one('hidden.bs.modal', function () {
-            onCloseCallback();
-        });
+        modal.one('hidden.bs.modal',
+            function() {
+                onCloseCallback();
+            });
     }
 }

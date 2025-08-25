@@ -2,6 +2,7 @@
 using OgrenciPortali.Attributes;
 using OgrenciPortali.ViewModels;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -17,9 +18,8 @@ namespace OgrenciPortali.Controllers
     [CustomAuth(Roles.Öğrenci)]
     public class StudentController : Controller
     {
-        private static ApiClient _apiClient;
-        private ApiClient _apiClient;
-        private IMapper _mapper;
+        private readonly ApiClient _apiClient;
+        private readonly IMapper _mapper;
 
         public StudentController(ApiClient apiClient, IMapper mapper)
         {
@@ -58,7 +58,7 @@ namespace OgrenciPortali.Controllers
             }
 
 
-            return View(new MyCoursesDTO());
+            return View(new MyCoursesDTO(){Courses = new List<MyCourseDto>()});
         }
     }
 }

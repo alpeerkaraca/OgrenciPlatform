@@ -7,7 +7,9 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>@ViewBag.Title</h2>
         <p>
-            @Html.ActionLink("Yeni Ders Tanımla", "Add", "Courses", null, new { @class = "btn btn-primary" })
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCourseModal">
+                <i class="bi bi-plus-square me-2"></i>Yeni Ders Tanımla
+            </button>
         </p>
     </div>
 
@@ -76,6 +78,62 @@
     </div>
 </div>
 
+<!-- Add Course Modal -->
+<div class="modal fade" id="addCourseModal" tabindex="-1" aria-labelledby="addCourseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="addCourseModalLabel">
+                    <i class="bi bi-plus-square me-2"></i>Yeni Ders Ekle
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCourseForm" class="needs-validation" novalidate>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="courseCode" class="form-label">
+                                <i class="bi bi-journal me-1"></i>Ders Kodu
+                            </label>
+                            <input type="text" class="form-control" id="courseCode" name="CourseCode" maxlength="10" required>
+                            <div class="invalid-feedback" id="courseCodeError"></div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="courseName" class="form-label">
+                                <i class="bi bi-book me-1"></i>Ders Adı
+                            </label>
+                            <input type="text" class="form-control" id="courseName" name="CourseName" maxlength="100" required>
+                            <div class="invalid-feedback" id="courseNameError"></div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="credits" class="form-label">
+                                <i class="bi bi-123 me-1"></i>Kredi
+                            </label>
+                            <input type="number" class="form-control" id="credits" name="Credits" min="1" max="10" required>
+                            <div class="invalid-feedback" id="creditsError"></div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="departmentId" class="form-label">
+                                <i class="bi bi-building me-1"></i>Bölüm
+                            </label>
+                            <select class="form-select" id="departmentId" name="DepartmentId" required>
+                                <option value="">Bölüm Seçiniz</option>
+                            </select>
+                            <div class="invalid-feedback" id="departmentIdError"></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" id="saveCourseBtn">
+                    <i class="bi bi-check-lg me-2"></i>Ders Ekle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section scripts {
     <script>
         $(document).ready(function() {
@@ -85,15 +143,30 @@
                 },
                 responsive: true
             });
+
+            // Auto-open Add modal if coming from quick action or Add link
+            const urlParams = new URLSearchParams(window.location.search);
+            const fromAdd = urlParams.get('add') === 'true';
+            const referrer = document.referrer;
+            
+            if (fromAdd || referrer.includes('/Courses/Add') || window.location.pathname.includes('/Add')) {
+                setTimeout(function() {
+                    const addModal = new bootstrap.Modal(document.getElementById('addCourseModal'));
+                    addModal.show();
+                }, 500);
+            }
         });
     </script>
 
     <script>
         if (sessionStorage.getItem('bearerToken') != null)
-            var token = sessionStorage.getItem('bearerToken');
+            var token = window.myApp.accessToken;
+        if (!token) {
+            showFeedbackModal('error', 'Yetkisiz Erişim', 'Bu sayfaya erişim yetkiniz bulunmamaktadır. Lütfen giriş yapınız.', 'Giriş Yap', '/Account/Login');
+        };
 
         document.addEventListener("DOMContentLoaded",
-            function() {
+            function () {
                 initializeDeleteModal();
             });
 
@@ -106,7 +179,7 @@
 
             deleteButtons.forEach(button => {
                 button.addEventListener('click',
-                    function() {
+                    function () {
                         courseIdToDelete = this.dataset.courseId;
                         const courseName = this.dataset.courseName;
                         courseNameSpan.textContent = courseName;
@@ -115,14 +188,14 @@
             });
 
             confirmDeleteBtn.addEventListener('click',
-                function() {
+                function () {
                     if (courseIdToDelete) {
                         fetch(`http://localhost:8000/api/courses/delete/${courseIdToDelete}`,
-                                {
-                                    method: 'DELETE',
-                                    headers: { Authorization: `Bearer ${token}` }
-                                }
-                            )
+                            {
+                                method: 'DELETE',
+                                headers: { Authorization: `Bearer ${token}` }
+                            }
+                        )
                             .then(resp => {
                                 if (resp.ok) {
                                     deleteModal.hide();
@@ -133,6 +206,146 @@
                             });
                     }
                 });
+        }
+
+        // Add Course Modal Functionality
+        initializeAddCourseModal();
+
+        function initializeAddCourseModal() {
+            const addCourseModal = new bootstrap.Modal(document.getElementById('addCourseModal'));
+            const addCourseForm = document.getElementById('addCourseForm');
+            const saveCourseBtn = document.getElementById('saveCourseBtn');
+            const departmentSelect = document.getElementById('departmentId');
+
+            // Load departments when modal is shown
+            document.getElementById('addCourseModal').addEventListener('show.bs.modal', async function () {
+                try {
+                    const response = await fetch('http://localhost:8000/api/courses/add', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        departmentSelect.innerHTML = '<option value="">Bölüm Seçiniz</option>';
+
+                        if (data.DepartmentList && data.DepartmentList.length > 0) {
+                            data.DepartmentList.forEach(dept => {
+                                const option = document.createElement('option');
+                                option.value = dept.Value;
+                                option.textContent = dept.Text;
+                                departmentSelect.appendChild(option);
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error('Bölümler yüklenirken hata:', error);
+                }
+            });
+
+            // Form validation
+            function validateForm() {
+                let isValid = true;
+                const formData = new FormData(addCourseForm);
+
+                // Clear previous errors
+                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+                // Course Code validation
+                const courseCode = formData.get('CourseCode').trim();
+                if (!courseCode) {
+                    showFieldError('courseCode', 'courseCodeError', 'Ders kodu gereklidir');
+                    isValid = false;
+                } else if (courseCode.length > 10) {
+                    showFieldError('courseCode', 'courseCodeError', 'Ders kodu en fazla 10 karakter olabilir');
+                    isValid = false;
+                }
+
+                // Course Name validation
+                const courseName = formData.get('CourseName').trim();
+                if (!courseName) {
+                    showFieldError('courseName', 'courseNameError', 'Ders adı gereklidir');
+                    isValid = false;
+                } else if (courseName.length > 100) {
+                    showFieldError('courseName', 'courseNameError', 'Ders adı en fazla 100 karakter olabilir');
+                    isValid = false;
+                }
+
+                // Credits validation
+                const credits = parseInt(formData.get('Credits'));
+                if (!credits || credits < 1 || credits > 10) {
+                    showFieldError('credits', 'creditsError', 'Kredi 1 ile 10 arasında olmalıdır');
+                    isValid = false;
+                }
+
+                // Department validation
+                if (!formData.get('DepartmentId')) {
+                    showFieldError('departmentId', 'departmentIdError', 'Bölüm seçimi gereklidir');
+                    isValid = false;
+                }
+
+                return isValid;
+            }
+
+            function showFieldError(fieldId, errorId, message) {
+                document.getElementById(fieldId).classList.add('is-invalid');
+                document.getElementById(errorId).textContent = message;
+            }
+
+            // Save course
+            saveCourseBtn.addEventListener('click', async function () {
+                if (!validateForm()) return;
+
+                const originalText = saveCourseBtn.innerHTML;
+                saveCourseBtn.disabled = true;
+                saveCourseBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...';
+
+                try {
+                    const formData = new FormData(addCourseForm);
+                    const courseData = {
+                        CourseCode: formData.get('CourseCode').trim(),
+                        CourseName: formData.get('CourseName').trim(),
+                        Credits: parseInt(formData.get('Credits')),
+                        DepartmentId: formData.get('DepartmentId')
+                    };
+
+                    const response = await fetch('http://localhost:8000/api/courses/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(courseData)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        addCourseModal.hide();
+                        addCourseForm.reset();
+                        showFeedbackModal('success', 'İşlem Başarılı', result.message || 'Ders başarıyla eklendi.', null, null, function () {
+                            location.reload();
+                        });
+                    } else {
+                        showFeedbackModal('error', 'İşlem Başarısız', result.message || 'Bir hata oluştu.');
+                    }
+                } catch (error) {
+                    console.error('Ders eklenirken hata:', error);
+                    showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya bağlanırken bir hata oluştu.');
+                } finally {
+                    saveCourseBtn.disabled = false;
+                    saveCourseBtn.innerHTML = originalText;
+                }
+            });
+
+            // Reset form when modal is hidden
+            document.getElementById('addCourseModal').addEventListener('hidden.bs.modal', function () {
+                addCourseForm.reset();
+                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+            });
         }
     </script>
 }

@@ -47,23 +47,24 @@ namespace OgrenciPortali.Controllers
             }
         }
 
-        // GET: Courses/Add
+        // GET: Courses/Add - Return data for modal or redirect to List
         public async Task<ActionResult> Add()
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, "api/courses/add");
-            var response = await _apiClient.SendAsync(request);
-            if (response.IsSuccessStatusCode)
+            // If it's an AJAX request, return JSON data for the modal
+            if (Request.IsAjaxRequest() || Request.Headers["Content-Type"] == "application/json" || Request.Headers["Accept"].Contains("application/json"))
             {
-                var courseDataDto = await response.Content.ReadAsAsync<AddCourseDTO>();
-                var viewModel = _mapper.Map<AddCourseViewModel>(courseDataDto);
-                return View(viewModel);
+                var request = new HttpRequestMessage(HttpMethod.Get, "api/courses/add");
+                var response = await _apiClient.SendAsync(request);
+                if (response.IsSuccessStatusCode)
+                {
+                    var courseDataDto = await response.Content.ReadAsAsync<AddCourseDTO>();
+                    return Json(courseDataDto, JsonRequestBehavior.AllowGet);
+                }
+                return Json(new { error = "Unable to load form data" }, JsonRequestBehavior.AllowGet);
             }
-
-            var emptyViewModel = new AddCourseViewModel
-            {
-                DepartmentList = new SelectList(Enumerable.Empty<SelectListItem>())
-            };
-            return View(emptyViewModel);
+            
+            // Regular request - redirect to List page where modal will be available
+            return RedirectToAction("List", "Courses");
         }
 
         // POST: Courses/Add

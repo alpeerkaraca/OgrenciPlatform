@@ -43,19 +43,24 @@ namespace OgrenciPortali.Controllers
             return View(new ListOfferedCoursesViewModel() { OfferedCoursesList = new List<ListOfferedCoursesDTO>() });
         }
 
+        // GET: OfferedCourses/Add - Return data for modal or redirect to List
         public async Task<ActionResult> Add()
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, "api/offered/add");
-            var response = await _apiClient.SendAsync(request);
-
-            if (response.IsSuccessStatusCode)
+            // If it's an AJAX request, return JSON data for the modal
+            if (Request.IsAjaxRequest() || Request.Headers["Content-Type"] == "application/json" || Request.Headers["Accept"].Contains("application/json"))
             {
-                var dto = await response.Content.ReadAsAsync<AddOfferedCourseDTO>();
-                var viewModel = _mapper.Map<AddOfferedCourseViewModel>(dto);
-                return View(viewModel);
-            }
+                var request = new HttpRequestMessage(HttpMethod.Get, "api/offered/add");
+                var response = await _apiClient.SendAsync(request);
 
-            ModelState.AddModelError("", @"Sayfa yüklenirken bir hata oluştu. Daha sonra tekrar deneyiniz.");
+                if (response.IsSuccessStatusCode)
+                {
+                    var dto = await response.Content.ReadAsAsync<AddOfferedCourseDTO>();
+                    return Json(dto, JsonRequestBehavior.AllowGet);
+                }
+                return Json(new { error = "Unable to load form data" }, JsonRequestBehavior.AllowGet);
+            }
+            
+            // Regular request - redirect to List page where modal will be available
             return RedirectToAction("List", "OfferedCourses");
         }
 

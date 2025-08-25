@@ -15,6 +15,11 @@ namespace OgrenciPortali.Controllers
         [CustomAuth]
         public ActionResult Index()
         {
+            var tokenCookie = Request.Cookies["AuthToken"];
+            var accessToken = string.Empty;
+            if (tokenCookie != null && !string.IsNullOrEmpty(tokenCookie.Value))
+                accessToken = tokenCookie.Value;
+            ViewBag.AccessToken = accessToken;
             return View();
         }
 
