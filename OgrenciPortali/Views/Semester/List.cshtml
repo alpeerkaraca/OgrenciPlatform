@@ -7,7 +7,9 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>@ViewBag.Title</h2>
         <p>
-            @Html.ActionLink("Yeni Dönem Ekle", "Add", "Semester", null, new { @class = "btn btn-primary" })
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSemesterModal">
+                <i class="bi bi-plus-square me-2"></i>Yeni Dönem Ekle
+            </button>
         </p>
     </div>
 
@@ -52,6 +54,66 @@
     </div>
 </div>
 
+<!-- Add Semester Modal -->
+<div class="modal fade" id="addSemesterModal" tabindex="-1" aria-labelledby="addSemesterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="addSemesterModalLabel">
+                    <i class="bi bi-plus-square me-2"></i>Yeni Dönem Ekle
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addSemesterForm" class="needs-validation" novalidate>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="semesterName" class="form-label">
+                                <i class="bi bi-tag me-1"></i>Dönem Adı
+                            </label>
+                            <input type="text" class="form-control" id="semesterName" name="SemesterName" required>
+                            <div class="invalid-feedback" id="semesterNameError"></div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-calendar me-1"></i>Dönem Aktif Mi?
+                            </label>
+                            <div class="d-flex gap-2">
+                                <button type="button" id="btnYes" class="btn btn-success flex-fill">Evet</button>
+                                <button type="button" id="btnNo" class="btn btn-danger flex-fill">Hayır</button>
+                            </div>
+                            <input type="hidden" id="isActive" name="IsActive" value="true">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="startDate" class="form-label">
+                                <i class="bi bi-calendar me-1"></i>Başlangıç Tarihi
+                            </label>
+                            <input type="date" class="form-control" id="startDate" name="StartDate" required>
+                            <div class="invalid-feedback" id="startDateError"></div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="endDate" class="form-label">
+                                <i class="bi bi-calendar me-1"></i>Bitiş Tarihi
+                            </label>
+                            <input type="date" class="form-control" id="endDate" name="EndDate" required>
+                            <div class="invalid-feedback" id="endDateError"></div>
+                        </div>
+                        <div class="col-12">
+                            <div id="dateError" class="text-danger"></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" id="saveSemesterBtn">
+                    <i class="bi bi-check-lg me-2"></i>Dönem Ekle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section scripts {
     <script>
         $(document).ready(function() {
@@ -61,6 +123,18 @@
                 },
                 responsive: true
             });
+
+            // Auto-open Add modal if coming from quick action or Add link
+            const urlParams = new URLSearchParams(window.location.search);
+            const fromAdd = urlParams.get('add') === 'true';
+            const referrer = document.referrer;
+            
+            if (fromAdd || referrer.includes('/Semester/Add') || window.location.pathname.includes('/Add')) {
+                setTimeout(function() {
+                    const addModal = new bootstrap.Modal(document.getElementById('addSemesterModal'));
+                    addModal.show();
+                }, 500);
+            }
 
             $('#semestersTable tbody').on('click',
                 '.delete-button',
@@ -108,6 +182,170 @@
                         'Evet, Sil'
                     );
                 });
+
+            // Add Semester Modal Functionality
+            initializeAddSemesterModal();
+
+            function initializeAddSemesterModal() {
+                const addSemesterModal = new bootstrap.Modal(document.getElementById('addSemesterModal'));
+                const addSemesterForm = document.getElementById('addSemesterForm');
+                const saveSemesterBtn = document.getElementById('saveSemesterBtn');
+                const btnYes = document.getElementById('btnYes');
+                const btnNo = document.getElementById('btnNo');
+                const isActiveInput = document.getElementById('isActive');
+                const startDateInput = document.getElementById('startDate');
+                const endDateInput = document.getElementById('endDate');
+                const dateError = document.getElementById('dateError');
+
+                // Active status buttons
+                function updateActiveButtons() {
+                    const isActive = isActiveInput.value === 'true';
+                    if (isActive) {
+                        btnYes.classList.remove('btn-outline-success');
+                        btnYes.classList.add('btn-success');
+                        btnNo.classList.remove('btn-danger');
+                        btnNo.classList.add('btn-outline-danger');
+                    } else {
+                        btnNo.classList.remove('btn-outline-danger');
+                        btnNo.classList.add('btn-danger');
+                        btnYes.classList.remove('btn-success');
+                        btnYes.classList.add('btn-outline-success');
+                    }
+                }
+
+                btnYes.addEventListener('click', function() {
+                    isActiveInput.value = 'true';
+                    updateActiveButtons();
+                });
+
+                btnNo.addEventListener('click', function() {
+                    isActiveInput.value = 'false';
+                    updateActiveButtons();
+                });
+
+                // Date validation
+                function validateDates() {
+                    const startDate = new Date(startDateInput.value);
+                    const endDate = new Date(endDateInput.value);
+
+                    if (!startDateInput.value || !endDateInput.value) {
+                        dateError.textContent = '';
+                        return true;
+                    }
+
+                    if (startDate >= endDate) {
+                        dateError.textContent = 'Bitiş tarihi, başlangıç tarihinden sonra olmalıdır.';
+                        return false;
+                    } else {
+                        dateError.textContent = '';
+                        return true;
+                    }
+                }
+
+                startDateInput.addEventListener('change', validateDates);
+                endDateInput.addEventListener('change', validateDates);
+
+                // Form validation
+                function validateSemesterForm() {
+                    let isValid = true;
+                    const formData = new FormData(addSemesterForm);
+                    
+                    // Clear previous errors
+                    document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+                    // Semester Name validation
+                    const semesterName = formData.get('SemesterName').trim();
+                    if (!semesterName) {
+                        showSemesterFieldError('semesterName', 'semesterNameError', 'Dönem adı gereklidir');
+                        isValid = false;
+                    }
+
+                    // Date validation
+                    if (!formData.get('StartDate')) {
+                        showSemesterFieldError('startDate', 'startDateError', 'Başlangıç tarihi gereklidir');
+                        isValid = false;
+                    }
+
+                    if (!formData.get('EndDate')) {
+                        showSemesterFieldError('endDate', 'endDateError', 'Bitiş tarihi gereklidir');
+                        isValid = false;
+                    }
+
+                    if (!validateDates()) {
+                        isValid = false;
+                    }
+
+                    return isValid;
+                }
+
+                function showSemesterFieldError(fieldId, errorId, message) {
+                    document.getElementById(fieldId).classList.add('is-invalid');
+                    document.getElementById(errorId).textContent = message;
+                }
+
+                // Save semester
+                saveSemesterBtn.addEventListener('click', async function() {
+                    if (!validateSemesterForm()) return;
+
+                    const originalText = saveSemesterBtn.innerHTML;
+                    saveSemesterBtn.disabled = true;
+                    saveSemesterBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...';
+
+                    try {
+                        const formData = new FormData(addSemesterForm);
+                        const semesterData = {
+                            SemesterName: formData.get('SemesterName').trim(),
+                            StartDate: formData.get('StartDate'),
+                            EndDate: formData.get('EndDate'),
+                            IsActive: formData.get('IsActive') === 'true'
+                        };
+
+                        const response = await fetch('http://localhost:8000/api/semesters/add', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${sessionStorage.getItem('bearerToken')}`
+                            },
+                            body: JSON.stringify(semesterData)
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            addSemesterModal.hide();
+                            addSemesterForm.reset();
+                            isActiveInput.value = 'true';
+                            updateActiveButtons();
+                            showFeedbackModal('success', 'İşlem Başarılı', result.Message || 'Dönem başarıyla eklendi.', null, null, function() {
+                                location.reload();
+                            });
+                        } else {
+                            showFeedbackModal('error', 'İşlem Başarısız', result.Message || 'Bir hata oluştu.');
+                        }
+                    } catch (error) {
+                        console.error('Dönem eklenirken hata:', error);
+                        showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya bağlanırken bir hata oluştu.');
+                    } finally {
+                        saveSemesterBtn.disabled = false;
+                        saveSemesterBtn.innerHTML = originalText;
+                    }
+                });
+
+                // Initialize and reset form when modal is shown/hidden
+                document.getElementById('addSemesterModal').addEventListener('show.bs.modal', function() {
+                    isActiveInput.value = 'true';
+                    updateActiveButtons();
+                });
+
+                document.getElementById('addSemesterModal').addEventListener('hidden.bs.modal', function() {
+                    addSemesterForm.reset();
+                    isActiveInput.value = 'true';
+                    updateActiveButtons();
+                    document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                    document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+                    dateError.textContent = '';
+                });
+            }
         });
     </script>
 }

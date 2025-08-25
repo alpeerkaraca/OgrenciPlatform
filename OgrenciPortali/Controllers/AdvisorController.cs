@@ -17,11 +17,10 @@ namespace OgrenciPortali.Controllers
     /// <summary>
     /// Danýþman iþlemlerini yöneten controller sýnýfý
     /// </summary>
-    [CustomAuth(Roles.Danýþman)]
+    [CustomAuth(Roles.Danışman)]
     public class AdvisorController : Controller
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(CoursesController));
-        private static ApiClient _apiClient;
         private readonly ApiClient _apiClient;
         private readonly IMapper _mapper;
 

@@ -1,307 +1,187 @@
 @using System.Security.Claims
 @model Shared.DTO.MyCoursesDTO
 @{
-    ViewBag.Title = "Seçilen Derslerim";
+    ViewBag.Title = "Derslerim";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<style>
-    .course-card {
-        transition: all 0.3s ease;
-        border: none;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1 text-gray-800">Derslerim</h1>
+            <p class="text-muted mb-0">SeÃ§miÅŸ olduÄŸunuz derslerin durumunu buradan takip edebilirsiniz.</p>
+        </div>
+        <a href="@Url.Action("Enroll", "Student")" class="btn btn-primary shadow-sm">
+            <i class="bi bi-plus-circle-fill me-2"></i>Yeni Ders SeÃ§imi Yap
+        </a>
+    </div>
 
-    .course-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-    }
-
-    .status-badge {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        z-index: 2;
-    }
-
-    .course-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 1.5rem;
-        position: relative;
-    }
-
-    .course-code {
-        font-size: 1.1rem;
-        font-weight: bold;
-        margin-bottom: 0.5rem;
-    }
-
-    .course-name {
-        font-size: 0.95rem;
-        opacity: 0.9;
-        margin-bottom: 0;
-    }
-
-    .course-details { padding: 1.25rem; }
-
-    .detail-item {
-        display: flex;
-        align-items: center;
-        margin-bottom: 0.75rem;
-        padding: 0.5rem;
-        background-color: #f8f9fa;
-        border-radius: 6px;
-    }
-
-    .detail-item:last-child { margin-bottom: 0; }
-
-    .detail-icon {
-        width: 20px;
-        text-align: center;
-        margin-right: 0.75rem;
-        color: #6c757d;
-    }
-
-    .summary-cards { margin-bottom: 2rem; }
-
-    .summary-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        text-align: center;
-        border: none;
-    }
-
-    .summary-number {
-        font-size: 2rem;
-        font-weight: bold;
-        margin-bottom: 0.5rem;
-    }
-
-    .summary-label {
-        font-size: 0.9rem;
-        opacity: 0.9;
-    }
-
-    .filter-tabs { margin-bottom: 2rem; }
-
-    .filter-btn {
-        background: transparent;
-        border: 2px solid #dee2e6;
-        color: #6c757d;
-        padding: 0.5rem 1rem;
-        border-radius: 25px;
-        margin-right: 0.5rem;
-        margin-bottom: 0.5rem;
-        transition: all 0.3s ease;
-    }
-
-    .filter-btn.active {
-        background: #667eea;
-        border-color: #667eea;
-        color: white;
-    }
-
-    .filter-btn:hover { transform: translateY(-1px); }
-
-    .no-courses {
-        text-align: center;
-        padding: 3rem;
-        color: #6c757d;
-    }
-
-    .no-courses i {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-        opacity: 0.5;
-    }
-</style>
-@if (User.Identity.IsAuthenticated)
-{
-    var student = (ClaimsIdentity)User.Identity;
-    var studentName = student.FindFirst("full_name")?.Value;
-    var studentNo = student.FindFirst("student_no")?.Value;
-
-    <div class="container-fluid">
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h2 class="mb-1">Seçilen Derslerim</h2>
-                        <p class="text-muted mb-0">@studentName - @studentNo</p>
+    <!-- Summary Cards -->
+    @if (Model != null && Model.Courses.Any())
+    {
+        <div class="row">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-start-primary shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col me-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Toplam Ders</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Summary.TotalCount</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-collection-fill h2 text-gray-300"></i>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <a href="@Url.Action("Enroll", "Student")" class="btn btn-primary">
-                            <i class="bi bi-plus-circle me-2"></i>Yeni Ders Ekle
-                        </a>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-start-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col me-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Onaylanan</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Summary.ApprovedCount</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-patch-check-fill h2 text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-start-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col me-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Bekleyen</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Summary.PendingCount</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-hourglass-split h2 text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-start-danger shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col me-2">
+                                <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Reddedilen</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Summary.RejectedCount</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-x-circle-fill h2 text-gray-300"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        @if (Model != null && Model.Courses.Any())
-        {
-            <div class="row summary-cards">
-                <div class="col-md-3 mb-3">
-                    <div class="card summary-card">
-                        <div class="summary-number">@Model.Summary.TotalCount</div>
-                        <div class="summary-label">Toplam Ders</div>
-                    </div>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <div class="card summary-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
-                        <div class="summary-number">@Model.Summary.ApprovedCount</div>
-                        <div class="summary-label">Onaylanan</div>
-                    </div>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <div class="card summary-card" style="background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);">
-                        <div class="summary-number">@Model.Summary.PendingCount</div>
-                        <div class="summary-label">Bekleyen</div>
-                    </div>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <div class="card summary-card" style="background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);">
-                        <div class="summary-number">@Model.Summary.RejectedCount</div>
-                        <div class="summary-label">Reddedilen</div>
-                    </div>
-                </div>
+        <!-- Filter Tabs -->
+        <div class="d-flex justify-content-center mb-4">
+            <div class="btn-group shadow-sm" role="group" aria-label="Course Filters">
+                <button type="button" class="btn btn-outline-primary active filter-btn" data-filter="all">TÃ¼mÃ¼</button>
+                <button type="button" class="btn btn-outline-primary filter-btn" data-filter="OnaylandÄ±">Onaylanan</button>
+                <button type="button" class="btn btn-outline-primary filter-btn" data-filter="Bekliyor">Bekleyen</button>
+                <button type="button" class="btn btn-outline-primary filter-btn" data-filter="Reddedildi">Reddedilen</button>
             </div>
+        </div>
+        
+        <!-- Course Cards -->
+        <div class="row" id="coursesContainer">
+            @foreach (var course in Model.Courses)
+            {
+                var statusClass = course.ApprovalStatusText == "Bekliyor" ? "warning" :
+                    course.ApprovalStatusText == "OnaylandÄ±" ? "success" : "danger";
+                var statusIcon = course.ApprovalStatusText == "Bekliyor" ? "hourglass-split" :
+                    course.ApprovalStatusText == "OnaylandÄ±" ? "check-circle-fill" : "x-circle-fill";
 
-            <div class="row filter-tabs">
-                <div class="col-12">
-                    <button class="filter-btn active" data-filter="all"><i class="bi bi-list me-1"></i>Tümü</button>
-                    <button class="filter-btn" data-filter="Onaylandý"><i class="bi bi-check-circle me-1"></i>Onaylanan</button>
-                    <button class="filter-btn" data-filter="Bekliyor"><i class="bi bi-clock me-1"></i>Bekleyen</button>
-                    <button class="filter-btn" data-filter="Reddedildi"><i class="bi bi-x-circle me-1"></i>Reddedilen</button>
-                </div>
-            </div>
-
-            <div class="row" id="coursesContainer">
-                @foreach (var course in Model.Courses)
-                {
-                    var statusClass = course.ApprovalStatusText == "Bekliyor" ? "warning" :
-                        course.ApprovalStatusText == "Onaylandý" ? "success" : "danger";
-                    var statusIcon = course.ApprovalStatusText == "Bekliyor" ? "clock" :
-                        course.ApprovalStatusText == "Onaylandý" ? "check-circle" : "x-circle";
-
-                    <div class="col-xl-4 col-lg-6 mb-4 course-item" data-status="@course.ApprovalStatusText">
-                        <div class="card course-card h-100">
-                            <div class="course-header">
-                                <span class="badge bg-@statusClass status-badge">
-                                    <i class="bi bi-@statusIcon me-1"></i>@course.ApprovalStatusText
-                                </span>
-                                <div class="course-code">@course.CourseCode</div>
-                                <div class="course-name">@course.CourseName</div>
-                            </div>
-                            <div class="course-details">
-                                <div class="detail-item">
-                                    <i class="bi bi-award detail-icon"></i>
-                                    <div>
-                                        <strong>Kredi:</strong> @course.Credits
-                                    </div>
-                                </div>
-                                <div class="detail-item">
-                                    <i class="bi bi-person detail-icon"></i>
-                                    <div>
-                                        <strong>Öðretim Üyesi:</strong> @course.TeacherFullName
-                                    </div>
-                                </div>
-                                <div class="detail-item">
-                                    <i class="bi bi-calendar3 detail-icon"></i>
-                                    <div>
-                                        <strong>Gün/Saat:</strong> @course.DayOfWeek @course.TimeSlot
-                                    </div>
-                                </div>
-                                <div class="detail-item">
-                                    <i class="bi bi-calendar-event detail-icon"></i>
-                                    <div>
-                                        <strong>Dönem:</strong> @course.SemesterName
-                                    </div>
-                                </div>
-                                <div class="detail-item">
-                                    <i class="bi bi-clock-history detail-icon"></i>
-                                    <div>
-                                        <strong>Kayýt Tarihi:</strong> @course.CreatedAt.ToString("dd.MM.yyyy HH:mm")
-                                    </div>
-                                </div>
-                            </div>
+                <div class="col-xl-4 col-lg-6 mb-4 course-item" data-status="@course.ApprovalStatusText">
+                    <div class="card shadow-sm h-100 course-card">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 font-weight-bold text-primary">@course.CourseCode - @course.CourseName</h6>
+                             <span class="badge bg-@statusClass">
+                                <i class="bi bi-@statusIcon me-1"></i>@course.ApprovalStatusText
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text"><strong>Ã–ÄŸretim Ãœyesi:</strong> @course.TeacherFullName</p>
+                            <p class="card-text"><strong>Kredi:</strong> @course.Credits</p>
+                            <p class="card-text"><strong>DÃ¶nem:</strong> @course.SemesterName</p>
+                            <p class="card-text"><strong>Program:</strong> @course.DayOfWeek @course.TimeSlot</p>
+                            <p class="card-text text-muted small"><strong>KayÄ±t Tarihi:</strong> @course.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
                         </div>
                     </div>
-                }
-            </div>
-        }
-        else
-        {
-            <div class="row">
-                <div class="col-12">
-                    <div class="no-courses">
-                        <i class="bi bi-book"></i>
-                        <h4>Henüz Ders Seçmediniz</h4>
-                        <p class="mb-4">Ders seçimi yapmak için aþaðýdaki butona týklayýn.</p>
-                        <a href="@Url.Action("Enroll", "Student")" class="btn btn-primary btn-lg">
-                            <i class="bi bi-plus-circle me-2"></i>Ýlk Dersinizi Seçin
-                        </a>
-                    </div>
                 </div>
-            </div>
-        }
-    </div>
-}
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-inbox-fill display-1 text-muted"></i>
+            <h4 class="mt-4">HenÃ¼z SeÃ§ilmiÅŸ Dersiniz Bulunmuyor</h4>
+            <p class="text-muted">Ders seÃ§imi yapmak iÃ§in aÅŸaÄŸÄ±daki butonu kullanabilirsiniz.</p>
+            <a href="@Url.Action("Enroll", "Student")" class="btn btn-lg btn-primary mt-3">
+                <i class="bi bi-plus-circle me-2"></i>Ders SeÃ§imine BaÅŸla
+            </a>
+        </div>
+    }
+</div>
 
 @section Scripts {
-    <script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const courseItems = document.querySelectorAll('.course-item');
+    const coursesContainer = document.getElementById('coursesContainer');
 
-        document.addEventListener('DOMContentLoaded',
-            function() {
-                const filterButtons = document.querySelectorAll('.filter-btn');
-                const courseItems = document.querySelectorAll('.course-item');
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Update active button state
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
 
+            const filter = this.dataset.filter;
+            let visibleCount = 0;
 
-                filterButtons.forEach(button => {
-                    button.addEventListener('click',
-                        function() {
-                            const filter = this.dataset.filter;
-
-                            filterButtons.forEach(btn => btn.classList.remove('active'));
-                            this.classList.add('active');
-
-                            filterCourses(filter);
-                        });
-                });
-
-
-                function filterCourses(filter) {
-                    courseItems.forEach(item => {
-                        const status = item.dataset.status;
-
-                        if (filter === 'all' || status === filter) {
-                            item.style.display = 'block';
-                            item.style.animation = 'fadeInUp 0.5s ease forwards';
-                        } else {
-                            item.style.display = 'none';
-                        }
-                    });
+            courseItems.forEach(item => {
+                const status = item.dataset.status;
+                const shouldShow = (filter === 'all' || status === filter);
+                
+                // Use a class to control visibility for smoother transitions
+                if(shouldShow) {
+                    item.classList.remove('d-none');
+                    visibleCount++;
+                } else {
+                    item.classList.add('d-none');
                 }
-
-                const style = document.createElement('style');
-                style.textContent = `
-                                            @@keyframes fadeInUp {
-                                                from {
-                                                    opacity: 0;
-                                                    transform: translateY(20px);
-                                                }
-                                                to {
-                                                    opacity: 1;
-                                                    transform: translateY(0);
-                                                }
-                                            }
-                                        `;
-                document.head.appendChild(style);
             });
-    </script>
+
+            // If a "no courses found" message exists, remove it
+            const existingAlert = coursesContainer.querySelector('.no-courses-alert');
+            if(existingAlert) {
+                existingAlert.remove();
+            }
+
+            // If no courses match the filter, show a message
+            if(visibleCount === 0) {
+                const alert = document.createElement('div');
+                alert.className = 'col-12 text-center py-5 no-courses-alert';
+                alert.innerHTML = `
+                    <i class="bi bi-search display-4 text-muted"></i>
+                    <h5 class="mt-3">Bu filtreyle eÅŸleÅŸen ders bulunamadÄ±.</h5>
+                `;
+                coursesContainer.appendChild(alert);
+            }
+        });
+    });
+});
+</script>
 }

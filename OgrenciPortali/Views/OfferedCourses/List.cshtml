@@ -7,7 +7,9 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>@ViewBag.Title</h2>
         <p>
-            @Html.ActionLink("Döneme Yeni Ders Ekle", "Add", "OfferedCourses", null, new { @class = "btn btn-primary" })
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOfferedCourseModal">
+                <i class="bi bi-plus-square me-2"></i>Döneme Yeni Ders Ekle
+            </button>
         </p>
     </div>
 
@@ -82,6 +84,93 @@
     </div>
 </div>
 
+<!-- Add Offered Course Modal -->
+<div class="modal fade" id="addOfferedCourseModal" tabindex="-1" aria-labelledby="addOfferedCourseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="addOfferedCourseModalLabel">
+                    <i class="bi bi-plus-square me-2"></i>Döneme Ders Ekle
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addOfferedCourseForm" class="needs-validation" novalidate>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="courseId" class="form-label">
+                                <i class="bi bi-book me-1"></i>Ders
+                            </label>
+                            <select class="form-select" id="courseId" name="CourseId" required>
+                                <option value="">Ders Seçiniz</option>
+                            </select>
+                            <div class="invalid-feedback" id="courseIdError"></div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="semesterId" class="form-label">
+                                <i class="bi bi-calendar me-1"></i>Dönem
+                            </label>
+                            <select class="form-select" id="semesterId" name="SemesterId" required>
+                                <option value="">Dönem Seçiniz</option>
+                            </select>
+                            <div class="invalid-feedback" id="semesterIdError"></div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="teacherId" class="form-label">
+                                <i class="bi bi-person me-1"></i>Akademisyen
+                            </label>
+                            <select class="form-select" id="teacherId" name="TeacherId" required>
+                                <option value="">Akademisyen Seçiniz</option>
+                            </select>
+                            <div class="invalid-feedback" id="teacherIdError"></div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="quota" class="form-label">
+                                <i class="bi bi-people me-1"></i>Kontenjan
+                            </label>
+                            <input type="number" class="form-control" id="quota" name="Quota" min="1" max="200" required>
+                            <div class="invalid-feedback" id="quotaError"></div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="dayOfWeek" class="form-label">
+                                <i class="bi bi-calendar-week me-1"></i>Ders Günü
+                            </label>
+                            <select class="form-select" id="dayOfWeek" name="DayOfWeek" required>
+                                <option value="">Gün Seçiniz</option>
+                            </select>
+                            <div class="invalid-feedback" id="dayOfWeekError"></div>
+                        </div>
+                        <div class="col-md-6 mb-3"></div>
+                        <div class="col-md-6 mb-3">
+                            <label for="startTime" class="form-label">
+                                <i class="bi bi-clock me-1"></i>Başlangıç Saati
+                            </label>
+                            <input type="time" class="form-control" id="startTime" name="StartTime" required>
+                            <div class="invalid-feedback" id="startTimeError"></div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="endTime" class="form-label">
+                                <i class="bi bi-clock me-1"></i>Bitiş Saati
+                            </label>
+                            <input type="time" class="form-control" id="endTime" name="EndTime" required>
+                            <div class="invalid-feedback" id="endTimeError"></div>
+                        </div>
+                        <div class="col-12">
+                            <div id="timeError" class="text-danger"></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" id="saveOfferedCourseBtn">
+                    <i class="bi bi-check-lg me-2"></i>Döneme Ders Ekle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section scripts {
     <script>
         $(document).ready(function() {
@@ -92,6 +181,18 @@
                 responsive: true,
                 order: [[0, 'asc']]
             });
+
+            // Auto-open Add modal if coming from quick action or Add link
+            const urlParams = new URLSearchParams(window.location.search);
+            const fromAdd = urlParams.get('add') === 'true';
+            const referrer = document.referrer;
+            
+            if (fromAdd || referrer.includes('/OfferedCourses/Add') || window.location.pathname.includes('/Add')) {
+                setTimeout(function() {
+                    const addModal = new bootstrap.Modal(document.getElementById('addOfferedCourseModal'));
+                    addModal.show();
+                }, 500);
+            }
 
             const deleteModalEl = document.getElementById('deleteConfirmModal');
             if (deleteModalEl) {
@@ -142,6 +243,225 @@
                                 })
                         }
                     });
+            }
+
+            // Add Offered Course Modal Functionality
+            initializeAddOfferedCourseModal();
+
+            function initializeAddOfferedCourseModal() {
+                const addOfferedCourseModal = new bootstrap.Modal(document.getElementById('addOfferedCourseModal'));
+                const addOfferedCourseForm = document.getElementById('addOfferedCourseForm');
+                const saveOfferedCourseBtn = document.getElementById('saveOfferedCourseBtn');
+                const courseSelect = document.getElementById('courseId');
+                const semesterSelect = document.getElementById('semesterId');
+                const teacherSelect = document.getElementById('teacherId');
+                const daySelect = document.getElementById('dayOfWeek');
+                const startTimeInput = document.getElementById('startTime');
+                const endTimeInput = document.getElementById('endTime');
+                const timeError = document.getElementById('timeError');
+
+                // Load form data when modal is shown
+                document.getElementById('addOfferedCourseModal').addEventListener('show.bs.modal', async function() {
+                    try {
+                        const response = await fetch('http://localhost:8000/api/offered/add', {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${sessionStorage.getItem('bearerToken')}`
+                            }
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+
+                            // Populate courses
+                            courseSelect.innerHTML = '<option value="">Ders Seçiniz</option>';
+                            if (data.CourseList && data.CourseList.length > 0) {
+                                data.CourseList.forEach(course => {
+                                    const option = document.createElement('option');
+                                    option.value = course.Value;
+                                    option.textContent = course.Text;
+                                    courseSelect.appendChild(option);
+                                });
+                            }
+
+                            // Populate semesters
+                            semesterSelect.innerHTML = '<option value="">Dönem Seçiniz</option>';
+                            if (data.SemesterList && data.SemesterList.length > 0) {
+                                data.SemesterList.forEach(semester => {
+                                    const option = document.createElement('option');
+                                    option.value = semester.Value;
+                                    option.textContent = semester.Text;
+                                    semesterSelect.appendChild(option);
+                                });
+                            }
+
+                            // Populate teachers
+                            teacherSelect.innerHTML = '<option value="">Akademisyen Seçiniz</option>';
+                            if (data.AdvisorList && data.AdvisorList.length > 0) {
+                                data.AdvisorList.forEach(advisor => {
+                                    const option = document.createElement('option');
+                                    option.value = advisor.Value;
+                                    option.textContent = advisor.Text;
+                                    teacherSelect.appendChild(option);
+                                });
+                            }
+
+                            // Populate days
+                            daySelect.innerHTML = '<option value="">Gün Seçiniz</option>';
+                            if (data.DaysList && data.DaysList.length > 0) {
+                                data.DaysList.forEach(day => {
+                                    const option = document.createElement('option');
+                                    option.value = day.Value;
+                                    option.textContent = day.Text;
+                                    daySelect.appendChild(option);
+                                });
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Form verileri yüklenirken hata:', error);
+                    }
+                });
+
+                // Time validation
+                function validateTimes() {
+                    const startTime = startTimeInput.value;
+                    const endTime = endTimeInput.value;
+
+                    if (!startTime || !endTime) {
+                        timeError.textContent = '';
+                        return true;
+                    }
+
+                    if (startTime >= endTime) {
+                        timeError.textContent = 'Bitiş saati, başlangıç saatinden sonra olmalıdır.';
+                        return false;
+                    } else {
+                        timeError.textContent = '';
+                        return true;
+                    }
+                }
+
+                startTimeInput.addEventListener('change', validateTimes);
+                endTimeInput.addEventListener('change', validateTimes);
+
+                // Form validation
+                function validateOfferedCourseForm() {
+                    let isValid = true;
+                    const formData = new FormData(addOfferedCourseForm);
+                    
+                    // Clear previous errors
+                    document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+                    // Course validation
+                    if (!formData.get('CourseId')) {
+                        showOfferedCourseFieldError('courseId', 'courseIdError', 'Ders seçimi gereklidir');
+                        isValid = false;
+                    }
+
+                    // Semester validation
+                    if (!formData.get('SemesterId')) {
+                        showOfferedCourseFieldError('semesterId', 'semesterIdError', 'Dönem seçimi gereklidir');
+                        isValid = false;
+                    }
+
+                    // Teacher validation
+                    if (!formData.get('TeacherId')) {
+                        showOfferedCourseFieldError('teacherId', 'teacherIdError', 'Akademisyen seçimi gereklidir');
+                        isValid = false;
+                    }
+
+                    // Quota validation
+                    const quota = parseInt(formData.get('Quota'));
+                    if (!quota || quota < 1 || quota > 200) {
+                        showOfferedCourseFieldError('quota', 'quotaError', 'Kontenjan 1 ile 200 arasında olmalıdır');
+                        isValid = false;
+                    }
+
+                    // Day validation
+                    if (!formData.get('DayOfWeek')) {
+                        showOfferedCourseFieldError('dayOfWeek', 'dayOfWeekError', 'Ders günü seçimi gereklidir');
+                        isValid = false;
+                    }
+
+                    // Time validation
+                    if (!formData.get('StartTime')) {
+                        showOfferedCourseFieldError('startTime', 'startTimeError', 'Başlangıç saati gereklidir');
+                        isValid = false;
+                    }
+
+                    if (!formData.get('EndTime')) {
+                        showOfferedCourseFieldError('endTime', 'endTimeError', 'Bitiş saati gereklidir');
+                        isValid = false;
+                    }
+
+                    if (!validateTimes()) {
+                        isValid = false;
+                    }
+
+                    return isValid;
+                }
+
+                function showOfferedCourseFieldError(fieldId, errorId, message) {
+                    document.getElementById(fieldId).classList.add('is-invalid');
+                    document.getElementById(errorId).textContent = message;
+                }
+
+                // Save offered course
+                saveOfferedCourseBtn.addEventListener('click', async function() {
+                    if (!validateOfferedCourseForm()) return;
+
+                    const originalText = saveOfferedCourseBtn.innerHTML;
+                    saveOfferedCourseBtn.disabled = true;
+                    saveOfferedCourseBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...';
+
+                    try {
+                        const formData = new FormData(addOfferedCourseForm);
+                        const offeredCourseData = {
+                            CourseId: formData.get('CourseId'),
+                            SemesterId: formData.get('SemesterId'),
+                            TeacherId: formData.get('TeacherId'),
+                            Quota: parseInt(formData.get('Quota')),
+                            DayOfWeek: parseInt(formData.get('DayOfWeek')),
+                            StartTime: formData.get('StartTime') + ':00',
+                            EndTime: formData.get('EndTime') + ':00'
+                        };
+
+                        const response = await fetch('http://localhost:8000/api/offered/add', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${sessionStorage.getItem('bearerToken')}`
+                            },
+                            body: JSON.stringify(offeredCourseData)
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            addOfferedCourseModal.hide();
+                            addOfferedCourseForm.reset();
+                            showFeedbackModal('success', 'İşlem Başarılı', result.Message || 'Ders başarıyla eklendi.', null, null, function() {
+                                location.reload();
+                            });
+                        } else {
+                            showFeedbackModal('error', 'İşlem Başarısız', result.Message || 'Bir hata oluştu.');
+                        }
+                    } catch (error) {
+                        console.error('Ders eklenirken hata:', error);
+                        showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya bağlanırken bir hata oluştu.');
+                    } finally {
+                        saveOfferedCourseBtn.disabled = false;
+                        saveOfferedCourseBtn.innerHTML = originalText;
+                    }
+                });
+
+                // Reset form when modal is hidden
+                document.getElementById('addOfferedCourseModal').addEventListener('hidden.bs.modal', function() {
+                    addOfferedCourseForm.reset();
+                    document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                    document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+                    timeError.textContent = '';
+                });
             }
         });
     </script>

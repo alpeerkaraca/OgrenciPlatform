@@ -11,294 +11,393 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 </head>
 <body>
-@{
-    var isIndexPage = ViewContext.RouteData.Values["action"].ToString().Equals("Index", StringComparison.OrdinalIgnoreCase) &&
-                      ViewContext.RouteData.Values["controller"].ToString().Equals("Home", StringComparison.OrdinalIgnoreCase);
-}
-
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
-    <div class="container-fluid">
-        @Html.ActionLink("Öğrenci Portal", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
-
-        <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                title="Gezintiyi aç/kapat" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item">
-                    @Html.ActionLink("Ana Sayfa", "Index", "Home", new { area = "" }, new { @class = "nav-link" })
-                </li>
-            </ul>
-
-            @if (User.Identity.IsAuthenticated)
-            {
-                var claimsIdentity = User.Identity as ClaimsIdentity;
-                var userFullName = claimsIdentity?.FindFirst("full_name").Value;
-                var userEmail = claimsIdentity?.FindFirst("user_email")?.Value;
-                var userDepartment = claimsIdentity?.FindFirst("department")?.Value;
-                var userStudentNo = claimsIdentity?.FindFirst("student_no")?.Value;
-
-                <div class="navbar-nav ms-auto d-flex align-items-center">
-                    <!-- Kullanıcı bilgileri (sadece büyük ekranlarda görünür) -->
-                    <div class="d-none d-lg-flex flex-column me-3 text-end">
-                        <small class="text-light">@userEmail</small>
-                        @if (!string.IsNullOrEmpty(userDepartment))
-                        {
-                            <small class="text-muted">@userDepartment</small>
-                        }
-                        @if (User.IsInRole(nameof(Roles.Öğrenci)) && !string.IsNullOrEmpty(userStudentNo))
-                        {
-                            <small class="text-muted">@userStudentNo</small>
-                        }
-                    </div>
-
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown"
-                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-2"
-                                 style="width: 32px; height: 32px;">
-                                <i class="bi bi-person-fill text-white"></i>
-                            </div>
-                            <span class="d-none d-sm-inline">@userFullName</span>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li class="d-lg-none">
-                                <div class="dropdown-header">
-                                    <div class="fw-bold">@userFullName</div>
-                                    <div class="small text-muted">@userEmail</div>
-                                    @if (!string.IsNullOrEmpty(userDepartment))
-                                    {
-                                        <div class="small text-muted">@userDepartment</div>
-                                    }
-                                    @if (User.IsInRole(nameof(Roles.Öğrenci)) && !string.IsNullOrEmpty(userStudentNo))
-                                    {
-                                        <div class="small text-muted">Öğrenci No: @userStudentNo</div>
-                                    }
-                                </div>
-                                <hr class="dropdown-divider">
-                            </li>
-
-                            <li>
-                                <a class="dropdown-item" href="@Url.Action("ChangePassword", "User")">
-                                    <i class="bi bi-key me-2"></i>Şifre Değiştir
-                                </a>
-                            </li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="@Url.Action("Logout", "User")">
-                                    <i class="bi bi-box-arrow-right me-2"></i>Çıkış Yap
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                </div>
-            }
-            else
-            {
-                <div class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        @Html.ActionLink("Giriş Yap", "Login", "User", new { area = "" }, new { @class = "nav-link" })
-                    </li>
-                </div>
-            }
-        </div>
-    </div>
-</nav>
-@if (User.Identity.IsAuthenticated)
-{
-    var claimsIdentity = User.Identity as ClaimsIdentity;
-
-    var userIsFirstLogin = claimsIdentity?.FindFirst("first_login")?.Value;
-    if (userIsFirstLogin?.ToLower() == "true" && isIndexPage && Session["PasswordChangeModalShown"] == null)
-    {
-        <div class="modal fade" id="firstLoginModal" tabindex="-1" aria-labelledby="firstLoginModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-            <div Class="modal-dialog modal-dialog-centered">
-                <div Class="modal-content border-warning">
-                    <div Class="modal-header bg-warning text-dark">
-                        <h5 Class="modal-title" id="firstLoginModalLabel">
-                            <i Class="bi bi-exclamation-triangle-fill me-2"></i>Şifre Değiştirme Gerekli
-                        </h5>
-                    </div>
-                    <div Class="modal-body">
-                        <div Class="alert alert-info mb-3">
-                            <i Class="bi bi-info-circle-fill me-2"></i>
-                            <strong> Hoş geldiniz!</strong> Güvenliğiniz için ilk girişinizde şifrenizi değiştirmenizi öneriyoruz.
-                        </div>
-                        <p Class="mb-3">Sistem güvenliği açısından yeni şifreniz aşağıdaki kriterleri karşılamalıdır:</p>
-                        <ul Class="list-unstyled">
-                            <li> <i Class="bi bi-check-circle text-success me-2"></i>En az 8 karakter</li>
-                            <li> <i Class="bi bi-check-circle text-success me-2"></i>En az 1 büyük harf</li>
-                            <li> <i Class="bi bi-check-circle text-success me-2"></i>En az 1 küçük harf</li>
-                            <li> <i Class="bi bi-check-circle text-success me-2"></i>En az 1 rakam</li>
-                            <li> <i Class="bi bi-check-circle text-success me-2"></i>En az 1 özel karakter</li>
-                        </ul>
-                    </div>
-                    <div Class="modal-footer">
-                        <button type="button" Class="btn btn-outline-secondary" onclick="dismissPasswordModal()">
-                            Daha Sonra
-                        </button>
-                        <a href="@Url.Action("ChangePassword", "User")" class="btn btn-warning">
-                            <i Class="bi bi-key me-2"></i>Şifre Değiştir
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-}
-
-<div class="wrapper">
+<div id="app-wrapper">
+    <!-- Rebuilt Sidebar -->
     <aside id="sidebar">
-        <div class="d-flex">
-            <button id="toggle-btn" class="d-flex justify-content-center" type="button">
-                <i class='bx bx-menu bx-sm'></i>
-            </button>
-
-            <div class="sidebar-logo">
-                <a href="@Url.Action("Index", "Home")">Öğrenci Yönetim</a>
-            </div>
+        <div class="sidebar-header">
+            <a href="@Url.Action("Index", "Home")" class="sidebar-brand">
+                <i class="bi bi-mortarboard-fill"></i>
+                <span>Öğrenci Portal</span>
+            </a>
         </div>
+        <nav class="sidebar-nav">
+            <ul>
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <li>
+                        <a href="@Url.Action("Index", "Home")">
+                            <i class="bi bi-grid-1x2-fill"></i>
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    </li>
 
-        <ul class="sidebar-nav">
+                    if (User.IsInRole(nameof(Shared.Enums.Roles.Öğrenci)))
+                    {
+                        <li class="nav-section-title">
+                            <span class="nav-text">Öğrenci İşlemleri</span>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("Enroll", "Student")">
+                                <i class="bi bi-calendar2-check-fill"></i>
+                                <span class="nav-text">Ders Seçimi</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("MyCourses", "Student")">
+                                <i class="bi bi-collection-fill"></i>
+                                <span class="nav-text">Derslerim</span>
+                            </a>
+                        </li>
+                    }
+
+                    if (User.IsInRole(nameof(Shared.Enums.Roles.Danışman)))
+                    {
+                        <li class="nav-section-title">
+                            <span class="nav-text">Danışman İşlemleri</span>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("CourseApprovals", "Advisor")">
+                                <i class="bi bi-patch-check-fill"></i>
+                                <span class="nav-text">Ders Onayları</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("AdvisedStudentList", "Advisor")">
+                                <i class="bi bi-people-fill"></i>
+                                <span class="nav-text">Danışan Öğrenciler</span>
+                            </a>
+                        </li>
+                    }
+
+                    if (User.IsInRole(nameof(Shared.Enums.Roles.Admin)))
+                    {
+                        <li class="nav-section-title">
+                            <span class="nav-text">Sistem Yönetimi</span>
+                        </li>
+                        <li class="has-submenu">
+                            <a href="#">
+                                <i class="bi bi-people-fill"></i>
+                                <span class="nav-text">Kullanıcılar</span>
+                                <i class="bi bi-chevron-down dropdown-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li>
+                                    <a href="@Url.Action("List", "User")">
+                                        <span class="nav-text">Kullanıcı Listesi</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="@Url.Action("Register", "User")">
+                                        <span class="nav-text">Yeni Kullanıcı</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="has-submenu">
+                            <a href="#">
+                                <i class="bi bi-book-fill"></i>
+                                <span class="nav-text">Dersler</span>
+                                <i class="bi bi-chevron-down dropdown-arrow"></i>
+                            </a>
+                            <ul class="submenu">
+                                <li>
+                                    <a href="@Url.Action("List", "Courses")">
+                                        <span class="nav-text">Ders Listesi</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="@Url.Action("List", "OfferedCourses")">
+                                        <span class="nav-text">Açılan Dersler</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("List", "Department")">
+                                <i class="bi bi-building-fill"></i>
+                                <span class="nav-text">Bölümler</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("List", "Semester")">
+                                <i class="bi bi-calendar-range-fill"></i>
+                                <span class="nav-text">Dönemler</span>
+                            </a>
+                        </li>
+                    }
+                }
+            </ul>
+        </nav>
+        <div class="sidebar-footer">
             @if (User.Identity.IsAuthenticated)
             {
-                var claimsIdentity = User.Identity as ClaimsIdentity;
-                // Öğrenci Menüsü
-                if (User.IsInRole(nameof(Shared.Enums.Roles.Öğrenci)))
-                {
-                    <li class="sidebar-item">
-                        <a class="sidebar-link" href="@Url.Action("Enroll", "Student")">
-                            <i class='bx bx-calendar-check bx-sm'></i> <span>Ders Seçimi</span>
-                        </a>
-                    </li>
-                    <li class="sidebar-item">
-                        <a class="sidebar-link" href="@Url.Action("MyCourses", "Student")">
-                            <i class='bx bx-book bx-sm'></i> <span>Seçilen Derslerim</span>
-                        </a>
-                    </li>
-                }
-
-                // Danışman Menüsü
-                if (User.IsInRole(nameof(Roles.Danışman)))
-                {
-                    <li class="sidebar-item">
-                        <a class="sidebar-link" href="@Url.Action("CourseApprovals", "Advisor")">
-                            <i class='bx bx-check-circle bx-sm'></i> <span>Ders Onayları</span>
-                        </a>
-                    </li>
-                    <li class="sidebar-item">
-                        <a class="sidebar-link" href="@Url.Action("AdvisedStudentList", "Advisor")">
-                            <i class='bx bx-user-check bx-sm'></i> <span>Danışan Öğrenciler</span>
-                        </a>
-                    </li>
-                }
-
-                // Admin Menüsü
-                if (User.IsInRole(nameof(Roles.Admin)))
-                {
-                    <li class="sidebar-item">
-                        <a class="sidebar-link has-dropdown collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#auth" aria-expanded="false" aria-controls="auth">
-                            <i class='bx bx-shield-half bx-sm'></i>
-                            <span>Kullanıcı Yönetimi</span>
-                        </a>
-                        <ul id="auth" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                            <li class="sidebar-item">
-                                <a class="sidebar-link" href="@Url.Action("List", "User")">Kullanıcı Listesi</a>
-                            </li>
-                            <li class="sidebar-item">
-                                <a class="sidebar-link" href="@Url.Action("Register", "User")">Yeni Kullanıcı Ekle</a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    <li class="sidebar-item">
-                        <a class="sidebar-link has-dropdown collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#course" aria-expanded="false" aria-controls="course">
-                            <i class='bx bx-book bx-sm'></i>
-                            <span>Ders Yönetimi</span>
-                        </a>
-                        <ul id="course" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                            <li class="sidebar-item">
-                                <a class="sidebar-link" href="@Url.Action("List", "Courses")">Genel Ders Listesi</a>
-                            </li>
-                            <li class="sidebar-item">
-                                <a class="sidebar-link" href="@Url.Action("Add", "Courses")">Yeni Ders Tanımla</a>
-                            </li>
-                            <li class="sidebar-item-divider"></li>
-                            <li class="sidebar-item">
-                                <a class="sidebar-link" href="@Url.Action("List", "OfferedCourses")">Açılan Dersler Listesi</a>
-                            </li>
-                            <li class="sidebar-item">
-                                <a class="sidebar-link" href="@Url.Action("Add", "OfferedCourses")">Döneme Ders Ekle</a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    <li class="sidebar-item">
-                        <a class="sidebar-link has-dropdown collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#department" aria-expanded="false" aria-controls="department">
-                            <i class='bx bx-buildings bx-sm'></i>
-                            <span>Bölüm Yönetimi</span>
-                        </a>
-                        <ul id="department" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                            <li class="sidebar-item">
-                                <a class="sidebar-link" href="@Url.Action("List", "Department")">Bölüm Listesi</a>
-                            </li>
-                            <li class="sidebar-item">
-                                <a class="sidebar-link" href="@Url.Action("Add", "Department")">Bölüm Ekle</a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    <li class="sidebar-item">
-                        <a class="sidebar-link has-dropdown collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#semester" aria-expanded="false" aria-controls="semester">
-                            <i class='bx bx-calendar bx-sm'></i>
-                            <span>Dönem Yönetimi</span>
-                        </a>
-                        <ul id="semester" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                            <li class="sidebar-item">
-                                <a class="sidebar-link" href="@Url.Action("List", "Semester")">Dönem Listesi</a>
-                            </li>
-                            <li class="sidebar-item">
-                                <a class="sidebar-link" href="@Url.Action("Add", "Semester")">Dönem Ekle</a>
-                            </li>
-                        </ul>
-                    </li>
-                }
+                <a href="@Url.Action("Logout", "User")" class="logout-btn">
+                    <i class="bi bi-box-arrow-left"></i>
+                    <span class="nav-text">Çıkış Yap</span>
+                </a>
             }
-        </ul>
-
-        <div class="sidebar-footer">
-            <a class="sidebar-link" href="@Url.Action("Logout", "User")">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                <span>Çıkış Yap</span>
-            </a>
         </div>
     </aside>
 
-    <div class="main container mt-3">
-        @RenderBody()
-        <hr/>
+    <!-- Rebuilt Main Content Area -->
+    <div id="main-content">
+        <!-- Rebuilt Navbar -->
+        <header id="navbar">
+            <div class="navbar-left">
+                <button id="sidebar-toggle" class="sidebar-toggle-btn">
+                    <i class="bi bi-list"></i>
+                </button>
+            </div>
+            <div class="navbar-right">
+                @if (User.Identity.IsAuthenticated)
+                {
+                    var claimsIdentity = User.Identity as ClaimsIdentity;
+                    var userFullName = claimsIdentity?.FindFirst("full_name").Value;
+                    var userEmail = claimsIdentity?.FindFirst("user_email")?.Value;
+
+                    <div class="user-profile dropdown">
+                        <button class="dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="user-avatar">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                            <div class="user-info">
+                                <span class="user-name">@userFullName</span>
+                                <span class="user-role">@userEmail</span>
+                            </div>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li>
+                                <a class="dropdown-item" href="@Url.Action("ChangePassword", "User")">
+                                    <i class="bi bi-key-fill"></i> Şifre Değiştir
+                                </a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="@Url.Action("Logout", "User")">
+                                    <i class="bi bi-box-arrow-right"></i> Çıkış Yap
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                }
+                else
+                {
+                    <a href="@Url.Action("Login", "User")" class="btn btn-primary">
+                        <i class="bi bi-box-arrow-in-right"></i> Giriş Yap
+                    </a>
+                }
+            </div>
+        </header>
+
+        <!-- Main container for page content -->
+        <main class="container-fluid py-4">
+            @RenderBody()
+        </main>
+    </div>
+</div>
+
+<!-- Modern Footer -->
+<footer class="modern-footer">
+    <div class="footer-wave">
+        <svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" class="shape-fill"></path>
+            <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" class="shape-fill"></path>
+            <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" class="shape-fill"></path>
+        </svg>
     </div>
 
-</div>
-<footer>
-    <div class="container-fluid footer">
-        <div class="d-flex">
-            <div>
-                <ul>
-                    <li>ASD</li>
-                    <li>ASD</li>
-                    <li>ASD</li>
-                    <li>ASD</li>
-                    <li>ASD</li>
-                </ul>
+    <div class="footer-content">
+        <div class="container">
+            <div class="row">
+                <!-- Brand Section -->
+                <div class="col-lg-4 col-md-6 mb-5">
+                    <div class="footer-brand">
+                        <div class="brand-logo mb-4">
+                            <div class="brand-icon">
+                                <i class="bi bi-mortarboard"></i>
+                            </div>
+                            <div class="brand-info">
+                                <h4 class="brand-name">Öğrenci Portal</h4>
+                                <p class="brand-tagline">Eğitim Yönetim Sistemi</p>
+                            </div>
+                        </div>
+                        <p class="brand-description">
+                            Modern teknoloji ile eğitim süreçlerini yönetmek için tasarlanmış kapsamlı platform.
+                            Öğrenci, akademisyen ve yöneticiler için entegre çözümler sunuyoruz.
+                        </p>
+                        <div class="social-media">
+                            <h6 class="social-title">Bizi Takip Edin</h6>
+                            <div class="social-links">
+                                <a href="#" class="social-btn facebook" title="Facebook">
+                                    <i class="bi bi-facebook"></i>
+                                </a>
+                                <a href="#" class="social-btn twitter" title="Twitter">
+                                    <i class="bi bi-twitter"></i>
+                                </a>
+                                <a href="#" class="social-btn linkedin" title="LinkedIn">
+                                    <i class="bi bi-linkedin"></i>
+                                </a>
+                                <a href="#" class="social-btn instagram" title="Instagram">
+                                    <i class="bi bi-instagram"></i>
+                                </a>
+                                <a href="#" class="social-btn youtube" title="YouTube">
+                                    <i class="bi bi-youtube"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Navigation -->
+                <div class="col-lg-2 col-md-6 mb-5">
+                    <div class="footer-section">
+                        <h6 class="section-title">
+                            <i class="bi bi-compass me-2"></i>Navigasyon
+                        </h6>
+                        <ul class="footer-menu">
+                            <li>
+                                <a href="@Url.Action("Index", "Home")">Ana Sayfa</a>
+                            </li>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li>
+                                    <a href="@Url.Action("List", "Courses")">Ders Yönetimi</a>
+                                </li>
+                                <li>
+                                    <a href="@Url.Action("List", "Department")">Bölümler</a>
+                                </li>
+                                <li>
+                                    <a href="@Url.Action("List", "User")">Kullanıcılar</a>
+                                </li>
+                            }
+                            @if (User.IsInRole("Öğrenci"))
+                            {
+                                <li>
+                                    <a href="@Url.Action("Enroll", "Student")">Ders Seçimi</a>
+                                </li>
+                                <li>
+                                    <a href="@Url.Action("MyCourses", "Student")">Derslerim</a>
+                                </li>
+                            }
+                            @if (User.IsInRole("Danışman"))
+                            {
+                                <li>
+                                    <a href="@Url.Action("CourseApprovals", "Advisor")">Ders Onayları</a>
+                                </li>
+                                <li>
+                                    <a href="@Url.Action("AdvisedStudentList", "Advisor")">Öğrencilerim</a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Support & Help -->
+                <div class="col-lg-3 col-md-6 mb-5">
+                    <div class="footer-section">
+                        <h6 class="section-title">
+                            <i class="bi bi-life-preserver me-2"></i>Destek & Yardım
+                        </h6>
+                        <ul class="footer-menu">
+                            <li>
+                                <a href="#" onclick="showHelpModal()">Yardım Merkezi</a>
+                            </li>
+                            <li>
+                                <a href="#" onclick="showContactModal()">İletişim</a>
+                            </li>
+                            <li>
+                                <a href="#" onclick="showFaqModal()">S.S.S</a>
+                            </li>
+                            <li>
+                                <a href="@Url.Action("ChangePassword", "User")">Şifre Değiştir</a>
+                            </li>
+                        </ul>
+                        <div class="support-card">
+                            <div class="support-icon">
+                                <i class="bi bi-headset"></i>
+                            </div>
+                            <div class="support-info">
+                                <h6>24/7 Destek</h6>
+                                <p>Size yardım etmek için buradayız</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="col-lg-3 col-md-6 mb-5">
+                    <div class="footer-section">
+                        <h6 class="section-title">
+                            <i class="bi bi-geo-alt me-2"></i>İletişim
+                        </h6>
+                        <div class="contact-info">
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <i class="bi bi-envelope"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h6>E-posta</h6>
+                                    <p>info@ogrenciportal.edu.tr</p>
+                                    <p>destek@ogrenciportal.edu.tr</p>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <i class="bi bi-telephone"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h6>Telefon</h6>
+                                    <p>+90 (212) 555-0123</p>
+                                    <p>+90 (212) 555-0124</p>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <i class="bi bi-clock"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h6>Çalışma Saatleri</h6>
+                                    <p>Pzt-Cum: 08:00-17:00</p>
+                                    <p>Cmt: 09:00-13:00</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <p>&copy; @DateTime.Now.Year - ASP.NET Uygulamam</p>
+
+    <!-- Footer Bottom -->
+    <div class="footer-bottom">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="copyright">
+                        <p>&copy; @DateTime.Now.Year <strong>Öğrenci Portal</strong>. Tüm haklar saklıdır.</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="footer-badges">
+                        <div class="badge-item">
+                            <i class="bi bi-shield-check"></i>
+                            <span>Güvenli</span>
+                        </div>
+                        <div class="badge-item">
+                            <i class="bi bi-lightning"></i>
+                            <span>Hızlı</span>
+                        </div>
+                        <div class="badge-item">
+                            <i class="bi bi-phone"></i>
+                            <span>Mobil Uyumlu</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </footer>
 @Html.Partial("_FeedbackModal") @Scripts.Render("~/bundles/jquery")
 @Scripts.Render("~/bundles/jquery")
@@ -306,29 +405,6 @@
 @Scripts.Render("~/bundles/datatables")
 @Scripts.Render("~/bundles/modernizr")
 <script src="~/Scripts/js/app.js"></script>
-
-<script>
-    // Bearer token management
-    @if (TempData["BearerToken"] != null)
-    {
-        <text>
-            sessionStorage.setItem('bearerToken', '@TempData["BearerToken"]');
-        </text>
-    }
-
-// Setup AJAX to always include Bearer token
-    $(document).ajaxSend(function(event, xhr, settings) {
-        var token = sessionStorage.getItem('bearerToken');
-        if (token && !settings.crossDomain) {
-            xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-        }
-    });
-
-// Clear token on logout
-    function clearBearerToken() {
-        sessionStorage.removeItem('bearerToken');
-    }
-</script>
 
 <script>
     function dismissPasswordModal() {
@@ -346,6 +422,152 @@
             });
     }
 
+// Footer Modal Functions
+    function showHelpModal() {
+        showFeedbackModal('info',
+            'Yardım Merkezi',
+            `<div class="text-start">
+                     <h6><i class="bi bi-question-circle me-2"></i>Nasıl yardım alabilirim?</h6>
+                     <ul class="list-unstyled">
+                         <li class="mb-2"><i class="bi bi-arrow-right me-2 text-primary"></i>Sistem yöneticiniz ile iletişime geçin</li>
+                         <li class="mb-2"><i class="bi bi-arrow-right me-2 text-primary"></i>E-posta: info@ogrenciportal.edu.tr</li>
+                         <li class="mb-2"><i class="bi bi-arrow-right me-2 text-primary"></i>Telefon: +90 (212) 555-0123</li>
+                         <li class="mb-2"><i class="bi bi-arrow-right me-2 text-primary"></i>Çalışma Saatleri: Pzt-Cum 08:00-17:00</li>
+                     </ul>
+                 </div>`);
+    }
+
+    function showContactModal() {
+        showFeedbackModal('info',
+            'İletişim Bilgileri',
+            `<div class="text-start">
+                     <div class="contact-info-modal">
+                         <div class="mb-3">
+                             <h6><i class="bi bi-building me-2 text-primary"></i>Eğitim Teknolojileri Merkezi</h6>
+                             <p class="text-muted mb-1">Öğrenci Portal Yönetim Sistemi</p>
+                         </div>
+                         <div class="mb-3">
+                             <h6><i class="bi bi-envelope me-2 text-primary"></i>E-posta</h6>
+                             <p class="text-muted mb-1">info@ogrenciportal.edu.tr</p>
+                             <p class="text-muted mb-1">destek@ogrenciportal.edu.tr</p>
+                         </div>
+                         <div class="mb-3">
+                             <h6><i class="bi bi-telephone me-2 text-primary"></i>Telefon</h6>
+                             <p class="text-muted mb-1">+90 (212) 555-0123</p>
+                             <p class="text-muted mb-1">+90 (212) 555-0124 (Teknik Destek)</p>
+                         </div>
+                         <div class="mb-3">
+                             <h6><i class="bi bi-clock me-2 text-primary"></i>Çalışma Saatleri</h6>
+                             <p class="text-muted mb-1">Pazartesi - Cuma: 08:00 - 17:00</p>
+                             <p class="text-muted mb-1">Cumartesi: 09:00 - 13:00</p>
+                             <p class="text-muted">Pazar: Kapalı</p>
+                         </div>
+                     </div>
+                 </div>`);
+    }
+
+    function showFaqModal() {
+        showFeedbackModal('info',
+            'Sık Sorulan Sorular',
+            `<div class="text-start">
+                     <div class="accordion" id="faqAccordion">
+                         <div class="accordion-item">
+                             <h2 class="accordion-header">
+                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                     <i class="bi bi-question-circle me-2"></i>Şifremi unuttum, ne yapmalıyım?
+                                 </button>
+                             </h2>
+                             <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                 <div class="accordion-body">
+                                     Sistem yöneticiniz ile iletişime geçerek yeni şifre talebinde bulunabilirsiniz.
+                                 </div>
+                             </div>
+                         </div>
+                         <div class="accordion-item">
+                             <h2 class="accordion-header">
+                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                     <i class="bi bi-question-circle me-2"></i>Ders seçimi nasıl yapılır?
+                                 </button>
+                             </h2>
+                             <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                 <div class="accordion-body">
+                                     Öğrenci panelinden "Ders Seçimi" bölümüne giderek istediğiniz dersleri seçebilirsiniz.
+                                 </div>
+                             </div>
+                         </div>
+                         <div class="accordion-item">
+                             <h2 class="accordion-header">
+                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                     <i class="bi bi-question-circle me-2"></i>Sistem ne zaman güncellenir?
+                                 </button>
+                             </h2>
+                             <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                 <div class="accordion-body">
+                                     Sistem güncellemeleri genellikle hafta sonları yapılır ve kullanıcılar önceden bilgilendirilir.
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+                 </div>`);
+    }
+
+// Sidebar Toggle Functionality
+    document.addEventListener('DOMContentLoaded',
+        function() {
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click',
+                    function() {
+                        sidebar.classList.toggle('expanded');
+                        if (mainContent) {
+                            mainContent.classList.toggle('sidebar-expanded');
+                        }
+                    });
+            }
+
+            // Mobile sidebar toggle
+            const navbarToggler = document.querySelector('.custom-toggler');
+            if (navbarToggler && sidebar) {
+                navbarToggler.addEventListener('click',
+                    function(e) {
+                        e.preventDefault();
+                        sidebar.classList.toggle('show');
+                    });
+            }
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click',
+                function(event) {
+                    if (window.innerWidth <= 1200) {
+                        const isClickInsideSidebar = sidebar && sidebar.contains(event.target);
+                        const isClickOnToggler = navbarToggler && navbarToggler.contains(event.target);
+
+                        if (!isClickInsideSidebar && !isClickOnToggler && sidebar && sidebar.classList.contains('show')) {
+                            sidebar.classList.remove('show');
+                        }
+                    }
+                });
+
+            // Handle window resize
+            window.addEventListener('resize',
+                function() {
+                    if (window.innerWidth > 1200 && sidebar && sidebar.classList.contains('show')) {
+                        sidebar.classList.remove('show');
+                    }
+                });
+
+            // Initialize Bootstrap dropdowns
+            if (typeof bootstrap !== 'undefined') {
+                var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+                var dropdownList = dropdownElementList.map(function(dropdownToggleEl) {
+                    return new bootstrap.Dropdown(dropdownToggleEl);
+                });
+            }
+        });
+
     document.addEventListener('DOMContentLoaded',
         function() {
             @if (User.Identity.IsAuthenticated)
@@ -354,7 +576,7 @@
                 var userIsFirstLogin = claimsIdentity?.FindFirst("first_login").Value;
 
                 <text>
-                    if (@Html.Raw(string.IsNullOrEmpty(userIsFirstLogin)).ToString().ToLower() && (@Html.Raw(userIsFirstLogin != null && userIsFirstLogin.ToLower() == "true").ToString().ToLower() && @Html.Raw(isIndexPage.ToString().ToLower()) && @(Session["PasswordChangeModalShown"] == null ? "true" : "false"))) {
+                    if (@Html.Raw(string.IsNullOrEmpty(userIsFirstLogin)).ToString().ToLower() && (@Html.Raw(userIsFirstLogin != null && userIsFirstLogin.ToLower() == "true").ToString().ToLower() && @(Session["PasswordChangeModalShown"] == null ? "true" : "false"))) {
                         const firstLoginModal = new window.bootstrap.Modal(document.getElementById('firstLoginModal'));
                         firstLoginModal.show();
 
@@ -373,8 +595,62 @@
             }
         });
 </script>
-@*<script src="https://unpkg.com/@popperjs/core@2/dist/umd/popper.js"></script>*@
+    @Scripts.Render("~/bundles/modernizr")
+    <script src="~/Scripts/js/app.js"></script>
 
-@RenderSection("scripts", required: false)
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+
+            // --- SIDEBAR TOGGLE ---
+            if (sidebarToggle && sidebar && mainContent) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('sidebar-collapsed');
+                });
+            }
+
+            // --- SIDEBAR SUBMENU ACCORDION ---
+            const submenuToggles = document.querySelectorAll('#sidebar .has-submenu > a');
+            submenuToggles.forEach(function(toggle) {
+                toggle.addEventListener('click', function(e) {
+                    // Prevent link navigation
+                    e.preventDefault();
+                    
+                    // Don't run accordion logic if sidebar is collapsed (it uses hover instead)
+                    if (sidebar.classList.contains('collapsed')) {
+                        return;
+                    }
+
+                    const parentLi = this.parentElement;
+                    const submenu = this.nextElementSibling;
+
+                    // Close other open submenus to create an accordion effect
+                    document.querySelectorAll('#sidebar .has-submenu.open').forEach(function(openSubmenu) {
+                        if (openSubmenu !== parentLi) {
+                            openSubmenu.classList.remove('open');
+                            openSubmenu.querySelector('.submenu').style.maxHeight = null;
+                        }
+                    });
+
+                    // Toggle the current submenu
+                    parentLi.classList.toggle('open');
+                    if (parentLi.classList.contains('open')) {
+                        // Set max-height to its scrollHeight to animate opening
+                        submenu.style.maxHeight = submenu.scrollHeight + "px";
+                    } else {
+                        // Set max-height to null to animate closing
+                        submenu.style.maxHeight = null;
+                    }
+                });
+            });
+        });
+    </script>
+    @*<script src="https://unpkg.com/@popperjs/core@2/dist/umd/popper.js"></script>*@
+
+
+    @RenderSection("scripts", required: false)
 </body>
 </html>
