@@ -12,7 +12,7 @@
 </head>
 <body>
 <div id="app-wrapper">
-    <!-- Rebuilt Sidebar -->
+    @Html.AntiForgeryToken()
     <aside id="sidebar">
         <div class="sidebar-header">
             <a href="@Url.Action("Index", "Home")" class="sidebar-brand">
@@ -191,7 +191,6 @@
             </div>
         </header>
 
-        <!-- Main container for page content -->
         <main class="container-fluid py-4">
             @RenderBody()
         </main>
@@ -199,202 +198,123 @@
 </div>
 
 <!-- Modern Footer -->
-<footer class="modern-footer">
-    <div class="footer-wave">
-        <svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" class="shape-fill"></path>
-            <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" class="shape-fill"></path>
-            <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" class="shape-fill"></path>
+<footer class="site-footer">
+    <div class="footer-shape-divider">
+        <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
         </svg>
     </div>
 
-    <div class="footer-content">
-        <div class="container">
-            <div class="row">
-                <!-- Brand Section -->
-                <div class="col-lg-4 col-md-6 mb-5">
-                    <div class="footer-brand">
-                        <div class="brand-logo mb-4">
-                            <div class="brand-icon">
-                                <i class="bi bi-mortarboard"></i>
-                            </div>
-                            <div class="brand-info">
-                                <h4 class="brand-name">Öğrenci Portal</h4>
-                                <p class="brand-tagline">Eğitim Yönetim Sistemi</p>
-                            </div>
-                        </div>
-                        <p class="brand-description">
-                            Modern teknoloji ile eğitim süreçlerini yönetmek için tasarlanmış kapsamlı platform.
-                            Öğrenci, akademisyen ve yöneticiler için entegre çözümler sunuyoruz.
-                        </p>
-                        <div class="social-media">
-                            <h6 class="social-title">Bizi Takip Edin</h6>
-                            <div class="social-links">
-                                <a href="#" class="social-btn facebook" title="Facebook">
-                                    <i class="bi bi-facebook"></i>
-                                </a>
-                                <a href="#" class="social-btn twitter" title="Twitter">
-                                    <i class="bi bi-twitter"></i>
-                                </a>
-                                <a href="#" class="social-btn linkedin" title="LinkedIn">
-                                    <i class="bi bi-linkedin"></i>
-                                </a>
-                                <a href="#" class="social-btn instagram" title="Instagram">
-                                    <i class="bi bi-instagram"></i>
-                                </a>
-                                <a href="#" class="social-btn youtube" title="YouTube">
-                                    <i class="bi bi-youtube"></i>
-                                </a>
-                            </div>
-                        </div>
+    <div class="container">
+        <div class="row">
+
+            <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                <div class="footer-brand mb-4">
+                    <i class="bi bi-mortarboard-fill brand-icon"></i>
+                    <div class="brand-text">
+                        <h5 class="mb-0">Öğrenci Portal</h5>
+                        <span>Eğitim Yönetim Sistemi</span>
                     </div>
                 </div>
-
-                <!-- Quick Navigation -->
-                <div class="col-lg-2 col-md-6 mb-5">
-                    <div class="footer-section">
-                        <h6 class="section-title">
-                            <i class="bi bi-compass me-2"></i>Navigasyon
-                        </h6>
-                        <ul class="footer-menu">
-                            <li>
-                                <a href="@Url.Action("Index", "Home")">Ana Sayfa</a>
-                            </li>
-                            @if (User.IsInRole("Admin"))
-                            {
-                                <li>
-                                    <a href="@Url.Action("List", "Courses")">Ders Yönetimi</a>
-                                </li>
-                                <li>
-                                    <a href="@Url.Action("List", "Department")">Bölümler</a>
-                                </li>
-                                <li>
-                                    <a href="@Url.Action("List", "User")">Kullanıcılar</a>
-                                </li>
-                            }
-                            @if (User.IsInRole("Öğrenci"))
-                            {
-                                <li>
-                                    <a href="@Url.Action("Enroll", "Student")">Ders Seçimi</a>
-                                </li>
-                                <li>
-                                    <a href="@Url.Action("MyCourses", "Student")">Derslerim</a>
-                                </li>
-                            }
-                            @if (User.IsInRole("Danışman"))
-                            {
-                                <li>
-                                    <a href="@Url.Action("CourseApprovals", "Advisor")">Ders Onayları</a>
-                                </li>
-                                <li>
-                                    <a href="@Url.Action("AdvisedStudentList", "Advisor")">Öğrencilerim</a>
-                                </li>
-                            }
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Support & Help -->
-                <div class="col-lg-3 col-md-6 mb-5">
-                    <div class="footer-section">
-                        <h6 class="section-title">
-                            <i class="bi bi-life-preserver me-2"></i>Destek & Yardım
-                        </h6>
-                        <ul class="footer-menu">
-                            <li>
-                                <a href="#" onclick="showHelpModal()">Yardım Merkezi</a>
-                            </li>
-                            <li>
-                                <a href="#" onclick="showContactModal()">İletişim</a>
-                            </li>
-                            <li>
-                                <a href="#" onclick="showFaqModal()">S.S.S</a>
-                            </li>
-                            <li>
-                                <a href="@Url.Action("ChangePassword", "User")">Şifre Değiştir</a>
-                            </li>
-                        </ul>
-                        <div class="support-card">
-                            <div class="support-icon">
-                                <i class="bi bi-headset"></i>
-                            </div>
-                            <div class="support-info">
-                                <h6>24/7 Destek</h6>
-                                <p>Size yardım etmek için buradayız</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Contact Information -->
-                <div class="col-lg-3 col-md-6 mb-5">
-                    <div class="footer-section">
-                        <h6 class="section-title">
-                            <i class="bi bi-geo-alt me-2"></i>İletişim
-                        </h6>
-                        <div class="contact-info">
-                            <div class="contact-item">
-                                <div class="contact-icon">
-                                    <i class="bi bi-envelope"></i>
-                                </div>
-                                <div class="contact-details">
-                                    <h6>E-posta</h6>
-                                    <p>info@ogrenciportal.edu.tr</p>
-                                    <p>destek@ogrenciportal.edu.tr</p>
-                                </div>
-                            </div>
-                            <div class="contact-item">
-                                <div class="contact-icon">
-                                    <i class="bi bi-telephone"></i>
-                                </div>
-                                <div class="contact-details">
-                                    <h6>Telefon</h6>
-                                    <p>+90 (212) 555-0123</p>
-                                    <p>+90 (212) 555-0124</p>
-                                </div>
-                            </div>
-                            <div class="contact-item">
-                                <div class="contact-icon">
-                                    <i class="bi bi-clock"></i>
-                                </div>
-                                <div class="contact-details">
-                                    <h6>Çalışma Saatleri</h6>
-                                    <p>Pzt-Cum: 08:00-17:00</p>
-                                    <p>Cmt: 09:00-13:00</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <p class="footer-text">
+                    Modern teknoloji ile eğitim süreçlerinizi kolaylaştıran, öğrenci ve akademisyenler için entegre çözümler sunan kapsamlı platform.
+                </p>
+                <div class="social-icons mt-4">
+                    <a href="#" title="Facebook">
+                        <i class="bi bi-facebook"></i>
+                    </a>
+                    <a href="#" title="Twitter">
+                        <i class="bi bi-twitter-x"></i>
+                    </a>
+                    <a href="#" title="Instagram">
+                        <i class="bi bi-instagram"></i>
+                    </a>
+                    <a href="#" title="LinkedIn">
+                        <i class="bi bi-linkedin"></i>
+                    </a>
+                    <a href="#" title="YouTube">
+                        <i class="bi bi-youtube"></i>
+                    </a>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Footer Bottom -->
-    <div class="footer-bottom">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <div class="copyright">
-                        <p>&copy; @DateTime.Now.Year <strong>Öğrenci Portal</strong>. Tüm haklar saklıdır.</p>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="footer-badges">
-                        <div class="badge-item">
-                            <i class="bi bi-shield-check"></i>
-                            <span>Güvenli</span>
-                        </div>
-                        <div class="badge-item">
-                            <i class="bi bi-lightning"></i>
-                            <span>Hızlı</span>
-                        </div>
-                        <div class="badge-item">
-                            <i class="bi bi-phone"></i>
-                            <span>Mobil Uyumlu</span>
-                        </div>
-                    </div>
-                </div>
+            <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
+                <h5 class="footer-heading">Hızlı Erişim</h5>
+                <ul class="footer-links list-unstyled">
+                    <li>
+                        <a href="@Url.Action("Index", "Home")">Ana Sayfa</a>
+                    </li>
+                    @if (User.IsInRole(nameof(Roles.Öğrenci)))
+                    {
+                        <li>
+                            <a href="@Url.Action("Enroll", "Student")">Ders Seçimi</a>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("MyCourses", "Student")">Derslerim</a>
+                        </li>
+                    }
+                    @if (User.IsInRole(nameof(Roles.Danışman)))
+                    {
+                        <li>
+                            <a href="@Url.Action("CourseApprovals", "Advisor")">Ders Onayları</a>
+                        </li>
+                    }
+                    @if (User.IsInRole(nameof(Roles.Admin)))
+                    {
+                        <li>
+                            <a href="@Url.Action("List", "User")">Kullanıcı Yönetimi</a>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("List", "Courses")">Ders Yönetimi</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                <h5 class="footer-heading">Destek</h5>
+                <ul class="footer-links list-unstyled">
+                    <li>
+                        <a href="#" onclick="showFaqModal()">Sık Sorulan Sorular</a>
+                    </li>
+                    <li>
+                        <a href="#" onclick="showHelpModal()">Yardım Merkezi</a>
+                    </li>
+                    <li>
+                        <a href="#" onclick="showContactModal()">İletişime Geç</a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("ChangePassword", "User")">Şifre İşlemleri</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <h5 class="footer-heading">İletişim</h5>
+                <ul class="contact-list list-unstyled">
+                    <li>
+                        <i class="bi bi-geo-alt-fill"></i>
+                        <span>Küçükbakkalköy, Tevfik Fikret Cd. No:34, 34750 Ataşehir/İstanbul</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-telephone-fill"></i>
+                        <a href="tel:+902125550123">+90 (212) 555 5555</a>
+                    </li>
+                    <li>
+                        <i class="bi bi-envelope-fill"></i>
+                        <a href="mailto:destek@alpeerkaraca.site">destek@alpeerkaraca.site</a>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom">
+            <p class="copyright-text mb-0">&copy; @DateTime.Now.Year <strong>Öğrenci Portal</strong>. Tüm Hakları Saklıdır.</p>
+            <div class="legal-links">
+                <a href="#">Gizlilik Politikası</a>
+                <span>&bull;</span>
+                <a href="#">Kullanım Koşulları</a>
             </div>
         </div>
     </div>
@@ -511,7 +431,6 @@
                  </div>`);
     }
 
-// Sidebar Toggle Functionality
     document.addEventListener('DOMContentLoaded',
         function() {
             const sidebarToggle = document.getElementById('sidebar-toggle');
@@ -520,21 +439,18 @@
 
             if (sidebarToggle && sidebar) {
                 sidebarToggle.addEventListener('click',
-                    function() {
-                        sidebar.classList.toggle('expanded');
-                        if (mainContent) {
-                            mainContent.classList.toggle('sidebar-expanded');
-                        }
-                    });
-            }
-
-            // Mobile sidebar toggle
-            const navbarToggler = document.querySelector('.custom-toggler');
-            if (navbarToggler && sidebar) {
-                navbarToggler.addEventListener('click',
                     function(e) {
                         e.preventDefault();
-                        sidebar.classList.toggle('show');
+                        if (window.innerWidth > 1200) {
+                            // Desktop: collapse/expand sidebar width
+                            sidebar.classList.toggle('collapsed');
+                            if (mainContent) {
+                                mainContent.classList.toggle('sidebar-collapsed');
+                            }
+                        } else {
+                            // Mobile: slide sidebar in/out
+                            sidebar.classList.toggle('show');
+                        }
                     });
             }
 
@@ -543,7 +459,7 @@
                 function(event) {
                     if (window.innerWidth <= 1200) {
                         const isClickInsideSidebar = sidebar && sidebar.contains(event.target);
-                        const isClickOnToggler = navbarToggler && navbarToggler.contains(event.target);
+                        const isClickOnToggler = sidebarToggle && sidebarToggle.contains(event.target);
 
                         if (!isClickInsideSidebar && !isClickOnToggler && sidebar && sidebar.classList.contains('show')) {
                             sidebar.classList.remove('show');
@@ -595,62 +511,54 @@
             }
         });
 </script>
-    @Scripts.Render("~/bundles/modernizr")
-    <script src="~/Scripts/js/app.js"></script>
+@Scripts.Render("~/bundles/modernizr")
+<script src="~/Scripts/js/app.js"></script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const sidebarToggle = document.getElementById('sidebar-toggle');
+<script>
+    document.addEventListener('DOMContentLoaded',
+        function() {
             const sidebar = document.getElementById('sidebar');
-            const mainContent = document.getElementById('main-content');
-
-            // --- SIDEBAR TOGGLE ---
-            if (sidebarToggle && sidebar && mainContent) {
-                sidebarToggle.addEventListener('click', function() {
-                    sidebar.classList.toggle('collapsed');
-                    mainContent.classList.toggle('sidebar-collapsed');
-                });
-            }
 
             // --- SIDEBAR SUBMENU ACCORDION ---
             const submenuToggles = document.querySelectorAll('#sidebar .has-submenu > a');
             submenuToggles.forEach(function(toggle) {
-                toggle.addEventListener('click', function(e) {
-                    // Prevent link navigation
-                    e.preventDefault();
-                    
-                    // Don't run accordion logic if sidebar is collapsed (it uses hover instead)
-                    if (sidebar.classList.contains('collapsed')) {
-                        return;
-                    }
+                toggle.addEventListener('click',
+                    function(e) {
+                        // Prevent link navigation
+                        e.preventDefault();
 
-                    const parentLi = this.parentElement;
-                    const submenu = this.nextElementSibling;
+                        // Don't run accordion logic if sidebar is collapsed (it uses hover instead)
+                        if (sidebar.classList.contains('collapsed')) {
+                            return;
+                        }
 
-                    // Close other open submenus to create an accordion effect
-                    document.querySelectorAll('#sidebar .has-submenu.open').forEach(function(openSubmenu) {
-                        if (openSubmenu !== parentLi) {
-                            openSubmenu.classList.remove('open');
-                            openSubmenu.querySelector('.submenu').style.maxHeight = null;
+                        const parentLi = this.parentElement;
+                        const submenu = this.nextElementSibling;
+
+                        // Close other open submenus to create an accordion effect
+                        document.querySelectorAll('#sidebar .has-submenu.open').forEach(function(openSubmenu) {
+                            if (openSubmenu !== parentLi) {
+                                openSubmenu.classList.remove('open');
+                                openSubmenu.querySelector('.submenu').style.maxHeight = null;
+                            }
+                        });
+
+                        // Toggle the current submenu
+                        parentLi.classList.toggle('open');
+                        if (parentLi.classList.contains('open')) {
+                            // Set max-height to its scrollHeight to animate opening
+                            submenu.style.maxHeight = submenu.scrollHeight + "px";
+                        } else {
+                            // Set max-height to null to animate closing
+                            submenu.style.maxHeight = null;
                         }
                     });
-
-                    // Toggle the current submenu
-                    parentLi.classList.toggle('open');
-                    if (parentLi.classList.contains('open')) {
-                        // Set max-height to its scrollHeight to animate opening
-                        submenu.style.maxHeight = submenu.scrollHeight + "px";
-                    } else {
-                        // Set max-height to null to animate closing
-                        submenu.style.maxHeight = null;
-                    }
-                });
             });
         });
-    </script>
-    @*<script src="https://unpkg.com/@popperjs/core@2/dist/umd/popper.js"></script>*@
+</script>
+@*<script src="https://unpkg.com/@popperjs/core@2/dist/umd/popper.js"></script>*@
 
 
-    @RenderSection("scripts", required: false)
+@RenderSection("scripts", required: false)
 </body>
 </html>

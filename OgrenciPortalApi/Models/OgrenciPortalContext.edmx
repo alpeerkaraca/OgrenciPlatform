@@ -116,6 +116,8 @@
           <Property Name="DeletedBy" Type="nvarchar" MaxLength="100" />
           <Property Name="RefreshToken" Type="nvarchar" MaxLength="128" />
           <Property Name="RefreshTokenExpTime" Type="datetime" />
+          <Property Name="PasswordResetToken" Type="nvarchar" MaxLength="255" />
+          <Property Name="ResetTokenExpiry" Type="datetime" />
         </EntityType>
         <Association Name="FK_dbo_Courses_dbo_Departments_DepartmentId">
           <End Role="Departments" Type="Self.Departments" Multiplicity="1" />
@@ -384,6 +386,8 @@
           <NavigationProperty Name="Users2" Relationship="Self.FK_dbo_Users_dbo_Users_AdvisorId" FromRole="Users1" ToRole="Users" />
           <Property Name="RefreshToken" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
           <Property Name="RefreshTokenExpTime" Type="DateTime" Precision="3" />
+          <Property Name="PasswordResetToken" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="ResetTokenExpiry" Type="DateTime" Precision="3" />
         </EntityType>
         <Association Name="FK_dbo_Courses_dbo_Departments_DepartmentId">
           <End Role="Departments" Type="Self.Departments" Multiplicity="1" />
@@ -621,6 +625,8 @@
           <EntitySetMapping Name="Users">
             <EntityTypeMapping TypeName="ogrenciPortalContext.Users">
               <MappingFragment StoreEntitySet="Users">
+                <ScalarProperty Name="ResetTokenExpiry" ColumnName="ResetTokenExpiry" />
+                <ScalarProperty Name="PasswordResetToken" ColumnName="PasswordResetToken" />
                 <ScalarProperty Name="RefreshTokenExpTime" ColumnName="RefreshTokenExpTime" />
                 <ScalarProperty Name="RefreshToken" ColumnName="RefreshToken" />
                 <ScalarProperty Name="UserId" ColumnName="UserId" />

@@ -29,25 +29,26 @@
         background-color: #f1f3f5 !important; /* Override hover styles */
         cursor: not-allowed;
     }
-    
+
     .btn-add-course, .btn-remove-course {
         padding: 0.25rem 0.5rem;
         font-size: 0.75rem;
     }
 
     /* DataTables Custom Styling */
+
     .dataTables_wrapper .dataTables_filter input {
         border-radius: 20px;
         padding: 0.375rem 0.75rem;
         border: 1px solid #ced4da;
     }
+
     .dataTables_wrapper .dataTables_paginate .page-link {
         border-radius: 50% !important;
         margin: 0 2px;
     }
-    .dataTables_wrapper .dataTables_length select {
-        border-radius: 5px;
-    }
+
+    .dataTables_wrapper .dataTables_length select { border-radius: 5px; }
 </style>
 
 <div class="container-fluid">
@@ -127,193 +128,234 @@
                 </div>
                 <div class="card-body d-flex flex-column">
                     <!-- Available Courses Table -->
-                    <div class="table-responsive flex-grow-1">
-                        <table id="available-courses-datatable" class="table table-hover table-sm" style="width:100%">
-                            <thead>
-                                <tr>
-                                    <th>Ders Kodu</th>
-                                    <th>Ders Adı</th>
-                                    <th>Kredi</th>
-                                    <th>Öğr. Üyesi</th>
-                                    <th>Kontenjan</th>
-                                    <th class="text-center">İşlem</th>
+                    <table id="available-courses-datatable" class="table table-hover table-sm" style="width: 100%">
+                        <thead>
+                        <tr>
+                            <th>Ders Kodu</th>
+                            <th>Ders Adı</th>
+                            <th>Kredi</th>
+                            <th>Öğr. Üyesi</th>
+                            <th>Kontenjan</th>
+                            <th class="text-center">İşlem</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var course in Model.EnrollableList)
+                            {
+                                bool isQuotaFull = course.CurrentUserCount >= course.Quota;
+                                <tr data-id="@course.OfferedCourseId" data-code="@course.CourseCode" data-name="@course.CourseName" data-credit="@course.Credit" data-teacher="@course.TeacherName" class="@(isQuotaFull ? "quota-full" : "")">
+                                    <td>@course.CourseCode</td>
+                                    <td>@course.CourseName</td>
+                                    <td>@course.Credit</td>
+                                    <td>@course.TeacherName</td>
+                                    <td>@course.CurrentUserCount / @course.Quota</td>
+                                    <td class="text-center">
+                                        @if (isQuotaFull)
+                                        {
+                                            <span class="badge bg-danger">Dolu</span>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-sm btn-outline-primary btn-add-course">
+                                                <i class="bi bi-plus-circle"></i> Ekle
+                                            </button>
+                                        }
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var course in Model.EnrollableList)
-                                {
-                                    bool isQuotaFull = course.CurrentUserCount >= course.Quota;
-                                    <tr data-id="@course.OfferedCourseId" data-code="@course.CourseCode" data-name="@course.CourseName" data-credit="@course.Credit" data-teacher="@course.TeacherName" class="@(isQuotaFull ? "quota-full" : "")">
-                                        <td>@course.CourseCode</td>
-                                        <td>@course.CourseName</td>
-                                        <td>@course.Credit</td>
-                                        <td>@course.TeacherName</td>
-                                        <td>@course.CurrentUserCount / @course.Quota</td>
-                                        <td class="text-center">
-                                            @if (isQuotaFull)
-                                            {
-                                                <span class="badge bg-danger">Dolu</span>
-                                            }
-                                            else
-                                            {
-                                                <button class="btn btn-sm btn-outline-primary btn-add-course">
-                                                    <i class="bi bi-plus-circle"></i> Ekle
-                                                </button>
-                                            }
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                            }
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
+    @Html.AntiForgeryToken()
 </div>
 
 <!-- Modals -->
-<div class="modal fade" id="resetConfirmModal" tabindex="-1">...</div>
-<div class="modal fade" id="creditLimitModal" tabindex="-1">...</div>
-<div class="modal fade" id="responseModal" tabindex="-1">...</div>
+<div class="modal fade" id="resetConfirmModal" tabindex="-1" style="z-index: 2000">...</div>
+<div class="modal fade" id="creditLimitModal" tabindex="-1" style="z-index: 2000">...</div>
+<div class="modal fade" id="responseModal" tabindex="-1" style="z-index: 2000">...</div>
+
 
 @section Scripts {
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    // === DOM Elements ===
-    const selectedCoursesList = document.getElementById('selected-courses-list');
-    const selectedCreditsEl = document.getElementById('selected-credits');
-    const maxCredits = parseInt(document.getElementById('max-credits').textContent, 10);
-    const submitBtn = document.getElementById('submit-selection-btn');
-    const noSelectionMessage = document.getElementById('no-selection-message');
-    let selectedCourses = new Map();
+    <script>
+        document.addEventListener('DOMContentLoaded',
+            () => {
+                // === DOM Elements ===
+                const selectedCoursesList = document.getElementById('selected-courses-list');
+                const selectedCreditsEl = document.getElementById('selected-credits');
+                const maxCredits = parseInt(document.getElementById('max-credits').textContent, 10);
+                const submitBtn = document.getElementById('submit-selection-btn');
+                const noSelectionMessage = document.getElementById('no-selection-message');
+                let selectedCourses = new Map();
 
-    // === DataTable Initialization ===
-    const availableCoursesTable = new DataTable('#available-courses-datatable', {
-        language: {
-            url: '/Content/datatables/i18n/tr.json',
-        },
-        "lengthMenu": [[5, 10, 25, -1], [5, 10, 25, "Tümü"]],
-        "pageLength": 5,
-        "columnDefs": [
-            { "orderable": false, "targets": 5 } // Disable sorting on 'İşlem' column
-        ]
-    });
+                // === DataTable Initialization ===
+                const availableCoursesTable = new DataTable('#available-courses-datatable',
+                    {
+                        language: {
+                            url: '/Content/datatables/i18n/tr.json',
+                        },
+                        "lengthMenu": [[5, 10, 25, -1], [5, 10, 25, "Tümü"]],
+                        "pageLength": 5,
+                        responsive: {
+                            details: {
+                                type: 'inline',
+                                renderer: DataTable.Responsive.renderer.tableAll({ tableClass: 'table table-sm' })
+                            }
+                        },
+                        "columnDefs": [
+                            { className: 'dtr-control', orderable: false, targets: 0 },
+                            { "orderable": false, "targets": 5 }
+                        ]
+                    });
 
-    const getRowByCourseId = (id) => {
-        let targetRow = null;
-        availableCoursesTable.rows().every(function() {
-            const rowNode = this.node();
-            if (rowNode.dataset.id === id) {
-                targetRow = rowNode;
-            }
-        });
-        return targetRow;
-    };
-    
-    // === Functions ===
-    const updateCreditCount = () => {
-        let currentCredits = 0;
-        selectedCourses.forEach(course => currentCredits += course.credit);
-        document.querySelectorAll('.selected-course-item.pending').forEach(item => {
-            currentCredits += parseInt(item.dataset.credit, 10);
-        });
-        selectedCreditsEl.textContent = currentCredits;
-        if (noSelectionMessage) {
-            noSelectionMessage.style.display = (selectedCourses.size === 0 && !document.querySelector('.selected-course-item.pending')) ? 'block' : 'none';
-        }
-    };
+                const getRowByCourseId = (id) => {
+                    let targetRow = null;
+                    availableCoursesTable.rows().every(function() {
+                        const rowNode = this.node();
+                        if (rowNode.dataset.id === id) {
+                            targetRow = rowNode;
+                        }
+                    });
+                    return targetRow;
+                };
 
-    const addCourseToSelection = (courseData) => {
-        if (selectedCourses.has(courseData.id) || document.querySelector(`.selected-course-item.pending[data-id="${courseData.id}"]`)) return;
-        if (parseInt(selectedCreditsEl.textContent, 10) + courseData.credit > maxCredits) {
-            alert('Maksimum kredi limitini aştınız!');
-            return;
-        }
-        selectedCourses.set(courseData.id, courseData);
-        renderSelectedList();
-        updateAvailableList();
-        updateCreditCount();
-    };
+                // === Functions ===
+                const updateCreditCount = () => {
+                    let currentCredits = 0;
+                    selectedCourses.forEach(course => currentCredits += course.credit);
+                    document.querySelectorAll('.selected-course-item.pending').forEach(item => {
+                        currentCredits += parseInt(item.dataset.credit, 10);
+                    });
+                    selectedCreditsEl.textContent = currentCredits;
+                    if (noSelectionMessage) {
+                        noSelectionMessage.style.display = (selectedCourses.size === 0 && !document.querySelector('.selected-course-item.pending')) ? 'block' : 'none';
+                    }
+                };
 
-    const removeCourseFromSelection = (courseId) => {
-        selectedCourses.delete(courseId);
-        renderSelectedList();
-        updateAvailableList();
-        updateCreditCount();
-    };
+                const addCourseToSelection = (courseData) => {
+                    if (selectedCourses.has(courseData.id) || document.querySelector(`.selected-course-item.pending[data-id="${courseData.id}"]`)) return;
+                    if (parseInt(selectedCreditsEl.textContent, 10) + courseData.credit > maxCredits) {
+                        alert('Maksimum kredi limitini aştınız!');
+                        return;
+                    }
+                    selectedCourses.set(courseData.id, courseData);
+                    renderSelectedList();
+                    updateAvailableList();
+                    updateCreditCount();
+                };
 
-    const renderSelectedList = () => {
-        selectedCoursesList.querySelectorAll('.selected-course-item:not(.pending)').forEach(el => el.remove());
-        selectedCourses.forEach(course => {
-            const courseEl = document.createElement('div');
-            courseEl.className = 'selected-course-item';
-            courseEl.dataset.id = course.id;
-            courseEl.dataset.credit = course.credit;
-            courseEl.innerHTML = `
-                <div>
-                    <div class="fw-bold">${course.code} - ${course.name}</div>
-                    <small class="text-muted">${course.credit} Kredi</small>
-                </div>
-                <button class="btn btn-sm btn-outline-danger btn-remove-course" data-id="${course.id}"><i class="bi bi-x-circle"></i></button>`;
-            selectedCoursesList.appendChild(courseEl);
-        });
-    };
-    
-    const updateAvailableList = () => {
-        availableCoursesTable.rows().nodes().each(rowNode => {
-            const row = rowNode;
-            const courseId = row.dataset.id;
-            const addBtn = row.querySelector('.btn-add-course');
-            if (!addBtn) return;
-            if (selectedCourses.has(courseId) || document.querySelector(`.selected-course-item.pending[data-id="${courseId}"]`)) {
-                addBtn.disabled = true;
-                addBtn.innerHTML = '<i class="bi bi-check-lg"></i> Eklendi';
-                addBtn.classList.replace('btn-outline-primary', 'btn-outline-secondary');
-            } else {
-                addBtn.disabled = false;
-                addBtn.innerHTML = '<i class="bi bi-plus-circle"></i> Ekle';
-                addBtn.classList.replace('btn-outline-secondary', 'btn-outline-primary');
-            }
-        });
-    };
+                const removeCourseFromSelection = (courseId) => {
+                    selectedCourses.delete(courseId);
+                    renderSelectedList();
+                    updateAvailableList();
+                    updateCreditCount();
+                };
 
-    const submitSelection = () => {
-        const selectedIds = Array.from(selectedCourses.keys());
-        if (selectedIds.length === 0) {
-            alert('Lütfen onaya göndermek için en az bir ders seçin.');
-            return;
-        }
-        console.log("Submitting course IDs:", selectedIds);
-        alert(`${selectedIds.length} ders onaya gönderildi! (Simülasyon)`);
-        window.location.reload();
-    };
+                const renderSelectedList = () => {
+                    selectedCoursesList.querySelectorAll('.selected-course-item:not(.pending)').forEach(el => el.remove());
+                    selectedCourses.forEach(course => {
+                        const courseEl = document.createElement('div');
+                        courseEl.className = 'selected-course-item';
+                        courseEl.dataset.id = course.id;
+                        courseEl.dataset.credit = course.credit;
+                        courseEl.innerHTML = `
+                            <div>
+                                <div class="fw-bold">${course.code} - ${course.name}</div>
+                                <small class="text-muted">${course.credit} Kredi</small>
+                            </div>
+                            <button class="btn btn-sm btn-outline-danger btn-remove-course" data-id="${course.id}"><i class="bi bi-x-circle"></i></button>`;
+                        selectedCoursesList.appendChild(courseEl);
+                    });
+                };
 
-    // === Event Listeners ===
-    $('#available-courses-datatable tbody').on('click', '.btn-add-course', function () {
-        const row = $(this).closest('tr')[0];
-        const courseData = {
-            id: row.dataset.id,
-            code: row.dataset.code,
-            name: row.dataset.name,
-            credit: parseInt(row.dataset.credit, 10),
-            teacher: row.dataset.teacher
-        };
-        addCourseToSelection(courseData);
-    });
+                const updateAvailableList = () => {
+                    availableCoursesTable.rows().nodes().each(rowNode => {
+                        const row = rowNode;
+                        const courseId = row.dataset.id;
+                        const addBtn = row.querySelector('.btn-add-course');
+                        if (!addBtn) return;
+                        if (selectedCourses.has(courseId) || document.querySelector(`.selected-course-item.pending[data-id="${courseId}"]`)) {
+                            addBtn.disabled = true;
+                            addBtn.innerHTML = '<i class="bi bi-check-lg"></i> Eklendi';
+                            addBtn.classList.replace('btn-outline-primary', 'btn-outline-secondary');
+                        } else {
+                            addBtn.disabled = false;
+                            addBtn.innerHTML = '<i class="bi bi-plus-circle"></i> Ekle';
+                            addBtn.classList.replace('btn-outline-secondary', 'btn-outline-primary');
+                        }
+                    });
+                };
 
-    selectedCoursesList.addEventListener('click', e => {
-        const removeBtn = e.target.closest('.btn-remove-course');
-        if (removeBtn) {
-            removeCourseFromSelection(removeBtn.dataset.id);
-        }
-    });
-    
-    submitBtn.addEventListener('click', submitSelection);
-    
-    // Initial UI setup
-    updateCreditCount();
-    updateAvailableList();
-});
-</script>
+                async
+                submitSelection = (e) => {
+                    e.preventDefault();
+                    if (selectedCourses.size === 0) {
+                        showFeedbackModal("error", "Ders Seçin", "Lütfen en az bir ders seçin.");
+                        return;
+                    }
+                    const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    const apiUrl = encodeURIComponent('api/student/enroll-course');
+                    if (!csrfToken) {
+                        showFeedbackModal("error",
+                            "Yetkisiz İşlem",
+                            "Kimliğiniz doğrulanamadı. Lütfen tekrar giriş yapınız.",
+                            () => { window.location.href = "/User/Logout" },
+                            "Giriş Yap",
+                            null
+                        );
+                        return;
+                    }
+
+                    const selectedIds = Array.from(selectedCourses.keys());
+
+                    var res = await fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'RequestVerificationToken': csrfToken
+                            },
+                            body: JSON.stringify(selectedIds),
+                        });
+                    var json = await res.json();
+                    if (res.ok) {
+                        showFeedbackModal("success", "Dersler Başarıyla Onaya Gönderildi", json.Message, null, null, () => { setTimeout(window.location.reload(), 2500) });
+                    } else {
+                        showFeedbackModal("error", "Dersler Onaya Gönderilirken Hata", json.Message, null, null, () => { setTimeout(window.location.reload(), 2500) });
+
+                    }
+                };
+
+                // === Event Listeners ===
+                $('#available-courses-datatable tbody').on('click',
+                    '.btn-add-course',
+                    function() {
+                        const row = $(this).closest('tr')[0];
+                        const courseData = {
+                            id: row.dataset.id,
+                            code: row.dataset.code,
+                            name: row.dataset.name,
+                            credit: parseInt(row.dataset.credit, 10),
+                            teacher: row.dataset.teacher
+                        };
+                        addCourseToSelection(courseData);
+                    });
+
+                selectedCoursesList.addEventListener('click',
+                    e => {
+                        const removeBtn = e.target.closest('.btn-remove-course');
+                        if (removeBtn) {
+                            removeCourseFromSelection(removeBtn.dataset.id);
+                        }
+                    });
+
+                submitBtn.addEventListener('click', submitSelection);
+
+                // Initial UI setup
+                updateCreditCount();
+                updateAvailableList();
+            });
+    </script>
 }

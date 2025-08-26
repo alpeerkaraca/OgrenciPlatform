@@ -14,6 +14,8 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
 using System.Web.Mvc;
+using MailKit.Net.Smtp;
+using MimeKit;
 
 namespace OgrenciPortalApi.Controllers
 {
@@ -297,7 +299,8 @@ namespace OgrenciPortalApi.Controllers
                         u.Email.ToLower() == model.Email.ToLower() && u.UserId != model.UserId))
                     return BadRequest("Bu e-posta adresine sahip bir kullanıcı bulunmakta.");
                 if (await _db.Users.AnyAsync(u =>
-                        u.StudentNo.ToLower() == model.StudentNo.ToLower() && u.UserId != model.UserId))
+                        u.StudentNo.ToLower() == model.StudentNo.ToLower() && u.UserId != model.UserId &&
+                        u.Role == model.Role))
                     return BadRequest("Bu öğrenci numarasına sahip bir öğrenci bulunmakta.");
 
                 var userInDb = await _db.Users.FindAsync(model.UserId);
@@ -355,6 +358,79 @@ namespace OgrenciPortalApi.Controllers
             {
                 Logger.Error($"ID'si {id} olan kullanıcı silinirken hata oluştu.", ex);
                 return InternalServerError(new Exception("Kullanıcı silinirken bir hata oluştu."));
+            }
+        }
+
+        [System.Web.Http.HttpPost]
+        [System.Web.Http.AllowAnonymous]
+        [System.Web.Http.Route("forgot-password")]
+        public async Task<IHttpActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto model)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == model.Email && !u.IsDeleted);
+            if (user != null)
+            {
+                var token = Guid.NewGuid().ToString("N");
+                user.PasswordResetToken = token;
+                user.ResetTokenExpiry = DateTime.UtcNow.AddMinutes(15);
+                await _db.SaveChangesAsync();
+                var resetLink = AppSettings.JwtAudience + "/User/ResetPassword?token=" + token;
+                await SendPasswordResetEmail(user.Email, resetLink);
+            }
+
+            return Ok(new
+            {
+                Message =
+                    "Eğer E-Postanız sistemimizde kayıtlıysa 15 dakika geçerli bir sıfırlama bağlantısı gönderilecektir. Spam kutunuzu kontrol etmeyi unutmayın."
+            });
+        }
+
+        [System.Web.Http.HttpPost]
+        [System.Web.Http.Route("reset-password")]
+        [System.Web.Http.AllowAnonymous]
+        public async Task<IHttpActionResult> ResetPassword([FromBody] ResetPasswordRequestDto model)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.PasswordResetToken == model.Token && !u.IsDeleted);
+
+            if (user == null || user.ResetTokenExpiry <= DateTime.UtcNow)
+                return BadRequest("Geçersiz veya süresi dolmuş bir token kullandınız.");
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+
+            user.PasswordResetToken = null;
+            user.ResetTokenExpiry = null;
+            await _db.SaveChangesAsync();
+
+            return Ok(new { Message = "Şifreniz başarıyla güncellendi." });
+        }
+
+        private async Task SendPasswordResetEmail(string toEmail, string resetLink)
+        {
+            try
+            {
+                var message = new MimeMessage();
+                message.From.Add(new MailboxAddress("Öğrenci Portal", AppSettings.SmtpUser));
+                message.To.Add(new MailboxAddress("", toEmail));
+                message.Subject = "Parola Sıfırlama Talebi";
+                message.Body = new TextPart("html")
+                {
+                    Text =
+                        $"Merhaba,<br/>Parolanızı sıfırlamak için aşağıdaki linke tıklayabilirsiniz:<br/><a href='{resetLink}'>Parolamı Sıfırla</a><br/><br/>Eğer bu talebi siz yapmadıysanız, bu e-postayı görmezden gelebilirsiniz."
+                };
+
+                using (var client = new SmtpClient())
+                {
+                    await client.ConnectAsync(AppSettings.SmtpHost, int.Parse(AppSettings.SmtpPort),
+                        MailKit.Security.SecureSocketOptions.SslOnConnect);
+                    await client.AuthenticateAsync(AppSettings.SmtpUser, AppSettings.SmtpPass);
+                    await client.SendAsync(message);
+                    await client.DisconnectAsync(true);
+                    Logger.Info($"Parola sıfırlama e-postası başarıyla gönderildi: {toEmail}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Mail Gönderimi Sırasında Hata: ", ex);
+                throw;
             }
         }
 

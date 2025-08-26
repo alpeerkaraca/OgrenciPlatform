@@ -229,6 +229,54 @@ body {
     color: var(--text-white);
 }
 
+/* ===== RESPONSIVE LAYOUT ===== */
+@media (max-width: 1199.98px) {
+    #sidebar {
+        position: fixed;
+        top: 0;
+        left: -260px;
+        height: 100vh;
+        width: 260px;
+        transition: left var(--transition-normal);
+    }
+
+    /* Slide-in state */
+    #sidebar.show {
+        left: 0;
+    }
+
+    /* Collapse overrides on mobile */
+    #sidebar.collapsed {
+        width: 260px;
+    }
+
+    #main-content {
+        margin-left: 0;
+    }
+
+    #main-content.sidebar-collapsed {
+        margin-left: 0;
+    }
+
+    /* Optional page overlay when sidebar is open */
+    #main-content::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.35);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--transition-normal);
+        z-index: 1040;
+    }
+
+    /* Activate overlay when sidebar is shown */
+    #sidebar.show + #main-content::before {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
 /* ===== NAVBAR ===== */
 
 #navbar {
@@ -311,3 +359,234 @@ body {
 }
 
 .dropdown-item i { width: 16px; }
+
+.site-footer {
+    background-color: #1a202c; /* Koyu antrasit */
+    color: #a0aec0; /* Açık gri metin */
+    padding: 120px 0 0; /* Üstte SVG için boşluk */
+    position: relative;
+    font-size: 0.95rem;
+    overflow: hidden; /* SVG taşmalarını gizle */
+}
+
+/* --- Dalga Efekti --- */
+.footer-shape-divider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    overflow: hidden;
+    line-height: 0;
+    transform: rotate(180deg);
+}
+
+.footer-shape-divider svg {
+    position: relative;
+    display: block;
+    width: calc(100% + 1.3px);
+    height: 100px; /* Dalga yüksekliği */
+}
+
+.footer-shape-divider .shape-fill {
+    fill: #1a202c; /* Footer'ın arka plan rengiyle aynı olmalı */
+}
+
+
+/* --- Footer İçerik Stilleri --- */
+.footer-brand {
+    display: flex;
+    align-items: center;
+}
+
+.footer-brand .brand-icon {
+    font-size: 2.5rem;
+    color: #4299e1; /* Canlı mavi */
+    margin-right: 15px;
+}
+
+.footer-brand .brand-text h5 {
+    color: #ffffff;
+    font-weight: 600;
+    margin: 0;
+}
+
+.footer-brand .brand-text span {
+    font-size: 0.85rem;
+    color: #a0aec0;
+}
+
+.footer-text {
+    line-height: 1.7;
+    margin-top: 1rem;
+}
+
+/* --- Başlıklar --- */
+.footer-heading {
+    color: #ffffff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 25px;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+/* Başlıkların altındaki dekoratif çizgi */
+.footer-heading::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 35px;
+    height: 3px;
+    background-color: #4299e1; /* Canlı mavi */
+    border-radius: 3px;
+}
+
+
+/* --- Link Listeleri --- */
+.footer-links li {
+    margin-bottom: 12px;
+}
+
+.footer-links a {
+    color: #a0aec0;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.footer-links a:hover {
+    color: #ffffff;
+    transform: translateX(5px);
+}
+
+/* --- Sosyal Medya İkonları --- */
+.social-icons a {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    background-color: #2d3748; /* Biraz daha açık antrasit */
+    color: #ffffff;
+    border-radius: 50%;
+    margin-right: 10px;
+    font-size: 1.1rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.social-icons a:hover {
+    background-color: #4299e1; /* Canlı mavi */
+    transform: translateY(-4px);
+    box-shadow: 0 4px 10px rgba(66, 153, 225, 0.3);
+}
+
+/* --- İletişim Listesi --- */
+.contact-list li {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.contact-list i {
+    font-size: 1.1rem;
+    color: #4299e1; /* Canlı mavi */
+    margin-right: 15px;
+    margin-top: 4px;
+}
+
+.contact-list a, .contact-list span {
+    color: #a0aec0;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.contact-list a:hover {
+    color: #ffffff;
+}
+
+/* --- Alt Kısım (Copyright) --- */
+.footer-bottom {
+    border-top: 1px solid #2d3748; /* Ayırıcı çizgi */
+    padding: 25px 0;
+    margin-top: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; /* Mobil için */
+}
+
+.copyright-text, .legal-links a {
+    font-size: 0.9rem;
+}
+
+.legal-links a {
+    color: #a0aec0;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.legal-links a:hover {
+    color: #ffffff;
+}
+
+.legal-links span {
+    margin: 0 10px;
+}
+
+/* Mobil Cihazlar İçin Uyum */
+@media (max-width: 767px) {
+    body {
+        overflow-x: hidden;
+    }
+    .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .legal-links {
+        margin-top: 10px;
+    }
+}
+
+/* ===== TABLES: PREVENT HORIZONTAL OVERFLOW ===== */
+.table {
+    table-layout: auto;
+    width: 100%;
+}
+
+.dataTables_wrapper {
+    overflow-x: visible;
+}
+
+/* DataTables responsive child content should wrap and not overflow */
+table.dataTable tbody th, table.dataTable tbody td {
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* Small screens: allow navbar to wrap neatly */
+@media (max-width: 576.98px) {
+    #navbar {
+        height: auto;
+        padding: 0.5rem 1rem;
+        flex-wrap: wrap;
+    }
+
+    .navbar-right {
+        min-width: 0;
+    }
+
+    .user-info {
+        min-width: 0;
+    }
+
+    .user-name,
+    .user-role {
+        max-width: 50vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}

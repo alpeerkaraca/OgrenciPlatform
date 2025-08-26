@@ -418,9 +418,11 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Attributes\BufferRequestBodyAttribute.cs" />
     <Compile Include="Attributes\CustomAuthAttribute.cs" />
     <Compile Include="Attributes\ValidateJsonAntiForgeryTokenAttribute.cs" />
     <Compile Include="Controllers\AdvisorController.cs" />
+    <Compile Include="Controllers\ApiProxyController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\CoursesController.cs" />
     <Compile Include="Controllers\DepartmentController.cs" />
@@ -548,9 +550,11 @@
     <Content Include="Views\User\Edit.cshtml" />
     <Content Include="Views\Shared\_FeedbackModal.cshtml" />
     <Content Include="Views\User\LoginSuccess.cshtml" />
+    <Content Include="Views\User\ResetPassword.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Views\ApiProxy\" />
     <Folder Include="Views\Base\" />
     <Folder Include="Views\Dashboard\" />
   </ItemGroup>

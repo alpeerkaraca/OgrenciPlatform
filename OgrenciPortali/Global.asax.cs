@@ -38,12 +38,11 @@ namespace OgrenciPortali
 
             var builder = new ContainerBuilder();
             builder.RegisterControllers(typeof(MvcApplication).Assembly);
+
             builder.RegisterType(typeof(ApiClient)).AsSelf().InstancePerRequest();
 
-            var mapperConfig = new MapperConfiguration(cfg =>
-            {
-                cfg.AddMaps(typeof(MvcApplication).Assembly);
-            }, new LoggerFactory());
+            var mapperConfig = new MapperConfiguration(cfg => { cfg.AddMaps(typeof(MvcApplication).Assembly); },
+                new LoggerFactory());
 
             // 2. Oluþturulan mapper nesnesini DI container'a tek bir instance olarak kaydet.
             builder.RegisterInstance(mapperConfig.CreateMapper())
@@ -53,6 +52,16 @@ namespace OgrenciPortali
 
             var container = builder.Build();
             DependencyResolver.SetResolver(new AutofacDependencyResolver(container));
+        }
+
+        protected void
+            Application_BeginRequest(object sender,
+                EventArgs e) // Input streami baþa sarmamýzý saðlýyor bu sayede request body'yi birden fazla kez okuyabiliyoruz.
+        {
+            if (Request.InputStream.Length > 0)
+            {
+                Request.InputStream.Position = 0;
+            }
         }
 
         protected void Application_AuthenticateRequest(object sender, EventArgs e)

@@ -33,7 +33,7 @@
 
                     @using (Html.BeginForm("Add", "Semester", FormMethod.Post, new { @class = "needs-validation", novalidate = "novalidate", id = "semesterForm" }))
                     {
-                        @*@Html.AntiForgeryToken()*@
+                        @Html.AntiForgeryToken()
                         @Html.HiddenFor(model => model.IsActive)
                         <div class="row" id="form-area">
 
@@ -154,7 +154,7 @@
                         showFeedbackModal("error", "Tarih Hatası", 'Lütfen tarih alanlarını kontrol edin. Bitiş tarihi başlangıçtan önce olamaz.', null, null, null);
                         return;
                     }
-
+                    var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
                     const formDataArray = $(this).serializeArray();
                     let formDataObject = {};
                     $.each(formDataArray,
@@ -164,12 +164,13 @@
                     formDataObject.IsActive = (formDataObject.IsActive.toLowerCase() === 'true');
 
                     try {
-                        const response = await fetch('http://localhost:8000/api/semesters/add',
+                        const apiUrl = encodeURIComponent('api/semesters/add');
+                        const response = await fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`,
                             {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${sessionStorage.getItem('bearerToken')}`
+                                    'RequestVerificationToken': token
                                 },
                                 body: JSON.stringify(formDataObject)
                             });

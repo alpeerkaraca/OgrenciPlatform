@@ -15,10 +15,10 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
-        .user-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
+    .user-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
 
     .user-avatar {
         width: 60px;
@@ -55,9 +55,7 @@
         margin-top: 1.5rem;
     }
 
-    .stats-item {
-        text-align: center;
-    }
+    .stats-item { text-align: center; }
 
     .stats-number {
         font-size: 2.5rem;
@@ -70,9 +68,7 @@
         opacity: 0.9;
     }
 
-    .filter-section {
-        margin-bottom: 2rem;
-    }
+    .filter-section { margin-bottom: 2rem; }
 
     .filter-btn {
         background: transparent;
@@ -85,15 +81,13 @@
         transition: all 0.3s ease;
     }
 
-        .filter-btn.active {
-            background: #667eea;
-            border-color: #667eea;
-            color: white;
-        }
+    .filter-btn.active {
+        background: #667eea;
+        border-color: #667eea;
+        color: white;
+    }
 
-        .filter-btn:hover {
-            transform: translateY(-1px);
-        }
+    .filter-btn:hover { transform: translateY(-1px); }
 
     .search-box {
         border-radius: 25px;
@@ -103,14 +97,12 @@
         transition: all 0.3s ease;
     }
 
-        .search-box:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-        }
-
-    .user-info {
-        padding: 1.25rem;
+    .search-box:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
     }
+
+    .user-info { padding: 1.25rem; }
 
     .user-name {
         font-size: 1.1rem;
@@ -142,11 +134,11 @@
         color: #6c757d;
     }
 
-        .no-users i {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
+    .no-users i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
 </style>
 
 <div class="container-fluid">
@@ -302,7 +294,7 @@
     }
 </div>
 
-<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true" style="z-index: 2000">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
@@ -329,12 +321,13 @@
             </div>
         </div>
     </div>
+    @Html.AntiForgeryToken()
 </div>
 
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded',
-            function () {
+            function() {
                 initializeFiltering();
                 initializeSearch();
                 initializeDeleteModal();
@@ -346,7 +339,7 @@
 
             filterButtons.forEach(button => {
                 button.addEventListener('click',
-                    function () {
+                    function() {
                         const filter = this.dataset.filter;
 
                         filterButtons.forEach(btn => btn.classList.remove('active'));
@@ -375,7 +368,7 @@
             const userItems = document.querySelectorAll('.user-item');
 
             searchInput.addEventListener('input',
-                function () {
+                function() {
                     const searchTerm = this.value.toLowerCase();
 
                     userItems.forEach(item => {
@@ -399,7 +392,7 @@
 
             deleteButtons.forEach(button => {
                 button.addEventListener('click',
-                    function () {
+                    function() {
                         userIdToDelete = this.dataset.userId;
                         const userName = this.dataset.userName;
                         userNameSpan.textContent = userName;
@@ -408,15 +401,17 @@
             });
 
             confirmDeleteBtn.addEventListener('click',
-                function () {
+                function() {
+                    var apiUrl = encodeURIComponent(`api/user/delete/${userIdToDelete}`);
+                    var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
                     if (userIdToDelete) {
-                        fetch(`http://localhost:8000/api/user/delete/${userIdToDelete}`,
-                            {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' }
+                        fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`,
+                                {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token }
 
-                            }
-                        )
+                                }
+                            )
                             .then(resp => {
                                 if (resp.ok) {
                                     deleteModal.hide();
@@ -431,17 +426,17 @@
 
         const style = document.createElement('style');
         style.textContent = `
-                        @@keyframes fadeInUp {
-                            from {
-                                opacity: 0;
-                                transform: translateY(20px);
+                            @@keyframes fadeInUp {
+                                from {
+                                    opacity: 0;
+                                    transform: translateY(20px);
+                                }
+                                to {
+                                    opacity: 1;
+                                    transform: translateY(0);
+                                }
                             }
-                            to {
-                                opacity: 1;
-                                transform: translateY(0);
-                            }
-                        }
-                    `;
+                        `;
         document.head.appendChild(style);
     </script>
 }

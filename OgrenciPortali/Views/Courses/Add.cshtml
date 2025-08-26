@@ -23,6 +23,7 @@
 
                     @using (Html.BeginForm("Add", "Courses", FormMethod.Post, new { @class = "needs-validation", novalidate = "novalidate", id = "add-form" }))
                     {
+                        @Html.AntiForgeryToken()
                         @Html.ValidationSummary(false, "", new { @class = "text-danger", required = true })
                         <div class="row" id="form-area">
 
@@ -171,8 +172,9 @@
                         e.preventDefault();
                         addCourseBtn.disabled = true;
                         addCourseBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Kaydediliyor...`;
-
-                        if (!sessionStorage.getItem('bearerToken')) {
+                        const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                        const apiUrl = "api/courses/add";
+                        if (!csrfToken) {
                             showFeedbackModal('error', 'Yetkisiz İşlem', 'Sistem işlemi yapan kişiyi doğrulayamıyor. Lütfen tekrar giriş yapınız.', null, null, null);
                             addCourseBtn.innerHTML = originalButtonHtml;
                             validateForm();
@@ -186,11 +188,11 @@
                             });
 
                         try {
-                            const response = await fetch('http://localhost:8000/api/courses/add',
+                            const response = await fetch('ApiProxy/Post?=' + apiUrl,
                                 {
                                     method: 'POST',
                                     headers: {
-                                        'Authorization': 'Bearer' + sessionStorage.getItem("bearerToken"),
+                                        'RequestVerificationToken': csrfToken,
                                         'Content-Type': 'application/json'
                                     },
                                     body:
@@ -205,7 +207,6 @@
                             }
                         } catch
                         (e) {
-                            console.error(e);
                             showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya bağlanırken bir hata oluştu.', null, null, null);
                         } finally {
                             addCourseBtn.innerHTML = originalButtonHtml;

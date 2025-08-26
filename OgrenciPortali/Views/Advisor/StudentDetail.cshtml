@@ -215,7 +215,7 @@
 
 </div>
 
-<div class="modal fade" id="responseModal" tabindex="-1" aria-labelledby="responseModalLabel" aria-hidden="true">
+<div class="modal fade" id="responseModal" tabindex="-1" aria-labelledby="responseModalLabel" aria-hidden="true" style="z-index: 2000">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header" id="responseModalHeader">
@@ -230,7 +230,7 @@
     </div>
 </div>
 
-@*@Html.AntiForgeryToken()*@
+@Html.AntiForgeryToken()
 
 @section Scripts {
     <script>
@@ -270,7 +270,6 @@
  */
         function initializeApprovalButtons() {
             const responseModal = new bootstrap.Modal(document.getElementById('responseModal'));
-            //const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
             document.addEventListener('click',
                 function(e) {
@@ -287,37 +286,37 @@
             /**
              * Onay/Red iþlemini gerçekleþtirir
              */
-            function processApproval(studentIds, offeredCourseIds, newStatus) {
+            async function processApproval(studentIds, offeredCourseIds, newStatus) {
                 const requestData = {
                     StudentIds: studentIds,
                     OfferedCourseIds: offeredCourseIds,
                     NewStatus: newStatus
                 };
+                const apiUrl = "api/advisor/update-approval-status";
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                try {
 
-                fetch('http://localhost:8000/api/advisor/update-approval-status',
+                    var response = await fetch(`ApiProxy/Post?=${apiUrl}`,
                         {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                //'RequestVerificationToken': token,
-                                'Authorization': `Bearer ${sessionStorage.getItem('bearerToken')}`
+                                'RequestVerificationToken': token
                             },
                             body: JSON.stringify(requestData)
                         })
-                    .then(response => response.json().then(data => ({ ok: response.ok, data })))
-                    .then(({ ok, data }) => {
-                        showFeedbackModal(ok ? 'success' : 'error', ok ? 'Ýþlem Baþarýlý' : 'Hata Oluþtu', data.message)
-                        if (ok) {
-                            setTimeout(() => location.reload(), 2500);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Fetch Error:', error);
-                        showFeedbackModal('error', 'Að Hatasý', 'Sunucu ile iletiþim kurulamadý.')
-                    });
+                    var result = await response.json();
+                    if (response.ok) {
+                        showFeedbackModal("sucess", 'Ýþlem Baþarýlý', data.message);
+                    }
+                    else {
+                        showFeedbackModal("error", "Ýþlem Hatasý", data.message);
+                    }
+                } catch
+                (error) {
+                    showFeedbackModal('error', 'Að Hatasý', error.message);
+                };
             }
-
-
         }
     </script>
 }

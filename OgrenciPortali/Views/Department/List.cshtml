@@ -6,7 +6,7 @@
 
 <body>
 <div class="d-flex justify-content-center align-self-center">
-    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModal">
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModal" style="z-index: 2000">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -65,7 +65,7 @@
     </div>
 </div>
 
-<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true" style="z-index: 2000">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
@@ -95,11 +95,11 @@
 </div>
 
 <!-- Add Department Modal -->
-<div class="modal fade" id="addDepartmentModal" tabindex="-1" aria-labelledby="addDepartmentModalLabel" aria-hidden="true">
+<div class="modal fade" id="addDepartmentModal" tabindex="-1" aria-labelledby="addDepartmentModalLabel" aria-hidden="true" style="z-index: 2000">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="addDepartmentModalLabel">
+                <h5 class="modal-title text-white" id="addDepartmentModalLabel">
                     <i class="bi bi-plus-square me-2"></i>Yeni Bölüm Ekle
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -132,6 +132,7 @@
             </div>
         </div>
     </div>
+    @Html.AntiForgeryToken()
 </div>
 
 @section Scripts {
@@ -142,7 +143,17 @@
                 language: {
                     url: '/Content/datatables/i18n/tr.json'
                 },
-                responsive: true
+                responsive: {
+                    details: {
+                        type: 'inline',
+                        renderer: DataTable.Responsive.renderer.tableAll({ tableClass: 'table table-sm' })
+                    }
+                },
+                columnDefs: [
+                    { className: 'dtr-control', orderable: false, targets: 0 },
+                    { orderable: false, targets: 2 }
+                ],
+                order: [[1, 'asc']]
             });
 
             // Auto-open Add modal if coming from quick action or Add link
@@ -162,8 +173,7 @@
 
     <script>
 
-        var token = window.myApp.accessToken;
-        console.log(token);
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
 
         if (!token) {
             showFeedbackModal("error", "Yetkisiz İşlem", "Bu işlemi yapmak için yeterli yetkiniz bulunmuyor. Sayfayı tekrar yükleyin ya da giriş yapın.", null, null, null);
@@ -195,10 +205,14 @@
             confirmDeleteBtn.addEventListener('click',
                 function() {
                     if (departmentIdToDelete) {
-                        fetch(`http://localhost:8000/api/departments/delete/${departmentIdToDelete}`,
+                        var apiUrl = encodeURIComponent(`api/departments/delete/${departmentIdToDelete}`);
+                        fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`,
                                 {
-                                    method: 'GET',
-                                    headers: { Authorization: `Bearer ${token}` }
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'RequestVerificationToken': token
+                                    }
                                 }
                             )
                             .then(resp => {
@@ -213,7 +227,7 @@
                 });
         }
 
-// Add Department Modal Functionality
+        // Add Department Modal Functionality
         initializeAddDepartmentModal();
 
         function initializeAddDepartmentModal() {
@@ -272,13 +286,13 @@
                             DepartmentCode: formData.get('DepartmentCode').trim(),
                             DepartmentName: formData.get('DepartmentName').trim()
                         };
-
-                        const response = await fetch('http://localhost:8000/api/departments/add',
+                        const apiUrl = encodeURIComponent('api/departments/add');
+                        const response = await fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`,
                             {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${sessionStorage.getItem('bearerToken')}`
+                                    'RequestVerificationToken': token
                                 },
                                 body: JSON.stringify(departmentData)
                             });

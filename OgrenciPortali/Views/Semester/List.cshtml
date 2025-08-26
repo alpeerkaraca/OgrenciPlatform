@@ -52,14 +52,15 @@
             </table>
         </div>
     </div>
+     @Html.AntiForgeryToken()
 </div>
 
 <!-- Add Semester Modal -->
-<div class="modal fade" id="addSemesterModal" tabindex="-1" aria-labelledby="addSemesterModalLabel" aria-hidden="true">
+<div class="modal fade" id="addSemesterModal" tabindex="-1" aria-labelledby="addSemesterModalLabel" aria-hidden="true" style="z-index: 2000">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="addSemesterModalLabel">
+                <h5 class="modal-title text-white" id="addSemesterModalLabel">
                     <i class="bi bi-plus-square me-2"></i>Yeni Dönem Ekle
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -121,19 +122,30 @@
                 language: {
                     url: '/Content/datatables/i18n/tr.json'
                 },
-                responsive: true
+                responsive: {
+                    details: {
+                        type: 'inline',
+                        renderer: DataTable.Responsive.renderer.tableAll({ tableClass: 'table table-sm' })
+                    }
+                },
+                columnDefs: [
+                    { className: 'dtr-control', orderable: false, targets: 0 },
+                    { orderable: false, targets: 4 }
+                ],
+                order: [[0, 'asc']]
             });
 
             // Auto-open Add modal if coming from quick action or Add link
             const urlParams = new URLSearchParams(window.location.search);
             const fromAdd = urlParams.get('add') === 'true';
             const referrer = document.referrer;
-            
+
             if (fromAdd || referrer.includes('/Semester/Add') || window.location.pathname.includes('/Add')) {
                 setTimeout(function() {
-                    const addModal = new bootstrap.Modal(document.getElementById('addSemesterModal'));
-                    addModal.show();
-                }, 500);
+                        const addModal = new bootstrap.Modal(document.getElementById('addSemesterModal'));
+                        addModal.show();
+                    },
+                    500);
             }
 
             $('#semestersTable tbody').on('click',
@@ -141,21 +153,23 @@
                 function() {
                     var semesterIdToDelete = $(this).data('id');
                     var semesterNameToDelete = $(this).data('name');
-
+                    var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
                     showFeedbackModal('confirm',
                         'Silmek İstediğine Emin Misin',
                         `<p><b>${semesterNameToDelete}</b> adlı dönemi silmek istediğinize emin misiniz?</p>
-                         <div class="alert alert-warning mb-0">
-                             <i class="bi bi-exclamation-triangle me-2"></i>
-                             <strong>Uyarı:</strong> Bu işlem geri alınamaz!
-                         </div>`,
+                                     <div class="alert alert-warning mb-0">
+                                         <i class="bi bi-exclamation-triangle me-2"></i>
+                                         <strong>Uyarı:</strong> Bu işlem geri alınamaz!
+                                     </div>`,
                         async function() {
                             try {
-                                var response = await fetch(`http://localhost:8000/api/semesters/delete/${semesterIdToDelete}`,
+                                var apiUrl = encodeURIComponent(`api/semesters/delete/${semesterIdToDelete}`);
+                                var response = await fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`,
                                     {
-                                        method: 'DELETE',
+                                        method: 'POST',
                                         headers: {
-                                            'Authorization': `Bearer ${sessionStorage.getItem('bearerToken')}`
+                                            'Content-Type': 'application/json',
+                                            'RequestVerificationToken': token
                                         }
                                     });
 
@@ -213,15 +227,17 @@
                     }
                 }
 
-                btnYes.addEventListener('click', function() {
-                    isActiveInput.value = 'true';
-                    updateActiveButtons();
-                });
+                btnYes.addEventListener('click',
+                    function() {
+                        isActiveInput.value = 'true';
+                        updateActiveButtons();
+                    });
 
-                btnNo.addEventListener('click', function() {
-                    isActiveInput.value = 'false';
-                    updateActiveButtons();
-                });
+                btnNo.addEventListener('click',
+                    function() {
+                        isActiveInput.value = 'false';
+                        updateActiveButtons();
+                    });
 
                 // Date validation
                 function validateDates() {
@@ -249,7 +265,7 @@
                 function validateSemesterForm() {
                     let isValid = true;
                     const formData = new FormData(addSemesterForm);
-                    
+
                     // Clear previous errors
                     document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
 
@@ -284,67 +300,77 @@
                 }
 
                 // Save semester
-                saveSemesterBtn.addEventListener('click', async function() {
-                    if (!validateSemesterForm()) return;
+                saveSemesterBtn.addEventListener('click',
+                    async function() {
+                        if (!validateSemesterForm()) return;
 
-                    const originalText = saveSemesterBtn.innerHTML;
-                    saveSemesterBtn.disabled = true;
-                    saveSemesterBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...';
+                        const originalText = saveSemesterBtn.innerHTML;
+                        saveSemesterBtn.disabled = true;
+                        saveSemesterBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...';
 
-                    try {
-                        const formData = new FormData(addSemesterForm);
-                        const semesterData = {
-                            SemesterName: formData.get('SemesterName').trim(),
-                            StartDate: formData.get('StartDate'),
-                            EndDate: formData.get('EndDate'),
-                            IsActive: formData.get('IsActive') === 'true'
-                        };
+                        try {
+                            const formData = new FormData(addSemesterForm);
+                            const semesterData = {
+                                SemesterName: formData.get('SemesterName').trim(),
+                                StartDate: formData.get('StartDate'),
+                                EndDate: formData.get('EndDate'),
+                                IsActive: formData.get('IsActive') === 'true'
+                            };
+                            var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                            var apiUrl = encodeURIComponent('api/semesters/add');
+                            const response = await fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`,
+                                {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'RequestVerificationToken': token
+                                    },
+                                    body: JSON.stringify(semesterData)
+                                });
 
-                        const response = await fetch('http://localhost:8000/api/semesters/add', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${sessionStorage.getItem('bearerToken')}`
-                            },
-                            body: JSON.stringify(semesterData)
-                        });
+                            const result = await response.json();
 
-                        const result = await response.json();
-
-                        if (response.ok) {
-                            addSemesterModal.hide();
-                            addSemesterForm.reset();
-                            isActiveInput.value = 'true';
-                            updateActiveButtons();
-                            showFeedbackModal('success', 'İşlem Başarılı', result.Message || 'Dönem başarıyla eklendi.', null, null, function() {
-                                location.reload();
-                            });
-                        } else {
-                            showFeedbackModal('error', 'İşlem Başarısız', result.Message || 'Bir hata oluştu.');
+                            if (response.ok) {
+                                addSemesterModal.hide();
+                                addSemesterForm.reset();
+                                isActiveInput.value = 'true';
+                                updateActiveButtons();
+                                showFeedbackModal('success',
+                                    'İşlem Başarılı',
+                                    result.Message || 'Dönem başarıyla eklendi.',
+                                    null,
+                                    null,
+                                    function() {
+                                        location.reload();
+                                    });
+                            } else {
+                                showFeedbackModal('error', 'İşlem Başarısız', result.Message || 'Bir hata oluştu.');
+                            }
+                        } catch (error) {
+                            console.error('Dönem eklenirken hata:', error);
+                            showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya bağlanırken bir hata oluştu.');
+                        } finally {
+                            saveSemesterBtn.disabled = false;
+                            saveSemesterBtn.innerHTML = originalText;
                         }
-                    } catch (error) {
-                        console.error('Dönem eklenirken hata:', error);
-                        showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya bağlanırken bir hata oluştu.');
-                    } finally {
-                        saveSemesterBtn.disabled = false;
-                        saveSemesterBtn.innerHTML = originalText;
-                    }
-                });
+                    });
 
                 // Initialize and reset form when modal is shown/hidden
-                document.getElementById('addSemesterModal').addEventListener('show.bs.modal', function() {
-                    isActiveInput.value = 'true';
-                    updateActiveButtons();
-                });
+                document.getElementById('addSemesterModal').addEventListener('show.bs.modal',
+                    function() {
+                        isActiveInput.value = 'true';
+                        updateActiveButtons();
+                    });
 
-                document.getElementById('addSemesterModal').addEventListener('hidden.bs.modal', function() {
-                    addSemesterForm.reset();
-                    isActiveInput.value = 'true';
-                    updateActiveButtons();
-                    document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-                    document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
-                    dateError.textContent = '';
-                });
+                document.getElementById('addSemesterModal').addEventListener('hidden.bs.modal',
+                    function() {
+                        addSemesterForm.reset();
+                        isActiveInput.value = 'true';
+                        updateActiveButtons();
+                        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                        document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+                        dateError.textContent = '';
+                    });
             }
         });
     </script>

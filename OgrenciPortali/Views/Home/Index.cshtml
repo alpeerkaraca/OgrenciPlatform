@@ -8,11 +8,7 @@
 
 
 <div class="hero-section">
-    <script>
-        window.myApp = {
-            accessToken: "@ViewBag.AccessToken"
-        }
-    </script>
+    @Html.AntiForgeryToken()
     <div class="welcome-time" id="currentTime"></div>
     @if (User.Identity.IsAuthenticated)
     {
@@ -109,7 +105,9 @@
                     <div class="metric-icon" style="background: linear-gradient(135deg, #3498db, #2980b9);">
                         <i class="bi bi-people-fill"></i>
                     </div>
-                    <div class="metric-number" id="userCount">0</div>
+                    <div class="metric-number" id="userCount">
+                        <div class="spinner-grow" style="color: #3498db"></div>
+                    </div>
                     <div class="metric-label">Toplam Kullanıcı</div>
                 </div>
             </div>
@@ -118,7 +116,9 @@
                     <div class="metric-icon" style="background: linear-gradient(135deg, #27ae60, #229954);">
                         <i class="bi bi-book-fill"></i>
                     </div>
-                    <div class="metric-number" id="courseCount">0</div>
+                    <div class="metric-number" id="courseCount">
+                        <div class="spinner-grow" style="color: #27ae60"></div>
+                    </div>
                     <div class="metric-label">Toplam Ders</div>
                 </div>
             </div>
@@ -127,7 +127,9 @@
                     <div class="metric-icon" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
                         <i class="bi bi-clock-fill"></i>
                     </div>
-                    <div class="metric-number" id="pendingCount">0</div>
+                    <div class="metric-number" id="pendingCount">
+                        <div class="spinner-grow" style="color: #f39c12"></div>
+                    </div>
                     <div class="metric-label">Bekleyen Onaylar</div>
                 </div>
             </div>
@@ -136,7 +138,9 @@
                     <div class="metric-icon" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">
                         <i class="bi bi-building-fill"></i>
                     </div>
-                    <div class="metric-number" id="departmentCount">0</div>
+                    <div class="metric-number" id="departmentCount">
+                        <div class="spinner-grow" style="color: #9b59b6"></div>
+                    </div>
                     <div class="metric-label">Toplam Bölüm</div>
                 </div>
             </div>
@@ -148,7 +152,9 @@
                     <div class="metric-icon" style="background: linear-gradient(135deg, #3498db, #2980b9);">
                         <i class="bi bi-people-fill"></i>
                     </div>
-                    <div class="metric-number" id="advisedStudentCount">0</div>
+                    <div class="metric-number" id="advisedStudentCount">
+                        <div class="spinner-grow" style="color: #3498db"></div>
+                    </div>
                     <div class="metric-label">Danışan Öğrenciler</div>
                 </div>
             </div>
@@ -157,7 +163,9 @@
                     <div class="metric-icon" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
                         <i class="bi bi-clock-fill"></i>
                     </div>
-                    <div class="metric-number" id="pendingApprovalCount">0</div>
+                    <div class="metric-number" id="pendingApprovalCount">
+                        <div class="spinner-" style="color: #f39c12"></div>
+                    </div>
                     <div class="metric-label">Bekleyen Onaylar</div>
                 </div>
             </div>
@@ -166,7 +174,9 @@
                     <div class="metric-icon" style="background: linear-gradient(135deg, #27ae60, #229954);">
                         <i class="bi bi-check-circle-fill"></i>
                     </div>
-                    <div class="metric-number" id="approvedCount">0</div>
+                    <div class="metric-number" id="approvedCount">
+                        <div class="spinner-grow" style="color: #27ae60"></div>
+                    </div>
                     <div class="metric-label">Onaylanan Kayıtlar</div>
                 </div>
             </div>
@@ -178,7 +188,9 @@
                     <div class="metric-icon" style="background: linear-gradient(135deg, #3498db, #2980b9);">
                         <i class="bi bi-book-fill"></i>
                     </div>
-                    <div class="metric-number" id="enrolledCourseCount">0</div>
+                    <div class="metric-number" id="enrolledCourseCount">
+                        <div class="spinner-grow" style="color: #3498db"></div>
+                    </div>
                     <div class="metric-label">Kayıtlı Dersler</div>
                 </div>
             </div>
@@ -187,7 +199,9 @@
                     <div class="metric-icon" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
                         <i class="bi bi-clock-fill"></i>
                     </div>
-                    <div class="metric-number" id="pendingCourseCount">0</div>
+                    <div class="metric-number" id="pendingCourseCount">
+                        <div class="spinner-grow" style="color: #f39c12"></div>
+                    </div>
                     <div class="metric-label">Onay Bekleyen</div>
                 </div>
             </div>
@@ -196,7 +210,9 @@
                     <div class="metric-icon" style="background: linear-gradient(135deg, #27ae60, #229954);">
                         <i class="bi bi-check-circle-fill"></i>
                     </div>
-                    <div class="metric-number" id="approvedCourseCount">0</div>
+                    <div class="metric-number" id="approvedCourseCount">
+                        <div class="spinner-grow" style="color: #27ae60"></div>
+                    </div>
                     <div class="metric-label">Onaylanan Dersler</div>
                 </div>
             </div>
@@ -292,48 +308,46 @@
             constructor() {
                 this.refreshInterval = 60000;
                 this.animationDuration = 1000;
+                this.csrfToken = document.querySelector('input[name="__RequestVerificationToken"]').value;
                 this.init();
             }
 
             init() {
                 this.updateTime();
-                this.loadDashboardData();
+                this.loadDashboardData(); // İlk veri yüklemesi
                 this.startAutoRefresh();
                 setInterval(() => this.updateTime(), 1000);
             }
 
             updateTime() {
                 const now = new Date();
-                const options = {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                };
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
                 const timeString = now.toLocaleDateString('tr-TR', options);
                 document.getElementById('currentTime').textContent = timeString;
             }
 
             async loadDashboardData() {
                 try {
-                    const token = window.myApp.accessToken;
-                    if (!token) {
-                        showFeedbackModal("error", "Doğrulama Hatası", "Kimliğiniz doğrulanamadı tekrar giriş yapın ya da sayfayı yenileyin", null, null, null);
-                    }
-                    const response = await fetch('https://localhost:8000/api/dashboard/data',
+                    const apiUrl = encodeURIComponent('api/dashboard/data');
+                    const response = await fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`,
                         {
                             method: 'GET',
-                            headers: { 'Authorization': `Bearer ${window.myApp.accessToken}` },
-                            credentials: 'include'
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
                         });
-                    const result = await response.json();
-                    if (response.ok) {
-                        this.updateCounters(result);
-                    } else {
-                        console.error('Dashboard veri yükleme hatası:', result);
+
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            showFeedbackModal("error", "Oturum Süresi Doldu", "Oturumunuzun süresi doldu, lütfen tekrar giriş yapın.", null, () => window.location.href = '/User/Login', "Giriş Yap");
+                        }
+                        throw new Error(`Sunucu Hatası: ${response.status}`);
                     }
+
+                    const result = await response.json();
+
+                    this.updateCounters(result);
+
                 } catch (error) {
                     console.error('FetchAPI Hatası:', error);
                 }
@@ -354,18 +368,15 @@
             animateCounter(element, targetValue, duration = this.animationDuration) {
                 const startValue = parseInt(element.textContent) || 0;
                 let startTime = null;
-
                 const animate = (currentTime) => {
                     if (startTime === null) startTime = currentTime;
                     const progress = Math.min((currentTime - startTime) / duration, 1);
                     const currentValue = Math.floor(startValue + (targetValue - startValue) * progress);
                     element.textContent = currentValue;
-
                     if (progress < 1) {
                         requestAnimationFrame(animate);
                     }
                 };
-
                 requestAnimationFrame(animate);
             }
 
