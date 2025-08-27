@@ -15,6 +15,7 @@ namespace Shared.DTO
         public string TeacherFullName { get; set; }
         public int Capacity { get; set; }
         public int EnrolledCount { get; set; }
+        public string Classroom { get; set; }
         public bool IsActive { get; set; }
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
@@ -30,8 +31,8 @@ namespace Shared.DTO
         public Guid SemesterId { get; set; }
         public Guid AdvisorId { get; set; }
         public DaysOfWeek DayOfWeek { get; set; }
-
-
+        public int CourseYear { get; set; } = 1;
+        public string Classroom { get; set; }
         public IEnumerable<SelectListItem> CourseList { get; set; }
         public IEnumerable<SelectListItem> SemesterList { get; set; }
         public IEnumerable<SelectListItem> AdvisorList { get; set; }

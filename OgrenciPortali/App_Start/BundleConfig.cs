@@ -17,6 +17,9 @@ namespace OgrenciPortali
             // üretim için hazır. https://modernizr.com adresinde derleme aracını kullanarak yalnızca ihtiyacınız olan testleri seçin.
             bundles.Add(new ScriptBundle("~/bundles/modernizr").Include(
                         "~/Scripts/modernizr-*"));
+            bundles.Add(new ScriptBundle("~/bundles/schedule").Include(
+                "~/Scripts/util.js",
+                "~/Scripts/main.js"));
 
             bundles.Add(new Bundle("~/bundles/bootstrap").Include(
                       "~/Scripts/bootstrap.bundle.min.js"));
@@ -33,6 +36,8 @@ namespace OgrenciPortali
                       "~/Content/fontawesome/all.min.css",
                       "~/Content/datatables/datatables.min.css",
                       "~/Content/site.css"));
+            bundles.Add(new StyleBundle("~/Content/schedule").Include(
+                "~/Content/style.css"));
         }
     }
 }

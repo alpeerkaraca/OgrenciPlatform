@@ -1,5 +1,6 @@
 ﻿using OgrenciPortali.Attributes;
 using OgrenciPortali.Utils;
+using System;
 using System.IO;
 using System.Net.Http;
 using System.Text;
@@ -65,12 +66,8 @@ namespace OgrenciPortali.Controllers
             var response = await _apiClient.SendAsync(request);
             var content = await response.Content.ReadAsStringAsync();
 
-            if (response.IsSuccessStatusCode)
-            {
-                return Content(content, "application/json");
-            }
-
-            return new HttpStatusCodeResult((int)response.StatusCode, content);
+            Response.StatusCode = (int)response.StatusCode;
+            return Content(content, "application/json");
         }
     }
 }

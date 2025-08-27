@@ -44,6 +44,7 @@ namespace OgrenciPortalApi.Models
         public Nullable<System.DateTime> RefreshTokenExpTime { get; set; }
         public string PasswordResetToken { get; set; }
         public Nullable<System.DateTime> ResetTokenExpiry { get; set; }
+        public Nullable<int> StudentYear { get; set; }
     
         public virtual Departments Departments { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

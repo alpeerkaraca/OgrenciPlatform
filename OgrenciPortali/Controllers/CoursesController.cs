@@ -88,15 +88,11 @@ namespace OgrenciPortali.Controllers
             var response = await _apiClient.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                TempData["SuccessMessage"] = "Ders başarıyla eklendi.";
-                return RedirectToAction("List", "Courses");
+                return Json(new { success = true, message = "Ders başarıyla eklendi." });
             }
             else
             {
-                ModelState.AddModelError("", "Ders eklenirken bir hata oluştu.");
-
-                viewModel.DepartmentList = await GetDepListFromApiForAddCourses();
-                return View(viewModel);
+                return Json(new { success = false, message = "Ders eklenirken bir hata oluştu." });
             }
         }
 

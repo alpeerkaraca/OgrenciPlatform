@@ -1,7 +1,6 @@
 ﻿@model OgrenciPortali.ViewModels.DepartmentAddViewModel
 @{
-    ViewBag.Title = "Bölüm Ekle"
-        ;
+    ViewBag.Title = "Bölüm Ekle";
 }
 
 <div class="container">
@@ -10,41 +9,37 @@
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
                     <h4 class="mb-0">
-                        <i class="bi bi-pencil-square me-2"></i>@ViewBag.Title
+                        <i class="bi bi-plus-square me-2"></i>Yeni Bölüm Ekle
                     </h4>
                 </div>
                 <div class="card-body d-flex align-content-center justify-content-center">
-                    @if (TempData["SuccessMessage"] != null)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    }
 
-                    @using (Html.BeginForm("Edit", "Courses", FormMethod.Post, new { @class = "needs-validation", novalidate = "novalidate" }))
-                    {
-                        @*@Html.AntiForgeryToken()*@
 
-                        @Html.ValidationSummary(true, null, new { @class = "text-danger " })
+                    @using (Html.BeginForm("Add", "Department", FormMethod.Post, new { @class = "needs-validation", novalidate = "novalidate", id = "add-form" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(false, "", new { @class = "text-danger", required = true })
                         <div class="row" id="form-area">
 
-                            <div class=" col-md-6 col-12 mb-3">
-                                <label for="@Model.DepartmentCode" class="form-label">
+                            <div class="col-md-6 col-12 mb-3">
+                                <label for="DepartmentCode" class="form-label">
                                     <i class="bi bi-journal me-1"></i>Bölüm Kodu
                                 </label>
                                 @Html.EditorFor(model => model.DepartmentCode, new { htmlAttributes = new { @class = "form-control", required = true } })
+                                <div class="invalid-feedback" id="DepartmentCodeError"></div>
                             </div>
-                            <div class=" col-md-6 col-12 mb-3">
-                                <label for="@Model.DepartmentName" class="form-label">
-                                    <i class="bi bi-book me-1"></i>Bölüm Adı
+
+                            <div class="col-md-6 col-12 mb-3">
+                                <label for="DepartmentName" class="form-label">
+                                    <i class="bi bi-building me-1"></i>Bölüm Adı
                                 </label>
                                 @Html.EditorFor(model => model.DepartmentName, new { htmlAttributes = new { @class = "form-control", required = true } })
+                                <div class="invalid-feedback" id="DepartmentNameError"></div>
                             </div>
 
                             <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary ">
-                                    <i class="bi bi-check-lg me-2"></i>Dönem Ekle
+                                <button type="submit" class="btn btn-primary" id="addDepartmentBtn">
+                                    <i class="bi bi-check-lg me-2"></i>Bölüm Ekle
                                 </button>
                                 <a href="@Url.Action("List", "Department")" class="btn btn-secondary">
                                     <i class="bi bi-arrow-left me-2"></i>Listeye Geri Dön
@@ -57,3 +52,121 @@
         </div>
     </div>
 </div>
+
+@section scripts
+{
+    <script>
+        document.addEventListener('DOMContentLoaded',
+            function() {
+
+                const departmentCodeInput = document.getElementById('DepartmentCode');
+                const departmentNameInput = document.getElementById('DepartmentName');
+                const addDepartmentBtn = document.getElementById('addDepartmentBtn');
+
+                const departmentCodeError = document.getElementById('DepartmentCodeError');
+                const departmentNameError = document.getElementById('DepartmentNameError');
+
+                const originalButtonHtml = addDepartmentBtn.innerHTML;
+
+                const showError = (input, errorDiv, message) => {
+                    input.classList.add('is-invalid');
+                    errorDiv.textContent = message;
+                };
+                const clearError = (input) => {
+                    input.classList.remove('is-invalid');
+                };
+
+                function validateForm() {
+                    let isFormValid = true;
+
+                    const codeValue = departmentCodeInput.value.trim();
+                    if (codeValue === '') {
+                        showError(departmentCodeInput, departmentCodeError, 'Bölüm kodu boş olamaz.');
+                        isFormValid = false;
+                    } else if (codeValue.length > 10) {
+                        showError(departmentCodeInput, departmentCodeError, 'Bölüm kodu en fazla 10 karakter olabilir.');
+                        isFormValid = false;
+                    } else {
+                        clearError(departmentCodeInput);
+                    }
+
+                    const nameValue = departmentNameInput.value.trim();
+                    if (nameValue === '') {
+                        showError(departmentNameInput, departmentNameError, 'Bölüm adı boş olamaz.');
+                        isFormValid = false;
+                    } else if (nameValue.length > 100) {
+                        showError(departmentNameInput, departmentNameError, 'Bölüm adı en fazla 100 karakter olabilir.');
+                        isFormValid = false;
+                    } else {
+                        clearError(departmentNameInput);
+                    }
+
+                    addDepartmentBtn.disabled = !isFormValid;
+                    if (!isFormValid) {
+                        addDepartmentBtn.classList.add('button-disabled');
+                    } else {
+                        addDepartmentBtn.classList.remove('button-disabled');
+                    }
+                }
+
+                const inputs = [departmentCodeInput, departmentNameInput];
+                inputs.forEach(input => {
+                    input.addEventListener('input', validateForm);
+                    input.addEventListener('change', validateForm);
+                });
+
+                validateForm();
+
+                var form = $('#add-form');
+                form.on('submit',
+                    async function(e) {
+                        e.preventDefault();
+                        addDepartmentBtn.disabled = true;
+                        addDepartmentBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Kaydediliyor...`;
+                        const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                        const apiUrl = encodeURIComponent("api/departments/add");
+                        if (!csrfToken) {
+                            showFeedbackModal('error', 'Yetkisiz İşlem', 'Sistem işlemi yapan kişiyi doğrulayamıyor. Lütfen tekrar giriş yapınız.');
+                            addDepartmentBtn.innerHTML = originalButtonHtml;
+                            validateForm();
+                            return;
+                        }
+                        const formDataArray = $(this).serializeArray();
+                        let formDataObject = {};
+                        $.each(formDataArray,
+                            function(i, field) {
+                                formDataObject[field.name] = field.value;
+                            });
+
+                        try {
+                            const response = await fetch('ApiProxy/Post?=' + apiUrl,
+                                {
+                                    method: 'POST',
+                                    headers: {
+                                        'RequestVerificationToken': csrfToken,
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body:
+                                        JSON.stringify(formDataObject)
+                                });
+                                            const res = await response.json();
+                if (res.success) {
+                    form[0].reset();
+                    showFeedbackModal('success', 'İşlem Başarılı', res.message || 'Bölüm başarıyla eklendi.', null, null, function() {
+                        window.location.href = '@Url.Action("List", "Department")';
+                    });
+                } else {
+                    showFeedbackModal('error', 'İşlem Başarısız', res.message || 'Bir hata oluştu.');
+                }
+                        } catch
+                        (e) {
+                            showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya bağlanırken bir hata oluştu.');
+                        } finally {
+                            addDepartmentBtn.innerHTML = originalButtonHtml;
+                            validateForm();
+                        }
+
+                    });
+            });
+    </script>
+}

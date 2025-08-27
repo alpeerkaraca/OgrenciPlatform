@@ -21,6 +21,7 @@
           <Property Name="IsDeleted" Type="bit" Nullable="false" />
           <Property Name="DeletedAt" Type="datetime" />
           <Property Name="DeletedBy" Type="nvarchar" MaxLength="100" />
+          <Property Name="Description" Type="nvarchar" MaxLength="512" />
         </EntityType>
         <EntityType Name="Departments">
           <Key>
@@ -58,6 +59,8 @@
           <Property Name="DeletedAt" Type="datetime" />
           <Property Name="DeletedBy" Type="nvarchar" MaxLength="100" />
           <Property Name="CurrentUserCount" Type="int" Nullable="false" />
+          <Property Name="CourseYear" Type="int" Nullable="false" />
+          <Property Name="Classroom" Type="nvarchar" MaxLength="100" Nullable="false" />
         </EntityType>
         <EntityType Name="Semesters">
           <Key>
@@ -118,6 +121,7 @@
           <Property Name="RefreshTokenExpTime" Type="datetime" />
           <Property Name="PasswordResetToken" Type="nvarchar" MaxLength="255" />
           <Property Name="ResetTokenExpiry" Type="datetime" />
+          <Property Name="StudentYear" Type="int" />
         </EntityType>
         <Association Name="FK_dbo_Courses_dbo_Departments_DepartmentId">
           <End Role="Departments" Type="Self.Departments" Multiplicity="1" />
@@ -164,18 +168,6 @@
             </Principal>
             <Dependent Role="OfferedCourses">
               <PropertyRef Name="TeacherId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_dbo_StudentCourses_dbo_OfferedCourses_OfferedCourseId">
-          <End Role="OfferedCourses" Type="Self.OfferedCourses" Multiplicity="1" />
-          <End Role="StudentCourses" Type="Self.StudentCourses" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="OfferedCourses">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="StudentCourses">
-              <PropertyRef Name="OfferedCourseId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -238,10 +230,6 @@
             <End Role="Users" EntitySet="Users" />
             <End Role="OfferedCourses" EntitySet="OfferedCourses" />
           </AssociationSet>
-          <AssociationSet Name="FK_dbo_StudentCourses_dbo_OfferedCourses_OfferedCourseId" Association="Self.FK_dbo_StudentCourses_dbo_OfferedCourses_OfferedCourseId">
-            <End Role="OfferedCourses" EntitySet="OfferedCourses" />
-            <End Role="StudentCourses" EntitySet="StudentCourses" />
-          </AssociationSet>
           <AssociationSet Name="FK_dbo_StudentCourses_dbo_Users_StudentId" Association="Self.FK_dbo_StudentCourses_dbo_Users_StudentId">
             <End Role="Users" EntitySet="Users" />
             <End Role="StudentCourses" EntitySet="StudentCourses" />
@@ -277,6 +265,7 @@
           <Property Name="DeletedBy" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="Departments" Relationship="Self.FK_dbo_Courses_dbo_Departments_DepartmentId" FromRole="Courses" ToRole="Departments" />
           <NavigationProperty Name="OfferedCourses" Relationship="Self.FK_dbo_OfferedCourses_dbo_Courses_CourseId" FromRole="Courses" ToRole="OfferedCourses" />
+          <Property Name="Description" Type="String" MaxLength="512" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="Departments">
           <Key>
@@ -320,6 +309,8 @@
           <NavigationProperty Name="Semesters" Relationship="Self.FK_dbo_OfferedCourses_dbo_Semesters_SemesterId" FromRole="OfferedCourses" ToRole="Semesters" />
           <NavigationProperty Name="Users" Relationship="Self.FK_dbo_OfferedCourses_dbo_Users_TeacherId" FromRole="OfferedCourses" ToRole="Users" />
           <NavigationProperty Name="StudentCourses" Relationship="Self.FK_dbo_StudentCourses_dbo_OfferedCourses_OfferedCourseId" FromRole="OfferedCourses" ToRole="StudentCourses" />
+          <Property Name="CourseYear" Type="Int32" Nullable="false" />
+          <Property Name="Classroom" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="Semesters">
           <Key>
@@ -388,6 +379,7 @@
           <Property Name="RefreshTokenExpTime" Type="DateTime" Precision="3" />
           <Property Name="PasswordResetToken" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
           <Property Name="ResetTokenExpiry" Type="DateTime" Precision="3" />
+          <Property Name="StudentYear" Type="Int32" />
         </EntityType>
         <Association Name="FK_dbo_Courses_dbo_Departments_DepartmentId">
           <End Role="Departments" Type="Self.Departments" Multiplicity="1" />
@@ -534,6 +526,7 @@
           <EntitySetMapping Name="Courses">
             <EntityTypeMapping TypeName="ogrenciPortalContext.Courses">
               <MappingFragment StoreEntitySet="Courses">
+                <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="CourseId" ColumnName="CourseId" />
                 <ScalarProperty Name="CourseCode" ColumnName="CourseCode" />
                 <ScalarProperty Name="CourseName" ColumnName="CourseName" />
@@ -569,6 +562,8 @@
           <EntitySetMapping Name="OfferedCourses">
             <EntityTypeMapping TypeName="ogrenciPortalContext.OfferedCourses">
               <MappingFragment StoreEntitySet="OfferedCourses">
+                <ScalarProperty Name="Classroom" ColumnName="Classroom" />
+                <ScalarProperty Name="CourseYear" ColumnName="CourseYear" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="CourseId" ColumnName="CourseId" />
                 <ScalarProperty Name="SemesterId" ColumnName="SemesterId" />
@@ -625,6 +620,7 @@
           <EntitySetMapping Name="Users">
             <EntityTypeMapping TypeName="ogrenciPortalContext.Users">
               <MappingFragment StoreEntitySet="Users">
+                <ScalarProperty Name="StudentYear" ColumnName="StudentYear" />
                 <ScalarProperty Name="ResetTokenExpiry" ColumnName="ResetTokenExpiry" />
                 <ScalarProperty Name="PasswordResetToken" ColumnName="PasswordResetToken" />
                 <ScalarProperty Name="RefreshTokenExpTime" ColumnName="RefreshTokenExpTime" />

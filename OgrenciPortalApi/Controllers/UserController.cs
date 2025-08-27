@@ -13,9 +13,11 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
+using System.Web.Http.Results;
 using System.Web.Mvc;
 using MailKit.Net.Smtp;
 using MimeKit;
+using Org.BouncyCastle.Ocsp;
 
 namespace OgrenciPortalApi.Controllers
 {
@@ -120,7 +122,7 @@ namespace OgrenciPortalApi.Controllers
             try
             {
                 if (await _db.Users.AnyAsync(u => u.Email == model.Email && !u.IsDeleted))
-                    return BadRequest("Bu e-posta adresi zaten kayıtlı.");
+                    return BadRequest("Bu e-posta adresi kullanılıyor.");
 
                 if (model.Role == (int)Roles.Öğrenci && !string.IsNullOrEmpty(model.StudentNo) &&
                     await _db.Users.AnyAsync(u => u.StudentNo == model.StudentNo && !u.IsDeleted))
@@ -137,6 +139,7 @@ namespace OgrenciPortalApi.Controllers
                     Email = model.Email,
                     Password = BCrypt.Net.BCrypt.HashPassword(model.Password),
                     Role = model.Role,
+                    StudentYear = model.StudentYear,
                     IsActive = true,
                     IsFirstLogin = true,
                     StudentNo = model.StudentNo,
@@ -402,6 +405,22 @@ namespace OgrenciPortalApi.Controllers
 
             return Ok(new { Message = "Şifreniz başarıyla güncellendi." });
         }
+
+        [System.Web.Http.HttpPost]
+        [System.Web.Http.Route("increase-student-year/{id:guid}")]
+        [System.Web.Http.Authorize(Roles = nameof(Roles.Admin))]
+        public async Task<IHttpActionResult> IncreaseStudentYear(Guid id)
+        {
+            var student = await _db.Users.FindAsync();
+            if (student == null || !student.IsActive)
+                return NotFound();
+            if (student.Role != (int)Roles.Öğrenci)
+                return BadRequest("Kullanıcı bir öğrenci değil.");
+            student.StudentYear++;
+            await _db.SaveChangesAsync();
+            return Ok(new { Message = "Öğrenci sınıfı güncellendi" });
+        }
+
 
         private async Task SendPasswordResetEmail(string toEmail, string resetLink)
         {

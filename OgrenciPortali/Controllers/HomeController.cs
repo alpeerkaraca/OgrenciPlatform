@@ -3,6 +3,7 @@ using OgrenciPortali.Utils;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using Shared.DTO;
 
 namespace OgrenciPortali.Controllers
 {
@@ -22,9 +23,17 @@ namespace OgrenciPortali.Controllers
         /// Ana sayfa görünümünü döndürür
         /// </summary>
         [CustomAuth]
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
-            return View();
+            var request = new HttpRequestMessage(HttpMethod.Get, "api/student/my-courses");
+            var response = await _apiClient.SendAsync(request);
+            var dto = new MyCoursesDTO();
+            if (response.IsSuccessStatusCode)
+            {
+                dto = await response.Content.ReadAsAsync<MyCoursesDTO>();
+            }
+
+            return View(dto);
         }
 
         /// <summary>

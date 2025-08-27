@@ -20,6 +20,8 @@ namespace OgrenciPortali.ViewModels
         public DaysOfWeek DayOfWeek { get; set; }
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
+        public int CourseYear { get; set; } = 1;
+        public string Classroom { get; set; }
         public SelectList CourseList { get; set; }
         public SelectList SemesterList { get; set; }
         public SelectList AdvisorList { get; set; }
@@ -35,6 +37,8 @@ namespace OgrenciPortali.ViewModels
         public string CourseCode { get; set; }
         public Guid SemesterId { get; set; }
         public Guid AdvisorId { get; set; }
+        public int CourseYear { get; set; } = 1;
+        public string Classroom { get; set; }
         public int Quota { get; set; }
         public int DayOfWeek { get; set; }
         public SelectList CourseList { get; set; }

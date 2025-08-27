@@ -29,6 +29,7 @@ namespace OgrenciPortali.ViewModels
         public string Email { get; set; }
         public int Role { get; set; }
         public string Password { get; set; }
+        public int StudentYear { get; set; } = 1;
         public Guid? DepartmentId { get; set; }
         public Guid? AdvisorId { get; set; }
         public string StudentNo { get; set; }
@@ -74,6 +75,7 @@ namespace OgrenciPortali.ViewModels
         public string Email { get; set; }
         public int Role { get; set; }
         public string StudentNo { get; set; }
+        public int StudentYear { get; set; } = 1;
 
         public Guid? DepartmentId { get; set; }
         public Guid? AdvisorId { get; set; }

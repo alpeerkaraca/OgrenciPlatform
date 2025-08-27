@@ -1,0 +1,76 @@
+﻿@using Shared.Enums
+@model Shared.DTO.MyCoursesDTO
+@{
+    var coursesByDay = Model.Courses
+        .Where(c => c.ApprovalStatus == (int)ApprovalStatus.Onaylandı)
+        .GroupBy(c => c.DayOfWeek)
+        .ToDictionary(g => g.Key, g => g.ToList());
+
+    var days = new[] { "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma" };
+    var startHour = 8;
+    var endHour = 18;
+}
+
+<div class="cd-schedule cd-schedule--loading margin-top-lg margin-bottom-lg js-cd-schedule">
+    <div class="cd-schedule__timeline">
+        <ul>
+            @for (var hour = startHour; hour <= endHour; hour++)
+            {
+                <li>
+                    <span>@hour.ToString("00"):00</span>
+                </li>
+            }
+        </ul>
+    </div>
+    <div class="cd-schedule__events">
+        <ul>
+            @foreach (var day in days)
+            {
+                <li class="cd-schedule__group">
+                    <div class="cd-schedule__top-info">
+                        <span>@day</span>
+                    </div>
+                    <ul>
+                        @if (coursesByDay.ContainsKey(day))
+                        {
+                            foreach (var course in coursesByDay[day])
+                            {
+                                var times = course.TimeSlot.Split('-');
+                                var startTime = times[0].Trim();
+                                var endTime = times[1].Trim();
+
+                                <li class="cd-schedule__event">
+                                    <a data-start="@startTime" data-end="@endTime" href="#0" data-content="@course.CourseName" data-event="event-1" data-teacher-full-name="@course.TeacherFullName" >
+                                        <em class="cd-schedule__name">@course.CourseName</em>
+                                    </a>
+                                </li>
+                            }
+                        }
+                    </ul>
+                </li>
+            }
+        </ul>
+    </div>
+
+    <div class="cd-schedule-modal" style="z-index: 2000">
+        <header class="cd-schedule-modal__header">
+            <div class="cd-schedule-modal__content">
+                <span class="cd-schedule-modal__date"></span>
+                <h3 class="cd-schedule-modal__name"></h3>
+                <em class="cd-schedule-modal__code"></em>
+            </div>
+            <div class="cd-schedule-modal__header-bg"></div>
+        </header>
+        <div class="cd-schedule-modal__body">
+            <div class="cd-schedule-modal__event-info"></div>
+            <div class="cd-schedule-modal__body-bg"></div>
+        </div>
+        <a href="#0" class="cd-schedule-modal__close text-replace">Close</a>
+    </div>
+    <div class="cd-schedule__cover-layer"></div>
+</div>
+@Styles.Render("~/Content/schedule")
+
+@section scripts {
+    @Scripts.Render("~/bundles/schedule")
+}

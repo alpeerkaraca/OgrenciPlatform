@@ -2,6 +2,23 @@
 @{
     ViewBag.Title = "Dönem Dersleri";
 }
+<style>
+    table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control::before {
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    #offeredCoursesTable .btn { margin-right: 5px; }
+
+    .actions-cell {
+        display: flex;
+        height: 6rem;
+        align-items: center; /* Butonları dikeyde ortalar */
+        justify-content: center; /* Butonları yatayda ortalar */
+        gap: 5px; /* Butonlar arasına 5px boşluk bırakır */
+        padding-bottom: 12rem;
+    }
+</style>
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -15,15 +32,17 @@
 
     <div class="card shadow-sm">
         <div class="card-body">
-            <table id="offeredCoursesTable" class="table table-striped table-bordered" style="width: 100%">
+            <table id="offeredCoursesTable" class="table table-striped table-bordered table-sm" style="width: 100%">
                 <thead class="thead-dark">
                 <tr>
+                    <th></th>
                     <th>Bölüm</th>
                     <th>Ders Kodu</th>
                     <th>Ders Adı</th>
                     <th>Dönem</th>
                     <th>Öğretmen</th>
                     <th>Kontenjan</th>
+                    <th>Derslik</th>
                     <th>Ders Günü ve Saati</th>
                     <th>İşlemler</th>
                 </tr>
@@ -31,19 +50,23 @@
                 <tbody>
                 @foreach (var item in Model.OfferedCoursesList)
                 {
-                    <tr class="text-center">
+                    <tr>
+                        <td></td>
                         <td>@Html.DisplayFor(modelItem => item.DepartmentName)</td>
                         <td>@Html.DisplayFor(modelItem => item.CourseCode)</td>
                         <td>@Html.DisplayFor(modelItem => item.CourseName)</td>
                         <td>@Html.DisplayFor(modelItem => item.SemesterName)</td>
                         <td>@Html.DisplayFor(modelItem => item.TeacherFullName)</td>
-                        <td>@Html.DisplayFor(modelItem => item.EnrolledCount) / @Html.DisplayFor(modelItem => item.Capacity)</td>
+                        <td class="text-center">@Html.DisplayFor(modelItem => item.EnrolledCount) / @Html.DisplayFor(modelItem => item.Capacity)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Classroom)</td>
                         <td>@item.DayOfWeek, @item.StartTime.ToString(@"hh\:mm") - @item.EndTime.ToString(@"hh\:mm")</td>
-                        <td class="text-center">
-                            @Html.ActionLink("Düzenle", "Edit", new { id = item.OfferedCourseId }, new { @class = "btn btn-sm btn-info" })
+                        <td class="text-center actions-cell">
+                            <a class="btn btn-outline-info btn-sm" href="@Url.Action("Edit","OfferedCourses", new {id = item.OfferedCourseId})">
+                                <i class="bi bi-pen" style="font-size: 1rem"></i>
+                            </a>
                             <button type="button" class="btn btn-outline-danger btn-sm delete-user"
                                     data-ofcourse-id="@item.OfferedCourseId" data-course-name="@item.CourseName">
-                                <i class="bi bi-trash"></i> Sil
+                                <i class="bi bi-trash" style="font-size: 1rem"></i>
                             </button>
                         </td>
                     </tr>
@@ -158,6 +181,21 @@
                         <div class="col-12">
                             <div id="timeError" class="text-danger"></div>
                         </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="quota" class="form-label">
+                                <i class="bi bi-calendar me-1"></i>Yıl
+                            </label>
+                            <input type="number" class="form-control" id="courseYear" name="CourseYear" value="1" placeholder="Dersin hangi yıla ait olduğu" min="1" max="5" required>
+                            <div class="invalid-feedback" id="yearError"></div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="quota" class="form-label">
+                                <i class="bi bi-door-open me-1"></i>Derslik
+                            </label>
+                            <input type="text" class="form-control" id="classroom" name="Classroom" maxlength="50" required>
+                            <div class="invalid-feedback" id="classroomError"></div>
+                        </div>
+
                     </div>
                 </form>
             </div>
@@ -174,23 +212,27 @@
 
 @section scripts {
     <script>
-        $(document).ready(function () {
-            $('#offeredCoursesTable').DataTable({
+        $(document).ready(function() {
+            var offeredCoursesTable = $('#offeredCoursesTable').DataTable({
                 language: {
                     url: '/Content/datatables/i18n/tr.json'
                 },
-                responsive: {
-                    details: {
-                        type: 'inline',
-                        renderer: DataTable.Responsive.renderer.tableAll({ tableClass: 'table table-sm' })
-                    }
-                },
+                responsive: true,
                 columnDefs: [
                     { className: 'dtr-control', orderable: false, targets: 0 },
-                    { orderable: false, targets: 7 }
+                    { orderable: false, targets: 9 }
                 ],
                 order: [[1, 'asc']]
             });
+            $('body').on('click',
+                '#sidebarToggle, .sidebar-toggler',
+                function() {
+                    setTimeout(function() {
+
+                            offeredCoursesTable.columns.adjust().responsive.recalc();
+                        },
+                        300);
+                });
 
             // Auto-open Add modal if coming from quick action or Add link
             const urlParams = new URLSearchParams(window.location.search);
@@ -198,10 +240,10 @@
             const referrer = document.referrer;
 
             if (fromAdd || referrer.includes('/OfferedCourses/Add') || window.location.pathname.includes('/Add')) {
-                setTimeout(function () {
-                    const addModal = new bootstrap.Modal(document.getElementById('addOfferedCourseModal'));
-                    addModal.show();
-                },
+                setTimeout(function() {
+                        const addModal = new bootstrap.Modal(document.getElementById('addOfferedCourseModal'));
+                        addModal.show();
+                    },
                     500);
             }
 
@@ -214,7 +256,7 @@
 
                 $('#offeredCoursesTable tbody').on('click',
                     '.delete-user',
-                    function () {
+                    function() {
 
                         courseIdToDelete = $(this).data('ofcourse-id');
                         const courseName = $(this).data('course-name');
@@ -224,7 +266,7 @@
                     });
 
                 confirmDeleteBtn.addEventListener('click',
-                    function () {
+                    function() {
                         if (courseIdToDelete) {
                             const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
 
@@ -234,13 +276,13 @@
                             }
                             var apiUrl = encodeURIComponent(`api/offered/delete/${courseIdToDelete}`);
                             fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`,
-                                {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'RequestVerificationToken': token
-                                    }
-                                })
+                                    {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'RequestVerificationToken': token
+                                        }
+                                    })
                                 .then((res) => res.json())
                                 .then((res) => {
                                     if (res.ok) {
@@ -272,7 +314,7 @@
 
                 // Load form data when modal is shown
                 document.getElementById('addOfferedCourseModal').addEventListener('show.bs.modal',
-                    async function () {
+                    async function() {
                         try {
                             var apiUrl = encodeURIComponent("api/offered/add");
                             const response = await fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`,
@@ -410,6 +452,25 @@
                     if (!validateTimes()) {
                         isValid = false;
                     }
+                    // Year validation
+                    const year = parseInt(formData.get('CourseYear'));
+                    if (!year || year < 1 || year > 5) {
+                        showOfferedCourseFieldError('courseYear', 'yearError', 'Yıl 1 ile 5 arasında olmalıdır');
+                        isValid = false;
+                    }
+                    // Classroom validation
+                    const classroom = formData.get('Classroom').trim();
+                    if (!classroom || classroom.length < 1 || classroom.length > 50) {
+                        showOfferedCourseFieldError('classroom', 'classroomError', 'Derslik adı 1 ile 50 karakter arası uzunlukta olmalıdır.');
+                        isValid = false;
+                    }
+                    // Enable/disable save button based on validation
+                    saveOfferedCourseBtn.disabled = !isValid;
+                    if (!isValid) {
+                        saveOfferedCourseBtn.classList.add('button-disabled');
+                    } else {
+                        saveOfferedCourseBtn.classList.remove('button-disabled');
+                    }
 
                     return isValid;
                 }
@@ -419,9 +480,16 @@
                     document.getElementById(errorId).textContent = message;
                 }
 
+                // Add real-time validation
+                const inputs = [courseSelect, semesterSelect, teacherSelect, document.getElementById('quota'), daySelect, startTimeInput, endTimeInput, document.getElementById('courseYear'), document.getElementById('classroom')];
+                inputs.forEach(input => {
+                    input.addEventListener('input', validateOfferedCourseForm);
+                    input.addEventListener('change', validateOfferedCourseForm);
+                });
+
                 // Save offered course
                 saveOfferedCourseBtn.addEventListener('click',
-                    async function () {
+                    async function() {
                         if (!validateOfferedCourseForm()) return;
 
                         const originalText = saveOfferedCourseBtn.innerHTML;
@@ -433,15 +501,17 @@
                             const offeredCourseData = {
                                 CourseId: formData.get('CourseId'),
                                 SemesterId: formData.get('SemesterId'),
-                                TeacherId: formData.get('TeacherId'),
+                                AdvisorId: formData.get('TeacherId'),
                                 Quota: parseInt(formData.get('Quota')),
                                 DayOfWeek: parseInt(formData.get('DayOfWeek')),
                                 StartTime: formData.get('StartTime') + ':00',
-                                EndTime: formData.get('EndTime') + ':00'
+                                EndTime: formData.get('EndTime') + ':00',
+                                CourseYear: parseInt(formData.get('CourseYear')),
+                                Classroom: formData.get('Classroom')
                             };
                             var token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
                             var apiUrl = encodeURIComponent("api/offered/add");
-                            const response = await fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`,
+                            const response = await fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`,
                                 {
                                     method: 'POST',
                                     headers: {
@@ -451,9 +521,9 @@
                                     body: JSON.stringify(offeredCourseData)
                                 });
 
-                            const result = await response.json();
 
                             if (response.ok) {
+                                const result = await response.json();
                                 addOfferedCourseModal.hide();
                                 addOfferedCourseForm.reset();
                                 showFeedbackModal('success',
@@ -461,10 +531,11 @@
                                     result.Message || 'Ders başarıyla eklendi.',
                                     null,
                                     null,
-                                    function () {
+                                    function() {
                                         location.reload();
                                     });
                             } else {
+                                const result = await response.json();
                                 showFeedbackModal('error', 'İşlem Başarısız', result.Message || 'Bir hata oluştu.');
                             }
                         } catch (error) {
@@ -478,7 +549,7 @@
 
                 // Reset form when modal is hidden
                 document.getElementById('addOfferedCourseModal').addEventListener('hidden.bs.modal',
-                    function () {
+                    function() {
                         addOfferedCourseForm.reset();
                         document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
                         document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');

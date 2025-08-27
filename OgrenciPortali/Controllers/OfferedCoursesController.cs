@@ -86,19 +86,15 @@ namespace OgrenciPortali.Controllers
             {
                 var message = await response.Content.ReadAsAsync<dynamic>();
 
-                TempData["SuccessMessage"] = message.Message;
-
-                return RedirectToAction("Add");
+                return Json(new { success = true, message = message.Message });
             }
             else
             {
                 var errorContent = await response.Content.ReadAsAsync<dynamic>();
                 string errorMessage = errorContent.Message;
 
-                ModelState.AddModelError("", errorMessage);
+                return Json(new { success = false, message = errorMessage });
             }
-
-            return View(await FillModel(viewModel));
         }
 
         // GET: OfferedCourses/Edit/5 
@@ -145,15 +141,12 @@ namespace OgrenciPortali.Controllers
             var response = await _apiClient.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                TempData.Add("SuccessMessage", "Dönem dersi başarıyla güncellendi.");
+                return Json(new { success = true, message = "Dönem dersi başarıyla güncellendi." });
             }
             else
             {
-                ModelState.AddModelError("", "Dönem dersi güncellenirken bir hata oluştu.");
+                return Json(new { success = false, message = "Dönem dersi güncellenirken bir hata oluştu." });
             }
-
-
-            return RedirectToAction("List", "OfferedCourses");
         }
 
 

@@ -142,12 +142,12 @@
                 language: {
                     url: '/Content/datatables/i18n/tr.json'
                 },
-                responsive: {
-                    details: {
-                        type: 'inline',
-                        renderer: DataTable.Responsive.renderer.tableAll({ tableClass: 'table table-sm' })
-                    }
-                },
+                //responsive: {
+                //    details: {
+                //        type: 'inline',
+                //        renderer: DataTable.Responsive.renderer.tableAll({ tableClass: 'table table-sm' })
+                //    }
+                //},
                 columnDefs: [
                     { className: 'dtr-control', orderable: false, targets: 0 },
                     { orderable: false, targets: 4 }
@@ -155,7 +155,6 @@
                 order: [[1, 'asc']]
             });
 
-            // Auto-open Add modal if coming from quick action or Add link
             const urlParams = new URLSearchParams(window.location.search);
             const fromAdd = urlParams.get('add') === 'true';
             const referrer = document.referrer;
@@ -304,6 +303,14 @@
                     isValid = false;
                 }
 
+                // Enable/disable save button based on validation
+                saveCourseBtn.disabled = !isValid;
+                if (!isValid) {
+                    saveCourseBtn.classList.add('button-disabled');
+                } else {
+                    saveCourseBtn.classList.remove('button-disabled');
+                }
+
                 return isValid;
             }
 
@@ -311,6 +318,18 @@
                 document.getElementById(fieldId).classList.add('is-invalid');
                 document.getElementById(errorId).textContent = message;
             }
+
+            // Add real-time validation
+            const courseCodeInput = document.getElementById('courseCode');
+            const courseNameInput = document.getElementById('courseName');
+            const creditsInput = document.getElementById('credits');
+            [courseCodeInput, courseNameInput, creditsInput, departmentSelect].forEach(input => {
+                input.addEventListener('input', validateForm);
+                input.addEventListener('change', validateForm);
+            });
+
+            // Initial validation
+            validateForm();
 
             // Save course
             saveCourseBtn.addEventListener('click',
@@ -344,7 +363,7 @@
 
                         const result = await response.json();
 
-                        if (response.ok) {
+                        if (result.success) {
                             addCourseModal.hide();
                             addCourseForm.reset();
                             showFeedbackModal('success',

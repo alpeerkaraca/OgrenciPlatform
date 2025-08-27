@@ -161,7 +161,7 @@ namespace OgrenciPortalApi.Controllers
                     return NotFound();
                 }
 
-                if (await _db.Semesters.AnyAsync(s => s.SemesterName.ToLower() == dto.SemesterName.ToLower()))
+                if (await _db.Semesters.AnyAsync(s => s.SemesterName.ToLower() == dto.SemesterName.ToLower() && s.SemesterId != dto.SemesterId))
                     return BadRequest("Bu isme sahip bir dönem bulunmakta. Lütfen başka bir isim giriniz.");
                 if (dto.IsActive && await _db.Semesters.AnyAsync(s => s.IsActive && !s.IsDeleted))
                     return BadRequest(

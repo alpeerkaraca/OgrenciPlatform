@@ -9,7 +9,6 @@
 
         public static void Load()
         {
-            //TODO: Bu kodumun anahtarı alınmıyor buna dikkat et. Çöz bunu.
             JwtMasterKey = DotNetEnv.Env.GetString("JWT_MASTER_KEY");
             JwtIssuer = DotNetEnv.Env.GetString("JWT_ISSUER");
             JwtAudience = DotNetEnv.Env.GetString("JWT_AUDIENCE");

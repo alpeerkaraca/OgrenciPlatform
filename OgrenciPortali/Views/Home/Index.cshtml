@@ -1,10 +1,13 @@
 ﻿@using System.Security.Claims
+@using Shared.DTO
+@using Shared.Enums
 @using Roles = Shared.Enums.Roles
+@model MyCoursesDTO
 @{
     ViewBag.Title = "Ana Sayfa";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<link rel="stylesheet" href="../../Content/css/index-style.css"/>
+<link rel="stylesheet" href="../../Content/css/index-style.css" />
 
 
 <div class="hero-section">
@@ -30,14 +33,14 @@
                     @:Danışman olarak öğrencilerinizin akademik yolculuklarına rehberlik edebilirsiniz.
                     break;
                 default:
-                {
-                    if (userRole == nameof(Roles.Danışman))
                     {
-                        @:Öğrenci portalına hoş geldiniz. Ders seçimi yapabilir ve akademik bilgilerinizi takip edebilirsiniz.
-                    }
+                        if (userRole == nameof(Roles.Danışman))
+                        {
+                            @:Öğrenci portalına hoş geldiniz. Ders seçimi yapabilir ve akademik bilgilerinizi takip edebilirsiniz.
+                        }
 
-                    break;
-                }
+                        break;
+                    }
             }
         </p>
 
@@ -90,6 +93,35 @@
 {
     var claims = User.Identity as ClaimsIdentity;
     var userRole = claims?.FindFirst(claims.RoleClaimType)?.Value;
+
+    if (User.IsInRole(nameof(Roles.Öğrenci)))
+    {
+        <div class="row mb-3">
+            <div class="col-12 text-center">
+                <h2 class="section-title">Ders Programı</h2>
+                <p class="section-subtitle">Haftalık ders programınız.</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                @{
+                    var studentScheduleData = Model;
+                }
+
+                @if (studentScheduleData != null && studentScheduleData.Courses.Any(c => c.ApprovalStatus == (int)ApprovalStatus.Onaylandı))
+                {
+                    @Html.Partial("_StudentSchedule", studentScheduleData)
+                }
+                else
+                {
+                    <div class="alert alert-info text-center">
+                        <i class="bi bi-info-circle me-2"></i>Görüntülenecek onaylanmış dersiniz bulunmamaktadır.
+                    </div>
+                }
+            </div>
+        </div>
+    }
     <div class="row mb-5">
         <div class="col-12 text-center">
             <h2 class="section-title">Sistem Durumu</h2>
@@ -183,6 +215,7 @@
         }
         else if (userRole == nameof(Roles.Öğrenci) || User.IsInRole("Öğrenci"))
         {
+
             <div class="col-lg-4 col-md-6">
                 <div class="card metric-card fade-in-up animation-delay-1">
                     <div class="metric-icon" style="background: linear-gradient(135deg, #3498db, #2980b9);">
@@ -298,11 +331,13 @@
                     <div class="action-description">Kayıtlı derslerinizi görün</div>
                 </a>
             </div>
+
         }
     </div>
 }
 
 @section Scripts {
+    @Scripts.Render("~/bundles/schedule")
     <script>
         class DashboardManager {
             constructor() {

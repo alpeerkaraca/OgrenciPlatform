@@ -206,7 +206,7 @@
                 function() {
                     if (departmentIdToDelete) {
                         var apiUrl = encodeURIComponent(`api/departments/delete/${departmentIdToDelete}`);
-                        fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`,
+                        fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`,
                                 {
                                     method: 'POST',
                                     headers: {
@@ -263,6 +263,14 @@
                     isValid = false;
                 }
 
+                // Enable/disable save button based on validation
+                saveDepartmentBtn.disabled = !isValid;
+                if (!isValid) {
+                    saveDepartmentBtn.classList.add('button-disabled');
+                } else {
+                    saveDepartmentBtn.classList.remove('button-disabled');
+                }
+
                 return isValid;
             }
 
@@ -270,6 +278,18 @@
                 document.getElementById(fieldId).classList.add('is-invalid');
                 document.getElementById(errorId).textContent = message;
             }
+
+            // Add real-time validation
+            const departmentCodeInput = document.getElementById('departmentCode');
+            const departmentNameInput = document.getElementById('departmentName');
+            
+            [departmentCodeInput, departmentNameInput].forEach(input => {
+                input.addEventListener('input', validateDepartmentForm);
+                input.addEventListener('change', validateDepartmentForm);
+            });
+
+            // Initial validation
+            validateDepartmentForm();
 
             // Save department
             saveDepartmentBtn.addEventListener('click',
@@ -287,7 +307,7 @@
                             DepartmentName: formData.get('DepartmentName').trim()
                         };
                         const apiUrl = encodeURIComponent('api/departments/add');
-                        const response = await fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`,
+                        const response = await fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`,
                             {
                                 method: 'POST',
                                 headers: {
@@ -299,7 +319,7 @@
 
                         const result = await response.json();
 
-                        if (response.ok) {
+                        if (result.success) {
                             addDepartmentModal.hide();
                             addDepartmentForm.reset();
                             showFeedbackModal('success',

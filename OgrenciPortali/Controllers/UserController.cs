@@ -138,14 +138,12 @@ namespace OgrenciPortali.Controllers
 
             if (response.IsSuccessStatusCode)
             {
-                TempData["SuccessMessage"] = "Şifreniz başarıyla değiştirildi.";
-                return RedirectToAction("Index", "Home");
+                return Json(new { success = true, message = "Şifreniz başarıyla değiştirildi." });
             }
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                ModelState.AddModelError("", "Mevcut şifre yanlış.");
-                return View(model);
+                return Json(new { success = false, message = "Mevcut şifre yanlış." });
             }
 
             ModelState.AddModelError("",
@@ -169,7 +167,7 @@ namespace OgrenciPortali.Controllers
         [CustomAuth]
         public ActionResult DismissPasswordReminder()
         {
-            TempData["PasswordChangeReminder"] = "dismissed";
+            // Password reminder dismissed
             return Json(new { success = true });
         }
 
@@ -209,7 +207,7 @@ namespace OgrenciPortali.Controllers
         /// Yeni kullanıcı kayıt işlemini gerçekleştirir
         /// </summary>
         [HttpPost]
-        //[ValidateAntiForgeryToken]
+        [ValidateAntiForgeryToken]
         [CustomAuth(Roles.Admin)]
         public async Task<ActionResult> Register(RegisterViewModel viewModel)
         {
@@ -232,14 +230,10 @@ namespace OgrenciPortali.Controllers
 
             if (response.IsSuccessStatusCode)
             {
-                TempData["SuccessMessage"] = "Kullanıcı başarıyla kaydedildi.";
-                return RedirectToAction("List", "User");
+                return Json(new { success = true, message = "Kullanıcı başarıyla kaydedildi." });
             }
 
-            ModelState.AddModelError("",
-                "Kullanıcı kaydı sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
-            viewModel = await FillModel(viewModel);
-            return View(viewModel);
+            return Json(new { success = false, message = "Kullanıcı kaydı sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin." });
         }
 
         /// <summary>
@@ -285,7 +279,7 @@ namespace OgrenciPortali.Controllers
                 }
 
                 Session.Clear();
-                TempData.Clear();
+                // Session cleared
                 if (Request.Cookies["AuthToken"] != null)
                 {
                     var cookie = new HttpCookie("AuthToken", "")

@@ -292,7 +292,7 @@
                     OfferedCourseIds: offeredCourseIds,
                     NewStatus: newStatus
                 };
-                const apiUrl = "api/advisor/update-approval-status";
+                const apiUrl = encodeURIComponent("api/advisor/update-approval-status");
                 const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
                 try {
 
