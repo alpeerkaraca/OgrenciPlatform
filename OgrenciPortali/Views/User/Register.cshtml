@@ -70,23 +70,9 @@
                     </h4>
                 </div>
                 <div class="card-body d-flex align-content-center justify-content-center">
-
-                    @{
-                        var claim = User.Identity as ClaimsIdentity;
-                    }
-
-                    @if (TempData["SuccessMessage"] != null)
+                    @using (Html.BeginForm("Register", "User", FormMethod.Post, new { @class = "needs-validation", id = "register-form" }))
                     {
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    }
-
-
-                    @using (Html.BeginForm("Register", "User", FormMethod.Post, new { @class = "needs-validation" }))
-                    {
-                        @*@Html.AntiForgeryToken()*@
+                        @Html.AntiForgeryToken()
                         @Html.ValidationSummary(false, "", new { @class = "text-danger" })
                         <div class="row" id="form-area">
 
@@ -150,6 +136,12 @@
                                 </label>
                                 @Html.EditorFor(m => m.StudentNo, new { htmlAttributes = new { @class = "form-control", id = "student-no" } })
                             </div>
+                            <div class=" col mb-3" id="student-year-container" style="display: none;">
+                                <label for="@Model.StudentYear" class="form-label">
+                                    <i class="bi bi-calendar me-1"></i> Öğrenci Sınıfı
+                                </label>
+                                @Html.EditorFor(m => m.StudentYear, new { htmlAttributes = new { @class = "form-control", id = "student-year", placeholder = "Yatay geçiş değilse boş bırakabilirsiniz.", min = 1, max = 5 } })
+                            </div>
 
                             <div class="d-grid gap-2">
                                 <button type="submit" class="btn btn-primary">
@@ -176,19 +168,25 @@
                 var studentNoContainer = document.querySelector('#student-no-container');
                 var departmentContainer = document.querySelector('#department-container');
                 var advisorContainer = document.querySelector('#advisor-container');
+                var studentYearContainer = document.querySelector('#student-year-container');
+
 
                 function handleRoleChange() {
                     var selectedValue = roleSelect.value;
                     var studentNoInput = studentNoContainer.querySelector('input');
                     var departmentSelect = departmentContainer.querySelector('select');
                     var advisorSelect = advisorContainer.querySelector('select');
+                    var studentYearInput = studentYearContainer.querySelector('input');
+
 
                     studentNoContainer.style.display = 'none';
                     studentNoInput.required = false;
                     departmentContainer.style.display = 'none';
                     departmentSelect.required = false;
-                    advisorSelect.required = false;
                     advisorContainer.style.display = 'none';
+                    advisorSelect.required = false;
+                    studentYearContainer.style.display = 'none';
+                    studentYearInput.required = false;
 
                     if (selectedValue === '3') { // Öğrenci
                         departmentContainer.style.display = 'block';
@@ -197,6 +195,8 @@
                         studentNoInput.required = true;
                         advisorContainer.style.display = 'block';
                         advisorSelect.required = true;
+                        studentYearContainer.style.display = 'block';
+                        studentYearInput.required = false;
                     } else if (selectedValue === '2') { // Danışman
                         departmentContainer.style.display = 'block';
                         departmentSelect.required = true;
@@ -269,6 +269,44 @@
 
                         }
                     });
+            });
+        var $form = $('#register-form');
+
+        function getFormData($form) {
+            var unindexed_array = $form.serializeArray();
+            var indexed_array = {};
+
+            $.map(unindexed_array,
+                function(n, i) {
+                    indexed_array[n['name']] = n['value'];
+                });
+
+            return indexed_array;
+        }
+
+        $form.on('submit',
+            async function(e) {
+                e.preventDefault();
+                const formData = getFormData($form);
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                var apiUrl = encodeURIComponent('api/user/register');
+                var response = await fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify(formData)
+            });
+                if (response.ok) {
+                    const res = await response.json();
+                    showFeedbackModal("success", "Kullanıcı Eklendi", res.Message);
+                    $form.reset();
+                } else {
+                    const errorRes = await response.json();
+                    showFeedbackModal("error", "Kullanıcı Eklerken Hata", errorRes.Message || "Beklenmedik bir hata oluştu.");
+                }
             });
     </script>
 }

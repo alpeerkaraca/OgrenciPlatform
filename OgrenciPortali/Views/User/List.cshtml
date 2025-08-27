@@ -15,12 +15,12 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
-        .user-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
+    .user-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
 
-    .user-avatar {
+    .list-user-avatar {
         width: 60px;
         height: 60px;
         border-radius: 50%;
@@ -55,9 +55,7 @@
         margin-top: 1.5rem;
     }
 
-    .stats-item {
-        text-align: center;
-    }
+    .stats-item { text-align: center; }
 
     .stats-number {
         font-size: 2.5rem;
@@ -70,9 +68,7 @@
         opacity: 0.9;
     }
 
-    .filter-section {
-        margin-bottom: 2rem;
-    }
+    .filter-section { margin-bottom: 2rem; }
 
     .filter-btn {
         background: transparent;
@@ -85,15 +81,13 @@
         transition: all 0.3s ease;
     }
 
-        .filter-btn.active {
-            background: #667eea;
-            border-color: #667eea;
-            color: white;
-        }
+    .filter-btn.active {
+        background: #667eea;
+        border-color: #667eea;
+        color: white;
+    }
 
-        .filter-btn:hover {
-            transform: translateY(-1px);
-        }
+    .filter-btn:hover { transform: translateY(-1px); }
 
     .search-box {
         border-radius: 25px;
@@ -103,16 +97,14 @@
         transition: all 0.3s ease;
     }
 
-        .search-box:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-        }
-
-    .user-info {
-        padding: 1.25rem;
+    .search-box:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
     }
 
-    .user-name {
+    .list-user-info { padding: 1.25rem; height: 100% }
+
+    .list-user-name {
         font-size: 1.1rem;
         font-weight: bold;
         color: #495057;
@@ -142,11 +134,11 @@
         color: #6c757d;
     }
 
-        .no-users i {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
+    .no-users i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
 </style>
 
 <div class="container-fluid">
@@ -226,19 +218,19 @@
 
                 <div class="col-xl-4 col-lg-6 mb-4 user-item" data-filter="@filterClass" data-search="@user.FullName.ToLower() @user.Email.ToLower() @user.StudentNo">
                     <div class="card user-card h-100">
-                        <div class="user-info position-relative">
+                        <div class="list-user-info position-relative">
                             <span class="badge bg-@roleBadgeClass role-badge">@user.Role.ToString()</span>
 
                             <div class="text-center">
-                                <div class="user-avatar mx-auto">
+                                <div class="list-user-avatar mx-auto">
                                     @user.FullName.Substring(0, Math.Min(2, user.FullName.Length)).ToUpper()
                                 </div>
                             </div>
 
-                            <div class="user-name text-center">@user.FullName</div>
+                            <div class="list-user-name text-center">@user.FullName</div>
                             <div class="user-email text-center">@user.Email</div>
 
-                            <div class="user-details">
+                            <div class="user-details h-100">
                                 @if (!string.IsNullOrEmpty(user.StudentNo))
                                 {
                                     <div class="d-flex justify-content-between mb-2">
@@ -259,7 +251,7 @@
                                 </div>
                                 @if (user.IsFirstLogin)
                                 {
-                                    <div class="text-center">
+                                    <div class="text-center justify-content-center">
                                         <span class="badge bg-warning text-dark">
                                             <i class="bi bi-exclamation-triangle me-1"></i>İlk Giriş Bekliyor
                                         </span>
@@ -302,7 +294,7 @@
     }
 </div>
 
-<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true" style="z-index: 2000">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
@@ -318,7 +310,7 @@
                     <strong>Uyarı:</strong> Bu işlem geri alınamaz!
                 </div>
                 <p class="mb-0">
-                    <strong>Kullanıcı:</strong> <span id="userNameToDelete"></span>
+                    <strong>Kullanıcı:</strong> <span class="fw-bold" id="userNameToDelete"></span>
                 </p>
             </div>
             <div class="modal-footer">
@@ -329,12 +321,13 @@
             </div>
         </div>
     </div>
+    @Html.AntiForgeryToken()
 </div>
 
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded',
-            function () {
+            function() {
                 initializeFiltering();
                 initializeSearch();
                 initializeDeleteModal();
@@ -346,7 +339,7 @@
 
             filterButtons.forEach(button => {
                 button.addEventListener('click',
-                    function () {
+                    function() {
                         const filter = this.dataset.filter;
 
                         filterButtons.forEach(btn => btn.classList.remove('active'));
@@ -375,7 +368,7 @@
             const userItems = document.querySelectorAll('.user-item');
 
             searchInput.addEventListener('input',
-                function () {
+                function() {
                     const searchTerm = this.value.toLowerCase();
 
                     userItems.forEach(item => {
@@ -399,24 +392,26 @@
 
             deleteButtons.forEach(button => {
                 button.addEventListener('click',
-                    function () {
+                    function() {
                         userIdToDelete = this.dataset.userId;
                         const userName = this.dataset.userName;
-                        userNameSpan.textContent = userName;
+                        userNameSpan.innerHTML = userName;
                         deleteModal.show();
                     });
             });
 
             confirmDeleteBtn.addEventListener('click',
-                function () {
+                function() {
+                    var apiUrl = encodeURIComponent(`api/user/delete/${userIdToDelete}`);
+                    var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
                     if (userIdToDelete) {
-                        fetch(`http://localhost:8000/api/user/delete/${userIdToDelete}`,
-                            {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' }
+                        fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`,
+                                {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token }
 
-                            }
-                        )
+                                }
+                            )
                             .then(resp => {
                                 if (resp.ok) {
                                     deleteModal.hide();
@@ -431,17 +426,17 @@
 
         const style = document.createElement('style');
         style.textContent = `
-                        @@keyframes fadeInUp {
-                            from {
-                                opacity: 0;
-                                transform: translateY(20px);
+                            @@keyframes fadeInUp {
+                                from {
+                                    opacity: 0;
+                                    transform: translateY(20px);
+                                }
+                                to {
+                                    opacity: 1;
+                                    transform: translateY(0);
+                                }
                             }
-                            to {
-                                opacity: 1;
-                                transform: translateY(0);
-                            }
-                        }
-                    `;
+                        `;
         document.head.appendChild(style);
     </script>
 }

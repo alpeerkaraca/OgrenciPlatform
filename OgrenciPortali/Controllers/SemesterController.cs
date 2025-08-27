@@ -19,8 +19,8 @@ namespace OgrenciPortali.Controllers
     [CustomAuth(Roles.Admin)]
     public class SemesterController : Controller
     {
-        private ApiClient _apiClient;
-        private IMapper _mapper;
+        private readonly ApiClient _apiClient;
+        private readonly IMapper _mapper;
 
         public SemesterController(ApiClient apiClient, IMapper mapper)
         {
@@ -88,13 +88,11 @@ namespace OgrenciPortali.Controllers
             var response = await _apiClient.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                TempData["SuccessMessage"] = "Dönem başarıyla eklendi.";
-                return RedirectToAction("List", "Semester");
+                return Json(new { success = true, message = "Dönem başarıyla eklendi." });
             }
             else
             {
-                ModelState.AddModelError("", @"Dönem eklenirken bir hata oluştu.");
-                return View(viewModel);
+                return Json(new { success = false, message = "Dönem eklenirken bir hata oluştu." });
             }
         }
 
@@ -136,13 +134,11 @@ namespace OgrenciPortali.Controllers
             var response = await _apiClient.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                TempData["SuccessMessage"] = "Dönem başarıyla güncellendi.";
-                return RedirectToAction("List", "Semester");
+                return Json(new { success = true, message = "Dönem başarıyla güncellendi." });
             }
             else
             {
-                ModelState.AddModelError("", @"Dönem güncellenirken bir hata oluştu.");
-                return View(viewModel);
+                return Json(new { success = false, message = "Dönem güncellenirken bir hata oluştu." });
             }
         }
     }

@@ -23,27 +23,24 @@
                     </h4>
                 </div>
                 <div class="card-body d-flex align-content-center justify-content-center">
-                    @if (TempData["SuccessMessage"] != null)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    }
 
-                    @using (Html.BeginForm("Add", "Semester", FormMethod.Post, new { @class = "needs-validation", novalidate = "novalidate", id = "semesterForm" }))
+
+                    @using (Html.BeginForm("Add", "Semester", FormMethod.Post, new { @class = "needs-validation", novalidate = "novalidate", id = "add-form" }))
                     {
-                        @*@Html.AntiForgeryToken()*@
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(false, "", new { @class = "text-danger", required = true })
                         @Html.HiddenFor(model => model.IsActive)
                         <div class="row" id="form-area">
 
-                            <div class=" col-md-6 col-12 mb-3">
-                                <label for="@Model.SemesterName" class="form-label">
+                            <div class="col-md-6 col-12 mb-3">
+                                <label for="SemesterName" class="form-label">
                                     <i class="bi bi-tag me-1"></i>Dönem Adı
-                                </label> @Html.EditorFor(model => model.SemesterName, new { htmlAttributes = new { @class = "form-control", required = true } })
+                                </label> 
+                                @Html.EditorFor(model => model.SemesterName, new { htmlAttributes = new { @class = "form-control", required = true } })
+                                <div class="invalid-feedback" id="SemesterNameError"></div>
                             </div>
                             <div class="col-md-6 col-12 mb-3">
-                                <label for="@Model.IsActive" class="form-label">
+                                <label for="IsActive" class="form-label">
                                     <i class="bi bi-calendar me-1"></i>Dönem Aktif Mi?
                                 </label>
                                 <div class="row gap-2">
@@ -51,29 +48,31 @@
                                     <button type="button" id="btnNo" class="btn btn-danger col">Hayır</button>
                                 </div>
                             </div>
-                            <div class=" col-md-6 col-12 mb-3">
-                                <label for="@Model.StartDate" class="form-label">
+                            <div class="col-md-6 col-12 mb-3">
+                                <label for="StartDate" class="form-label">
                                     <i class="bi bi-calendar me-1"></i>Başlangıç Tarihi
                                 </label>
                                 @Html.EditorFor(model => model.StartDate, new { htmlAttributes = new { @class = "form-control", required = true, type = "date" } })
+                                <div class="invalid-feedback" id="StartDateError"></div>
                             </div>
                             <div class="col-md-6 col-12 mb-3">
-                                <label for="@Model.EndDate" class="form-label">
+                                <label for="EndDate" class="form-label">
                                     <i class="bi bi-calendar me-1"></i>Bitiş Tarihi
-                                </label> @Html.EditorFor(model => model.EndDate, new { htmlAttributes = new { @class = "form-control", required = true, type = "date" } })
+                                </label> 
+                                @Html.EditorFor(model => model.EndDate, new { htmlAttributes = new { @class = "form-control", required = true, type = "date" } })
+                                <div class="invalid-feedback" id="EndDateError"></div>
                             </div>
 
                             <div class="col-12 mb-3">
                                 <div id="dateError" class="text-danger"></div>
                             </div>
 
-
                             <div class="d-grid gap-2">
-                                <button class="btn btn-primary" type="submit">
+                                <button class="btn btn-primary" type="submit" id="addSemesterBtn">
                                     <i class="bi bi-check-lg me-2"></i>Dönem Ekle
                                 </button>
-                                <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">
-                                    <i class="bi bi-arrow-left me-2"></i>Ana Sayfaya Dön
+                                <a href="@Url.Action("List", "Semester")" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left me-2"></i>Listeye Geri Dön
                                 </a>
                             </div>
                         </div>
@@ -86,105 +85,189 @@
 
 @section scripts
 {
-    <script src="~/Scripts/jquery-3.7.1.min.js"></script>
     <script>
-        $(document).ready(function() {
+        document.addEventListener('DOMContentLoaded',
+            function() {
 
-            var isActiveInput = $('#IsActive');
-            var btnYes = $('#btnYes');
-            var btnNo = $('#btnNo');
-            var form = $('#semesterForm');
+                const semesterNameInput = document.getElementById('SemesterName');
+                const startDateInput = document.getElementById('StartDate');
+                const endDateInput = document.getElementById('EndDate');
+                const isActiveInput = document.getElementById('IsActive');
+                const btnYes = document.getElementById('btnYes');
+                const btnNo = document.getElementById('btnNo');
+                const addSemesterBtn = document.getElementById('addSemesterBtn');
 
-            function updateActiveButtons() {
-                var isActive = isActiveInput.val().toLowerCase() === 'true';
-                if (isActive) {
-                    btnYes.removeClass('btn-inactive').addClass('btn-success');
-                    btnNo.removeClass('btn-danger').addClass('btn-inactive');
-                } else {
-                    btnNo.removeClass('btn-inactive').addClass('btn-danger');
-                    btnYes.removeClass('btn-success').addClass('btn-inactive');
-                }
-            }
+                const semesterNameError = document.getElementById('SemesterNameError');
+                const startDateError = document.getElementById('StartDateError');
+                const endDateError = document.getElementById('EndDateError');
+                const dateError = document.getElementById('dateError');
 
-            if (isActiveInput.val() !== 'True') {
-                isActiveInput.val('true');
-            }
-            updateActiveButtons();
+                const originalButtonHtml = addSemesterBtn.innerHTML;
 
+                const showError = (input, errorDiv, message) => {
+                    input.classList.add('is-invalid');
+                    errorDiv.textContent = message;
+                };
+                const clearError = (input) => {
+                    input.classList.remove('is-invalid');
+                };
 
-            btnYes.click(function() {
-                isActiveInput.val('true');
-                updateActiveButtons();
-            });
-
-            btnNo.click(function() {
-                isActiveInput.val('false');
-                updateActiveButtons();
-            });
-
-            var startDateInput = $('#StartDate');
-            var endDateInput = $('#EndDate');
-            var dateError = $('#dateError');
-
-            function validateDates() {
-                var startDate = new Date(startDateInput.val());
-                var endDate = new Date(endDateInput.val());
-
-                if (!startDateInput.val() || !endDateInput.val()) {
-                    dateError.text('');
-                    return true;
-                }
-
-                if (startDate > endDate) {
-                    dateError.text('Bitiş tarihi, başlangıç tarihinden önce olamaz.');
-                    return false;
-                } else {
-                    dateError.text('');
-                    return true;
-                }
-            }
-
-            startDateInput.on('change', validateDates);
-            endDateInput.on('change', validateDates);
-
-            form.on('submit',
-                async function(e) {
-                    e.preventDefault();
-                    if (!validateDates()) {
-                        showFeedbackModal("error", "Tarih Hatası", 'Lütfen tarih alanlarını kontrol edin. Bitiş tarihi başlangıçtan önce olamaz.', null, null, null);
-                        return;
+                function updateActiveButtons() {
+                    const isActive = isActiveInput.value === 'true';
+                    if (isActive) {
+                        btnYes.classList.remove('btn-inactive');
+                        btnYes.classList.add('btn-success');
+                        btnNo.classList.remove('btn-danger');
+                        btnNo.classList.add('btn-inactive');
+                    } else {
+                        btnNo.classList.remove('btn-inactive');
+                        btnNo.classList.add('btn-danger');
+                        btnYes.classList.remove('btn-success');
+                        btnYes.classList.add('btn-inactive');
                     }
+                }
 
-                    const formDataArray = $(this).serializeArray();
-                    let formDataObject = {};
-                    $.each(formDataArray,
-                        function(i, field) {
-                            formDataObject[field.name] = field.value;
-                        });
-                    formDataObject.IsActive = (formDataObject.IsActive.toLowerCase() === 'true');
+                if (isActiveInput.value !== 'True') {
+                    isActiveInput.value = 'true';
+                }
+                updateActiveButtons();
 
-                    try {
-                        const response = await fetch('http://localhost:8000/api/semesters/add',
-                            {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${sessionStorage.getItem('bearerToken')}`
-                                },
-                                body: JSON.stringify(formDataObject)
-                            });
-
-                        if (response.ok) {
-                            const result = await response.json();
-                            showFeedbackModal('success', 'Dönem Başarıyla Eklendi', result["Message"]);
-                        } else {
-                            const errorMessage = await response.json();
-                            showFeedbackModal('error', 'Dönem Ekleme Hatası', errorMessage["Message"]);
-                        }
-                    } catch (error) {
-                        showFeedbackModal('error', 'İşlem Hatası', 'Sunucuya bağlanırken bir hata oluştu.');
-                    }
+                btnYes.addEventListener('click', function() {
+                    isActiveInput.value = 'true';
+                    updateActiveButtons();
                 });
-        });
+
+                btnNo.addEventListener('click', function() {
+                    isActiveInput.value = 'false';
+                    updateActiveButtons();
+                });
+
+                function validateDates() {
+                    const startDate = new Date(startDateInput.value);
+                    const endDate = new Date(endDateInput.value);
+
+                    if (!startDateInput.value || !endDateInput.value) {
+                        dateError.textContent = '';
+                        return true;
+                    }
+
+                    if (startDate >= endDate) {
+                        dateError.textContent = 'Bitiş tarihi, başlangıç tarihinden sonra olmalıdır.';
+                        return false;
+                    } else {
+                        dateError.textContent = '';
+                        return true;
+                    }
+                }
+
+                function validateForm() {
+                    let isFormValid = true;
+
+                    const nameValue = semesterNameInput.value.trim();
+                    if (nameValue === '') {
+                        showError(semesterNameInput, semesterNameError, 'Dönem adı boş olamaz.');
+                        isFormValid = false;
+                    } else if (nameValue.length > 100) {
+                        showError(semesterNameInput, semesterNameError, 'Dönem adı en fazla 100 karakter olabilir.');
+                        isFormValid = false;
+                    } else {
+                        clearError(semesterNameInput);
+                    }
+
+                    if (startDateInput.value === '') {
+                        showError(startDateInput, startDateError, 'Başlangıç tarihi gereklidir.');
+                        isFormValid = false;
+                    } else {
+                        clearError(startDateInput);
+                    }
+
+                    if (endDateInput.value === '') {
+                        showError(endDateInput, endDateError, 'Bitiş tarihi gereklidir.');
+                        isFormValid = false;
+                    } else {
+                        clearError(endDateInput);
+                    }
+
+                    if (!validateDates()) {
+                        isFormValid = false;
+                    }
+
+                    addSemesterBtn.disabled = !isFormValid;
+                    if (!isFormValid) {
+                        addSemesterBtn.classList.add('button-disabled');
+                    } else {
+                        addSemesterBtn.classList.remove('button-disabled');
+                    }
+                }
+
+                const inputs = [semesterNameInput, startDateInput, endDateInput];
+                inputs.forEach(input => {
+                    input.addEventListener('input', validateForm);
+                    input.addEventListener('change', validateForm);
+                });
+
+                startDateInput.addEventListener('change', validateDates);
+                endDateInput.addEventListener('change', validateDates);
+
+                validateForm();
+
+                var form = $('#add-form');
+                form.on('submit',
+                    async function(e) {
+                        e.preventDefault();
+                        if (!validateDates()) {
+                            showFeedbackModal("error", "Tarih Hatası", 'Lütfen tarih alanlarını kontrol edin. Bitiş tarihi başlangıçtan önce olamaz.', null, null, null);
+                            return;
+                        }
+                        addSemesterBtn.disabled = true;
+                        addSemesterBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Kaydediliyor...`;
+                        const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                        const apiUrl = encodeURIComponent("api/semesters/add");
+                        if (!csrfToken) {
+                            showFeedbackModal('error', 'Yetkisiz İşlem', 'Sistem işlemi yapan kişiyi doğrulayamıyor. Lütfen tekrar giriş yapınız.');
+                            addSemesterBtn.innerHTML = originalButtonHtml;
+                            validateForm();
+                            return;
+                        }
+                        const formDataArray = $(this).serializeArray();
+                        let formDataObject = {};
+                        $.each(formDataArray,
+                            function(i, field) {
+                                formDataObject[field.name] = field.value;
+                            });
+                        formDataObject.IsActive = (formDataObject.IsActive.toLowerCase() === 'true');
+
+                        try {
+                            const response = await fetch('ApiProxy/Post?apiUrl=' + apiUrl,
+                                {
+                                    method: 'POST',
+                                    headers: {
+                                        'RequestVerificationToken': csrfToken,
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body:
+                                        JSON.stringify(formDataObject)
+                                });
+                                            const res = await response.json();
+                if (res.success) {
+                    form[0].reset();
+                    isActiveInput.value = 'true';
+                    updateActiveButtons();
+                    showFeedbackModal('success', 'İşlem Başarılı', res.message || 'Dönem başarıyla eklendi.', null, null, function() {
+                        window.location.href = '@Url.Action("List", "Semester")';
+                    });
+                } else {
+                    showFeedbackModal('error', 'İşlem Başarısız', res.message || 'Bir hata oluştu.');
+                }
+                        } catch
+                        (e) {
+                            showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya bağlanırken bir hata oluştu.');
+                        } finally {
+                            addSemesterBtn.innerHTML = originalButtonHtml;
+                            validateForm();
+                        }
+
+                    });
+            });
     </script>
 }

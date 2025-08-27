@@ -1,5 +1,9 @@
-﻿using System.Web.Mvc;
-using OgrenciPortali.Attributes;
+﻿using OgrenciPortali.Attributes;
+using OgrenciPortali.Utils;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web.Mvc;
+using Shared.DTO;
 
 namespace OgrenciPortali.Controllers
 {
@@ -8,22 +12,29 @@ namespace OgrenciPortali.Controllers
     /// </summary>
     public class HomeController : BaseController
     {
+        private readonly ApiClient _apiClient;
+
+        public HomeController(ApiClient apiClient)
+        {
+            _apiClient = apiClient;
+        }
 
         /// <summary>
         /// Ana sayfa görünümünü döndürür
         /// </summary>
         [CustomAuth]
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
-            var tokenCookie = Request.Cookies["AuthToken"];
-            var accessToken = string.Empty;
-            if (tokenCookie != null && !string.IsNullOrEmpty(tokenCookie.Value))
-                accessToken = tokenCookie.Value;
-            ViewBag.AccessToken = accessToken;
-            return View();
-        }
+            var request = new HttpRequestMessage(HttpMethod.Get, "api/student/my-courses");
+            var response = await _apiClient.SendAsync(request);
+            var dto = new MyCoursesDTO();
+            if (response.IsSuccessStatusCode)
+            {
+                dto = await response.Content.ReadAsAsync<MyCoursesDTO>();
+            }
 
-        
+            return View(dto);
+        }
 
         /// <summary>
         /// Hakkında sayfası
@@ -42,6 +53,5 @@ namespace OgrenciPortali.Controllers
             ViewBag.Message = "Your contact page.";
             return View();
         }
-
     }
 }

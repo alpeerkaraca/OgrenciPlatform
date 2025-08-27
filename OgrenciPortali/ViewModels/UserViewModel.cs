@@ -29,6 +29,7 @@ namespace OgrenciPortali.ViewModels
         public string Email { get; set; }
         public int Role { get; set; }
         public string Password { get; set; }
+        public int StudentYear { get; set; } = 1;
         public Guid? DepartmentId { get; set; }
         public Guid? AdvisorId { get; set; }
         public string StudentNo { get; set; }
@@ -74,6 +75,7 @@ namespace OgrenciPortali.ViewModels
         public string Email { get; set; }
         public int Role { get; set; }
         public string StudentNo { get; set; }
+        public int StudentYear { get; set; } = 1;
 
         public Guid? DepartmentId { get; set; }
         public Guid? AdvisorId { get; set; }
@@ -89,5 +91,24 @@ namespace OgrenciPortali.ViewModels
     {
         public string Email { get; set; }
         public string Password { get; set; }
+    }
+
+    public class ResetPasswordViewModel
+    {
+        [Required]
+        public string Token { get; set; }
+
+        [Required(ErrorMessage = "Yeni şifre alanı zorunludur.")]
+        [StringLength(100, ErrorMessage = "{0} en az {2} karakter uzunluğunda olmalıdır.", MinimumLength = 6)]
+        [DataType(DataType.Password)]
+        [Display(Name = "Yeni Şifre")]
+        public string NewPassword { get; set; }
+
+        [DataType(DataType.Password)]
+        [Display(Name = "Yeni Şifre (Tekrar)")]
+        [System.ComponentModel.DataAnnotations.Compare("NewPassword", ErrorMessage = "Şifreler uyuşmuyor.")]
+        public string ConfirmPassword { get; set; }
+
+        public string ErrorMessage { get; set; }
     }
 }

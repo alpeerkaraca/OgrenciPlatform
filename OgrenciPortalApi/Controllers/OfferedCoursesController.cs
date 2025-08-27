@@ -45,6 +45,7 @@ namespace OgrenciPortalApi.Controllers
                         EnrolledCount = o.CurrentUserCount,
                         StartTime = o.StartTime,
                         EndTime = o.EndTime,
+                        Classroom = o.Classroom,
                         DayOfWeek = (DaysOfWeek)o.DayOfWeek,
                     }).ToListAsync();
 
@@ -131,7 +132,10 @@ namespace OgrenciPortalApi.Controllers
                     CreatedBy = GetActiveUserIdString(),
                     UpdatedAt = DateTime.Now,
                     UpdatedBy = GetActiveUserIdString(),
-                    CurrentUserCount = 0
+                    CurrentUserCount = 0,
+                    CourseYear = dto.CourseYear,
+                    Classroom = dto.Classroom,
+                    
                 };
 
                 _db.OfferedCourses.Add(offeredCourse);

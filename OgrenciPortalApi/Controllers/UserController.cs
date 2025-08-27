@@ -13,7 +13,11 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
+using System.Web.Http.Results;
 using System.Web.Mvc;
+using MailKit.Net.Smtp;
+using MimeKit;
+using Org.BouncyCastle.Ocsp;
 
 namespace OgrenciPortalApi.Controllers
 {
@@ -118,7 +122,7 @@ namespace OgrenciPortalApi.Controllers
             try
             {
                 if (await _db.Users.AnyAsync(u => u.Email == model.Email && !u.IsDeleted))
-                    return BadRequest("Bu e-posta adresi zaten kayıtlı.");
+                    return BadRequest("Bu e-posta adresi kullanılıyor.");
 
                 if (model.Role == (int)Roles.Öğrenci && !string.IsNullOrEmpty(model.StudentNo) &&
                     await _db.Users.AnyAsync(u => u.StudentNo == model.StudentNo && !u.IsDeleted))
@@ -135,6 +139,7 @@ namespace OgrenciPortalApi.Controllers
                     Email = model.Email,
                     Password = BCrypt.Net.BCrypt.HashPassword(model.Password),
                     Role = model.Role,
+                    StudentYear = model.StudentYear,
                     IsActive = true,
                     IsFirstLogin = true,
                     StudentNo = model.StudentNo,
@@ -297,7 +302,8 @@ namespace OgrenciPortalApi.Controllers
                         u.Email.ToLower() == model.Email.ToLower() && u.UserId != model.UserId))
                     return BadRequest("Bu e-posta adresine sahip bir kullanıcı bulunmakta.");
                 if (await _db.Users.AnyAsync(u =>
-                        u.StudentNo.ToLower() == model.StudentNo.ToLower() && u.UserId != model.UserId))
+                        u.StudentNo.ToLower() == model.StudentNo.ToLower() && u.UserId != model.UserId &&
+                        u.Role == model.Role))
                     return BadRequest("Bu öğrenci numarasına sahip bir öğrenci bulunmakta.");
 
                 var userInDb = await _db.Users.FindAsync(model.UserId);
@@ -355,6 +361,95 @@ namespace OgrenciPortalApi.Controllers
             {
                 Logger.Error($"ID'si {id} olan kullanıcı silinirken hata oluştu.", ex);
                 return InternalServerError(new Exception("Kullanıcı silinirken bir hata oluştu."));
+            }
+        }
+
+        [System.Web.Http.HttpPost]
+        [System.Web.Http.AllowAnonymous]
+        [System.Web.Http.Route("forgot-password")]
+        public async Task<IHttpActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto model)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == model.Email && !u.IsDeleted);
+            if (user != null)
+            {
+                var token = Guid.NewGuid().ToString("N");
+                user.PasswordResetToken = token;
+                user.ResetTokenExpiry = DateTime.UtcNow.AddMinutes(15);
+                await _db.SaveChangesAsync();
+                var resetLink = AppSettings.JwtAudience + "/User/ResetPassword?token=" + token;
+                await SendPasswordResetEmail(user.Email, resetLink);
+            }
+
+            return Ok(new
+            {
+                Message =
+                    "Eğer E-Postanız sistemimizde kayıtlıysa 15 dakika geçerli bir sıfırlama bağlantısı gönderilecektir. Spam kutunuzu kontrol etmeyi unutmayın."
+            });
+        }
+
+        [System.Web.Http.HttpPost]
+        [System.Web.Http.Route("reset-password")]
+        [System.Web.Http.AllowAnonymous]
+        public async Task<IHttpActionResult> ResetPassword([FromBody] ResetPasswordRequestDto model)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.PasswordResetToken == model.Token && !u.IsDeleted);
+
+            if (user == null || user.ResetTokenExpiry <= DateTime.UtcNow)
+                return BadRequest("Geçersiz veya süresi dolmuş bir token kullandınız.");
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+
+            user.PasswordResetToken = null;
+            user.ResetTokenExpiry = null;
+            await _db.SaveChangesAsync();
+
+            return Ok(new { Message = "Şifreniz başarıyla güncellendi." });
+        }
+
+        [System.Web.Http.HttpPost]
+        [System.Web.Http.Route("increase-student-year/{id:guid}")]
+        [System.Web.Http.Authorize(Roles = nameof(Roles.Admin))]
+        public async Task<IHttpActionResult> IncreaseStudentYear(Guid id)
+        {
+            var student = await _db.Users.FindAsync();
+            if (student == null || !student.IsActive)
+                return NotFound();
+            if (student.Role != (int)Roles.Öğrenci)
+                return BadRequest("Kullanıcı bir öğrenci değil.");
+            student.StudentYear++;
+            await _db.SaveChangesAsync();
+            return Ok(new { Message = "Öğrenci sınıfı güncellendi" });
+        }
+
+
+        private async Task SendPasswordResetEmail(string toEmail, string resetLink)
+        {
+            try
+            {
+                var message = new MimeMessage();
+                message.From.Add(new MailboxAddress("Öğrenci Portal", AppSettings.SmtpUser));
+                message.To.Add(new MailboxAddress("", toEmail));
+                message.Subject = "Parola Sıfırlama Talebi";
+                message.Body = new TextPart("html")
+                {
+                    Text =
+                        $"Merhaba,<br/>Parolanızı sıfırlamak için aşağıdaki linke tıklayabilirsiniz:<br/><a href='{resetLink}'>Parolamı Sıfırla</a><br/><br/>Eğer bu talebi siz yapmadıysanız, bu e-postayı görmezden gelebilirsiniz."
+                };
+
+                using (var client = new SmtpClient())
+                {
+                    await client.ConnectAsync(AppSettings.SmtpHost, int.Parse(AppSettings.SmtpPort),
+                        MailKit.Security.SecureSocketOptions.SslOnConnect);
+                    await client.AuthenticateAsync(AppSettings.SmtpUser, AppSettings.SmtpPass);
+                    await client.SendAsync(message);
+                    await client.DisconnectAsync(true);
+                    Logger.Info($"Parola sıfırlama e-postası başarıyla gönderildi: {toEmail}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Mail Gönderimi Sırasında Hata: ", ex);
+                throw;
             }
         }
 

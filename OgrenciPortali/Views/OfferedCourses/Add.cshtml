@@ -7,13 +7,7 @@
 <div class="container">
     <div class=" row justify-content-center align-content-center" style="min-height: 90vh;">
         <div class="col-md-8 col-lg-6">
-            @if (TempData["SuccessMessage"] != null)
-            {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
+
             @if (!ViewData.ModelState.IsValid)
             {
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -22,68 +16,81 @@
                 </div>
             }
             <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="bi bi-plus-square me-2"></i>Döneme Ders Ekle
+                <div class="card-header bg-primary">
+                    <h4 class="mb-0 text-white">
+                        <i class="bi bi-plus-square me-2 text-white"></i>Döneme Ders Ekle
                     </h4>
                 </div>
                 <div class="card-body d-flex align-content-center justify-content-center">
 
 
-                    @using (Html.BeginForm("Add", "OfferedCourses", FormMethod.Post, new { @class = "needs-validation", novalidate = "novalidate" }))
+                    @using (Html.BeginForm("Add", "OfferedCourses", FormMethod.Post, new { @class = "needs-validation", novalidate = "novalidate", id = "add-form" }))
                     {
-                        @*@Html.AntiForgeryToken()*@
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(false, "", new { @class = "text-danger", required = true })
                         <div class="row" id="form-area">
 
                             <div class="col-md-6 col-12 mb-3">
-                                <label for="@Model.CourseId" class="form-label">
+                                <label for="CourseId" class="form-label">
                                     <i class="bi bi-book me-1"></i> Ders
                                 </label>
-                                @Html.DropDownListFor(m => m.CourseId, Model.CourseList, "Ders Seçiniz", new { @class = "form-select", id = "department" })
+                                @Html.DropDownListFor(m => m.CourseId, Model.CourseList, "Ders Seçiniz", new { @class = "form-select", required = true })
+                                <div class="invalid-feedback" id="CourseIdError"></div>
                             </div>
 
                             <div class="col-md-6 col-12 mb-3">
-                                <label for="@Model.SemesterId" class="form-label">
+                                <label for="SemesterId" class="form-label">
                                     <i class="bi bi-calendar me-1"></i> Dönem
                                 </label>
-                                @Html.DropDownListFor(m => m.SemesterId, Model.SemesterList, "Dönem Seçiniz", new { @class = "form-select", id = "department" })
+                                @Html.DropDownListFor(m => m.SemesterId, Model.SemesterList, "Dönem Seçiniz", new { @class = "form-select", required = true })
+                                <div class="invalid-feedback" id="SemesterIdError"></div>
                             </div>
 
                             <div class="col-md-6 col-12 mb-3">
-                                <label for="@Model.SemesterId" class="form-label">
-                                    <i class="bi bi-calendar me-1"></i> Akademisyen
+                                <label for="TeacherId" class="form-label">
+                                    <i class="bi bi-person me-1"></i> Akademisyen
                                 </label>
-                                @Html.DropDownListFor(m => m.TeacherId, Model.AdvisorList, "Akademisyen Seçiniz", new { @class = "form-select", id = "department" })
+                                @Html.DropDownListFor(m => m.TeacherId, Model.AdvisorList, "Akademisyen Seçiniz", new { @class = "form-select", required = true })
+                                <div class="invalid-feedback" id="TeacherIdError"></div>
                             </div>
 
-                            <div class=" col-md-6 col-12 mb-3">
-                                <label for="@Model.Quota" class="form-label">
+                            <div class="col-md-6 col-12 mb-3">
+                                <label for="Quota" class="form-label">
                                     <i class="bi bi-people me-1"></i>Kontenjan
                                 </label>
                                 @Html.EditorFor(model => model.Quota, new { htmlAttributes = new { @class = "form-control", required = true, type = "number" } })
+                                <div class="invalid-feedback" id="QuotaError"></div>
                             </div>
                             <div class="col-md-6 col-12 mb-3">
-                                <label for="@Model.DayOfWeek" class="form-label">
+                                <label for="DayOfWeek" class="form-label">
                                     <i class="bi bi-calendar-week me-1"></i> Ders Günü
                                 </label>
-                                @Html.DropDownListFor(m => m.DayOfWeek, Model.DaysList, "Gün Seçiniz", new { @class = "form-select", id = "department" })
+                                @Html.DropDownListFor(m => m.DayOfWeek, Model.DaysList, "Gün Seçiniz", new { @class = "form-select", required = true })
+                                <div class="invalid-feedback" id="DayOfWeekError"></div>
                             </div>
 
                             <div class="col-md-6 col-12 mb-3">
-                                <label for="@Model.StartTime" class="form-label">
+                                <label for="StartTime" class="form-label">
                                     <i class="bi bi-clock me-1"></i>Başlangıç Saati
-                                </label> @Html.EditorFor(model => model.StartTime, new { htmlAttributes = new { @class = "form-control", required = true, type = "time", step = 1 } })
+                                </label> 
+                                @Html.EditorFor(model => model.StartTime, new { htmlAttributes = new { @class = "form-control", required = true, type = "time", step = 1 } })
+                                <div class="invalid-feedback" id="StartTimeError"></div>
                             </div>
 
-
                             <div class="col-md-6 col-12 mb-3">
-                                <label for="@Model.EndTime" class="form-label">
+                                <label for="EndTime" class="form-label">
                                     <i class="bi bi-clock me-1"></i>Bitiş Saati
-                                </label> @Html.EditorFor(model => model.EndTime, new { htmlAttributes = new { @class = "form-control", required = true, type = "time", step = 1 } })
+                                </label> 
+                                @Html.EditorFor(model => model.EndTime, new { htmlAttributes = new { @class = "form-control", required = true, type = "time", step = 1 } })
+                                <div class="invalid-feedback" id="EndTimeError"></div>
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <div id="timeError" class="text-danger"></div>
                             </div>
 
                             <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary ">
+                                <button type="submit" class="btn btn-primary" id="addOfferedCourseBtn">
                                     <i class="bi bi-check-lg me-2"></i>Döneme Ders Ekle
                                 </button>
                                 <a href="@Url.Action("List", "OfferedCourses")" class="btn btn-secondary">
@@ -97,3 +104,208 @@
         </div>
     </div>
 </div>
+
+@section scripts
+{
+    <script>
+        document.addEventListener('DOMContentLoaded',
+            function() {
+
+                const courseIdSelect = document.getElementById('CourseId');
+                const semesterIdSelect = document.getElementById('SemesterId');
+                const teacherIdSelect = document.getElementById('TeacherId');
+                const quotaInput = document.getElementById('Quota');
+                const dayOfWeekSelect = document.getElementById('DayOfWeek');
+                const startTimeInput = document.getElementById('StartTime');
+                const endTimeInput = document.getElementById('EndTime');
+                const addOfferedCourseBtn = document.getElementById('addOfferedCourseBtn');
+
+                const courseIdError = document.getElementById('CourseIdError');
+                const semesterIdError = document.getElementById('SemesterIdError');
+                const teacherIdError = document.getElementById('TeacherIdError');
+                const quotaError = document.getElementById('QuotaError');
+                const dayOfWeekError = document.getElementById('DayOfWeekError');
+                const startTimeError = document.getElementById('StartTimeError');
+                const endTimeError = document.getElementById('EndTimeError');
+                const timeError = document.getElementById('timeError');
+
+                const originalButtonHtml = addOfferedCourseBtn.innerHTML;
+
+                const showError = (input, errorDiv, message) => {
+                    input.classList.add('is-invalid');
+                    errorDiv.textContent = message;
+                };
+                const clearError = (input) => {
+                    input.classList.remove('is-invalid');
+                };
+
+                function validateTimes() {
+                    const startTime = startTimeInput.value;
+                    const endTime = endTimeInput.value;
+
+                    if (!startTime || !endTime) {
+                        timeError.textContent = '';
+                        return true;
+                    }
+
+                    if (startTime >= endTime) {
+                        timeError.textContent = 'Bitiş saati, başlangıç saatinden sonra olmalıdır.';
+                        return false;
+                    } else {
+                        timeError.textContent = '';
+                        return true;
+                    }
+                }
+
+                function validateForm() {
+                    let isFormValid = true;
+
+                    if (courseIdSelect.value === '') {
+                        showError(courseIdSelect, courseIdError, 'Ders seçimi gereklidir.');
+                        isFormValid = false;
+                    } else {
+                        clearError(courseIdSelect);
+                    }
+
+                    if (semesterIdSelect.value === '') {
+                        showError(semesterIdSelect, semesterIdError, 'Dönem seçimi gereklidir.');
+                        isFormValid = false;
+                    } else {
+                        clearError(semesterIdSelect);
+                    }
+
+                    if (teacherIdSelect.value === '') {
+                        showError(teacherIdSelect, teacherIdError, 'Akademisyen seçimi gereklidir.');
+                        isFormValid = false;
+                    } else {
+                        clearError(teacherIdSelect);
+                    }
+
+                    const quotaValue = quotaInput.value;
+                    if (quotaValue === '') {
+                        showError(quotaInput, quotaError, 'Kontenjan alanı boş olamaz.');
+                        isFormValid = false;
+                    } else {
+                        const quotaNum = parseInt(quotaValue);
+                        if (isNaN(quotaNum) || quotaNum <= 0 || quotaNum > 200) {
+                            showError(quotaInput, quotaError, 'Kontenjan 1 ile 200 arasında bir sayı olmalıdır.');
+                            isFormValid = false;
+                        } else {
+                            clearError(quotaInput);
+                        }
+                    }
+
+                    if (dayOfWeekSelect.value === '') {
+                        showError(dayOfWeekSelect, dayOfWeekError, 'Ders günü seçimi gereklidir.');
+                        isFormValid = false;
+                    } else {
+                        clearError(dayOfWeekSelect);
+                    }
+
+                    if (startTimeInput.value === '') {
+                        showError(startTimeInput, startTimeError, 'Başlangıç saati gereklidir.');
+                        isFormValid = false;
+                    } else {
+                        clearError(startTimeInput);
+                    }
+
+                    if (endTimeInput.value === '') {
+                        showError(endTimeInput, endTimeError, 'Bitiş saati gereklidir.');
+                        isFormValid = false;
+                    } else {
+                        clearError(endTimeInput);
+                    }
+
+                    if (!validateTimes()) {
+                        isFormValid = false;
+                    }
+
+                    addOfferedCourseBtn.disabled = !isFormValid;
+                    if (!isFormValid) {
+                        addOfferedCourseBtn.classList.add('button-disabled');
+                    } else {
+                        addOfferedCourseBtn.classList.remove('button-disabled');
+                    }
+                }
+
+                const inputs = [courseIdSelect, semesterIdSelect, teacherIdSelect, quotaInput, dayOfWeekSelect, startTimeInput, endTimeInput];
+                inputs.forEach(input => {
+                    input.addEventListener('input', validateForm);
+                    input.addEventListener('change', validateForm);
+                });
+
+                startTimeInput.addEventListener('change', validateTimes);
+                endTimeInput.addEventListener('change', validateTimes);
+
+                validateForm();
+
+                var form = $('#add-form');
+                form.on('submit',
+                    async function(e) {
+                        e.preventDefault();
+                        if (!validateTimes()) {
+                            return;
+                        }
+                        addOfferedCourseBtn.disabled = true;
+                        addOfferedCourseBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Kaydediliyor...`;
+                        const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                        const apiUrl = encodeURIComponent("api/offered/add");
+                        if (!csrfToken) {
+                            showFeedbackModal('error', 'Yetkisiz İşlem', 'Sistem işlemi yapan kişiyi doğrulayamıyor. Lütfen tekrar giriş yapınız.');
+                            addOfferedCourseBtn.innerHTML = originalButtonHtml;
+                            validateForm();
+                            return;
+                        }
+                        const formDataArray = $(this).serializeArray();
+                        let formDataObject = {};
+                        $.each(formDataArray,
+                            function(i, field) {
+                                formDataObject[field.name] = field.value;
+                            });
+
+                        // Convert time format and day of week
+                        if (formDataObject.StartTime) {
+                            formDataObject.StartTime = formDataObject.StartTime + ':00';
+                        }
+                        if (formDataObject.EndTime) {
+                            formDataObject.EndTime = formDataObject.EndTime + ':00';
+                        }
+                        if (formDataObject.DayOfWeek) {
+                            formDataObject.DayOfWeek = parseInt(formDataObject.DayOfWeek);
+                        }
+                        if (formDataObject.Quota) {
+                            formDataObject.Quota = parseInt(formDataObject.Quota);
+                        }
+
+                        try {
+                            const response = await fetch('ApiProxy/Post?apiUrl=' + apiUrl,
+                                {
+                                    method: 'POST',
+                                    headers: {
+                                        'RequestVerificationToken': csrfToken,
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body:
+                                        JSON.stringify(formDataObject)
+                                });
+                                            const res = await response.json();
+                if (res.success) {
+                    form[0].reset();
+                    showFeedbackModal('success', 'İşlem Başarılı', res.message || 'Ders başarıyla eklendi.', null, null, function() {
+                        window.location.href = '@Url.Action("List", "OfferedCourses")';
+                    });
+                } else {
+                    showFeedbackModal('error', 'İşlem Başarısız', res.message || 'Bir hata oluştu.');
+                }
+                        } catch
+                        (e) {
+                            showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya bağlanırken bir hata oluştu.');
+                        } finally {
+                            addOfferedCourseBtn.innerHTML = originalButtonHtml;
+                            validateForm();
+                        }
+
+                    });
+            });
+    </script>
+}

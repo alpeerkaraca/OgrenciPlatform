@@ -1,20 +1,23 @@
-﻿using Newtonsoft.Json;
+﻿using AutoMapper;
+using Azure;
+using log4net;
+using Newtonsoft.Json;
 using OgrenciPortali.Attributes;
+using OgrenciPortali.Utils;
 using OgrenciPortali.ViewModels;
 using Shared.DTO;
 using Shared.Enums;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.Remoting.Messaging;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using AutoMapper;
-using log4net;
-using OgrenciPortali.Utils;
 
 namespace OgrenciPortali.Controllers
 {
@@ -73,9 +76,11 @@ namespace OgrenciPortali.Controllers
                 var result = await response.Content.ReadAsAsync<LoginSuccessResponse>();
                 if (result == null || string.IsNullOrEmpty(result.Token))
                 {
-                    ModelState.AddModelError("", "Giriş işlemi başarısız oldu. Lütfen bilgilerinizi kontrol edin ve tekrar deneyin.");
+                    ModelState.AddModelError("",
+                        "Giriş işlemi başarısız oldu. Lütfen bilgilerinizi kontrol edin ve tekrar deneyin.");
                     return View(viewModel);
                 }
+
                 var userCookie = new HttpCookie("AuthToken", result.Token)
                 {
                     HttpOnly = true,
@@ -133,14 +138,12 @@ namespace OgrenciPortali.Controllers
 
             if (response.IsSuccessStatusCode)
             {
-                TempData["SuccessMessage"] = "Şifreniz başarıyla değiştirildi.";
-                return RedirectToAction("Index", "Home");
+                return Json(new { success = true, message = "Şifreniz başarıyla değiştirildi." });
             }
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                ModelState.AddModelError("", "Mevcut şifre yanlış.");
-                return View(model);
+                return Json(new { success = false, message = "Mevcut şifre yanlış." });
             }
 
             ModelState.AddModelError("",
@@ -164,7 +167,7 @@ namespace OgrenciPortali.Controllers
         [CustomAuth]
         public ActionResult DismissPasswordReminder()
         {
-            TempData["PasswordChangeReminder"] = "dismissed";
+            // Password reminder dismissed
             return Json(new { success = true });
         }
 
@@ -204,7 +207,7 @@ namespace OgrenciPortali.Controllers
         /// Yeni kullanıcı kayıt işlemini gerçekleştirir
         /// </summary>
         [HttpPost]
-        //[ValidateAntiForgeryToken]
+        [ValidateAntiForgeryToken]
         [CustomAuth(Roles.Admin)]
         public async Task<ActionResult> Register(RegisterViewModel viewModel)
         {
@@ -227,14 +230,10 @@ namespace OgrenciPortali.Controllers
 
             if (response.IsSuccessStatusCode)
             {
-                TempData["SuccessMessage"] = "Kullanıcı başarıyla kaydedildi.";
-                return RedirectToAction("List", "User");
+                return Json(new { success = true, message = "Kullanıcı başarıyla kaydedildi." });
             }
 
-            ModelState.AddModelError("",
-                "Kullanıcı kaydı sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
-            viewModel = await FillModel(viewModel);
-            return View(viewModel);
+            return Json(new { success = false, message = "Kullanıcı kaydı sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin." });
         }
 
         /// <summary>
@@ -280,7 +279,7 @@ namespace OgrenciPortali.Controllers
                 }
 
                 Session.Clear();
-                TempData.Clear();
+                // Session cleared
                 if (Request.Cookies["AuthToken"] != null)
                 {
                     var cookie = new HttpCookie("AuthToken", "")
@@ -363,6 +362,66 @@ namespace OgrenciPortali.Controllers
 
             viewModel = await FillModel(viewModel);
             return View(viewModel);
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult> ResetPassword(string token)
+        {
+            var model = new ResetPasswordViewModel();
+            if (string.IsNullOrEmpty(token))
+            {
+                model.ErrorMessage = "Geçersiz şifre sıfırlama bağlantısı. Anasayfaya yönlendiriliyorsunuz.";
+                return RedirectToAction("Login");
+            }
+
+            model.Token = token;
+            return View(model);
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateJsonAntiForgeryToken]
+        public async Task<JsonResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errorMessages = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                Response.StatusCode = 400;
+                return Json(new { success = false, message = string.Join(" ", errorMessages) });
+            }
+
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Post, "api/user/reset-password")
+                {
+                    Content = new StringContent(
+                        JsonConvert.SerializeObject(new ResetPasswordRequestDto
+                            { NewPassword = model.NewPassword, Token = model.Token }), Encoding.UTF8,
+                        "application/json"),
+                };
+
+                var res = await _apiClient.SendAsync(request);
+                if (res.IsSuccessStatusCode)
+                {
+                    return Json(new { success = true });
+                }
+                else
+                {
+                    var errorResponse = await res.Content.ReadAsAsync<dynamic>();
+                    Response.StatusCode = (int)res.StatusCode;
+                    return Json(new
+                    {
+                        success = false, message = errorResponse?.Message ?? "Şifre sıfırlanırken bir hata oluştu."
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Parola sıfırlarken hata: ", ex);
+                Response.StatusCode = 500;
+                return Json(new { success = false, message = "Sunucuda beklenmedik bir hata oluştu." });
+            }
         }
 
         private async Task<RegisterViewModel> FillModel(RegisterViewModel viewModel)

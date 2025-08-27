@@ -36,6 +36,8 @@ namespace OgrenciPortalApi.Models
         public Nullable<System.DateTime> DeletedAt { get; set; }
         public string DeletedBy { get; set; }
         public int CurrentUserCount { get; set; }
+        public int CourseYear { get; set; }
+        public string Classroom { get; set; }
     
         public virtual Courses Courses { get; set; }
         public virtual Semesters Semesters { get; set; }

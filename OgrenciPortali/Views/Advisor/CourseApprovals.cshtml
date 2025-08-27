@@ -301,8 +301,7 @@
     </div>
 </div>
 
-@* Antiforgery Token (Hidden Field) *@
-@*@Html.AntiForgeryToken()*@
+@Html.AntiForgeryToken()
 
 @section Scripts {
     <script>
@@ -457,11 +456,12 @@
                 return { studentIds, offeredCourseIds };
             }
 
-            function processApproval(studentIds, offeredCourseIds, newStatus) {
+            async function processApproval(studentIds, offeredCourseIds, newStatus) {
                 if (!token) {
                     showFeedbackModal('error', "Güvenlik Hatasý", 'Lütfen sayfayý yenileyiniz.');
                     return;
                 }
+                const apiUrl = '/api/advisor/update-approval-status';
 
 
                 const requestData = {
@@ -474,36 +474,35 @@
                 if (approveSelectedBtn) approveSelectedBtn.disabled = true;
                 if (rejectSelectedBtn) rejectSelectedBtn.disabled = true;
 
-                fetch('http://localhost:8000/Advisor/update-approval-status',
-                        {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'RequestVerificationToken': token,
-                                'Authorization': `Bearer ${sessionStorage.getItem("bearerToken")}`
-                            },
-                            body: JSON.stringify(requestData)
-                        })
-                    .then(res => res.json())
-                    .then(res => {
-                        if (res.ok) {
-                            showFeedbackModal("success", "Ýþlem Baþarýlý", res.message, null, null, function() {setTimeout(window.reload(),2500) });
-                        }
-                        if (res.statusCode === 400) {
-                            showFeedbackModal("error", "Baþarýsýz Ýþlem", res.Message, null, null, function () { setTimeout(window.reload(), 2500) });
-                        } else
-                            showFeedbackModal("error", "Baþarýsýz Ýþlem", res.message, null, null, function () { setTimeout(window.reload(), 2500) });
-                    })
-                    .catch(error => {
-                        showFeedbackModal('error', 'Að Hatasý', 'Sunucu ile iletiþim kurulamadý.');
-                    })
-                    .finally(() => {
-                        document.querySelectorAll('.approve-btn, .reject-btn').forEach(btn => btn.disabled = false);
-                        updateButtonStates();
+                const response = fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify(requestData)
                     });
+
+                const result = await response.json();
+
+                try {
+                    if (response.ok) {
+                        showFeedbackModal("success", "Ýþlem Baþarýlý", result.message, null, null, function() { setTimeout(window.location.reload(), 2500) });
+                    } else {
+                        showFeedbackModal("error", "Baþarýsýz Ýþlem", result.message, null, null, function() { setTimeout(window.location.reload(), 2500) });
+
+                    }
+
+                } catch (error) {
+                    showFeedbackModal('error', 'Að Hatasý', 'Sunucu ile iletiþim kurulamadý.');
+                } finally {
+                    document.querySelectorAll('.approve-btn, .reject-btn').forEach(btn => btn.disabled = false);
+                    updateButtonStates();
+
+                };
             }
 
-            // Ýlk yükleme için event handler'larý baðla
             attachEventHandlers();
             updateButtonStates();
         });

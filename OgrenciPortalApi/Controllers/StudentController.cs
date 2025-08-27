@@ -285,6 +285,7 @@ namespace OgrenciPortalApi.Controllers
                     },
                     Courses = studentCoursesInDb.Select(sc => new MyCourseDto
                         {
+                            CourseId = sc.OfferedCourseId,
                             CourseCode = sc.OfferedCourses.Courses.CourseCode,
                             CourseName = sc.OfferedCourses.Courses.CourseName,
                             Credits = sc.OfferedCourses.Courses.Credits,
