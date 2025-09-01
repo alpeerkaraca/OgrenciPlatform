@@ -18,6 +18,7 @@ namespace Shared.DTO
         public string CourseName { get; set; }
         public int Credits { get; set; }
         public Guid DepartmentId { get; set; }
+        public string CourseDescription { get; set; }
         public IEnumerable<DepartmentSelectionDTO> DepartmentsList { get; set; }
     }
 
@@ -34,6 +35,7 @@ namespace Shared.DTO
         public string CourseName { get; set; }
         public int Credits { get; set; }
         public Guid DepartmentId { get; set; }
+        public string CourseDescription { get; set; }
         public IEnumerable<DepartmentSelectionDTO> DepartmentsList { get; set; }
     }
 }

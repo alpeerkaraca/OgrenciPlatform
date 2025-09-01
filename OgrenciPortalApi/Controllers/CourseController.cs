@@ -8,12 +8,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
+using System.Web.Http.Results;
+using System.Web.Mvc;
+using Hangfire;
 using Shared.Enums;
 
 namespace OgrenciPortalApi.Controllers
 {
-    [Authorize(Roles = nameof(Roles.Admin))]
-    [RoutePrefix("api/courses")]
+    [System.Web.Http.Authorize(Roles = nameof(Roles.Admin))]
+    [System.Web.Http.RoutePrefix("api/courses")]
     public class CourseController : BaseApiController
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(CourseController));
@@ -22,8 +25,8 @@ namespace OgrenciPortalApi.Controllers
         /// Sistemdeki tüm dersleri listeler.
         /// </summary>
         /// <returns>Ders listesini içeren bir HTTP yanıtı döner.</returns>
-        [HttpGet]
-        [Route("list")]
+        [System.Web.Http.HttpGet]
+        [System.Web.Http.Route("list")]
         [ResponseType(typeof(List<ListCoursesDTO>))]
         public async Task<IHttpActionResult> GetCourses()
         {
@@ -52,8 +55,8 @@ namespace OgrenciPortalApi.Controllers
         /// Yeni ders ekleme sayfası için gerekli verileri (örn. departman listesi) getirir.
         /// </summary>
         /// <returns>Departman listesini içeren bir HTTP yanıtı döner.</returns>
-        [HttpGet]
-        [Route("add")]
+        [System.Web.Http.HttpGet]
+        [System.Web.Http.Route("add")]
         [ResponseType(typeof(AddCourseDTO))]
         public async Task<IHttpActionResult> GetAddCourse()
         {
@@ -79,8 +82,8 @@ namespace OgrenciPortalApi.Controllers
         /// </summary>
         /// <param name="dto">Eklenecek dersin bilgilerini içeren DTO.</param>
         /// <returns>Oluşturma durumunu bildiren bir HTTP yanıtı döner.</returns>
-        [HttpPost]
-        [Route("add")]
+        [System.Web.Http.HttpPost]
+        [System.Web.Http.Route("add")]
         [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> AddCourse(AddCourseDTO dto)
         {
@@ -88,6 +91,11 @@ namespace OgrenciPortalApi.Controllers
             {
                 return BadRequest(ModelState);
             }
+
+            bool isDescriptionEmpty = string.IsNullOrWhiteSpace(dto.CourseDescription);
+
+            if (!isDescriptionEmpty)
+                dto.CourseDescription = dto.CourseDescription.Trim();
 
             try
             {
@@ -109,6 +117,7 @@ namespace OgrenciPortalApi.Controllers
                     CourseCode = dto.CourseCode,
                     Credits = dto.Credits,
                     DepartmentId = dto.DepartmentId,
+                    Description = isDescriptionEmpty ? null : dto.CourseDescription,
                     CreatedAt = DateTime.Now,
                     CreatedBy = GetActiveUserIdString(),
                     UpdatedAt = DateTime.Now,
@@ -118,6 +127,17 @@ namespace OgrenciPortalApi.Controllers
                 _db.Courses.Add(course);
                 await _db.SaveChangesAsync();
                 Logger.Info($"Ders Eklendi: {course.CourseName}");
+
+                // --- HANGFIRE ENTEGRASYONU ---
+                // Eğer ders açıklaması boş geldiyse, arka plan görevini başlat.
+                if (isDescriptionEmpty)
+                {
+                    // `course.CourseName` ve `course.CourseId` parametre olarak gönderiliyor.
+                    BackgroundJob.Enqueue(() => Utils.Utils.FillWithAi(course.CourseName, course.CourseId));
+                    Logger.Info($"Ders açıklaması için AI görevi başlatıldı: {course.CourseName}");
+                }
+                // --- HANGFIRE ENTEGRASYONU BİTTİ ---
+
                 return Ok(new { Message = "Ders başarıyla eklendi." });
             }
             catch (Exception ex)
@@ -132,8 +152,8 @@ namespace OgrenciPortalApi.Controllers
         /// </summary>
         /// <param name="id">Düzenlenecek dersin ID'si.</param>
         /// <returns>Dersin düzenleme bilgilerini içeren bir HTTP yanıtı döner.</returns>
-        [HttpGet]
-        [Route("edit/{id:guid}")]
+        [System.Web.Http.HttpGet]
+        [System.Web.Http.Route("edit/{id:guid}")]
         [ResponseType(typeof(EditCourseDTO))]
         public async Task<IHttpActionResult> GetEditCourse(Guid id)
         {
@@ -154,7 +174,8 @@ namespace OgrenciPortalApi.Controllers
                     CourseCode = course.CourseCode,
                     Credits = course.Credits,
                     DepartmentId = course.DepartmentId,
-                    DepartmentsList = depList
+                    DepartmentsList = depList,
+                    CourseDescription = course.Description
                 };
                 return Ok(dto);
             }
@@ -170,8 +191,8 @@ namespace OgrenciPortalApi.Controllers
         /// </summary>
         /// <param name="dto">Güncellenecek dersin yeni bilgilerini içeren DTO.</param>
         /// <returns>Güncelleme durumunu bildiren bir HTTP yanıtı döner.</returns>
-        [HttpPost]
-        [Route("edit")]
+        [System.Web.Http.HttpPost]
+        [System.Web.Http.Route("edit")]
         [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> EditCourse(EditCourseDTO dto)
         {
@@ -212,13 +233,23 @@ namespace OgrenciPortalApi.Controllers
             }
         }
 
+        [System.Web.Http.HttpGet]
+        [System.Web.Http.Route("fill-description")]
+        public async Task<IHttpActionResult> TestMe([FromUri] string CourseName)
+        {
+            if (string.IsNullOrEmpty(CourseName))
+                return Json("");
+            var ans = await Utils.Utils.FillWithAi(CourseName);
+            return Ok(new { Description = ans });
+        }
+
         /// <summary>
         /// Belirtilen ID'ye sahip dersi siler (soft delete).
         /// </summary>
         /// <param name="id">Silinecek dersin ID'si.</param>
         /// <returns>Silme işleminin durumunu bildiren bir HTTP yanıtı döner.</returns>
-        [HttpPost]
-        [Route("delete/{id:guid}")]
+        [System.Web.Http.HttpPost]
+        [System.Web.Http.Route("delete/{id:guid}")]
         [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> DeleteCourse(Guid id)
         {

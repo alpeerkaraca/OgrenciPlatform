@@ -1,12 +1,15 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Hangfire;
+using Hangfire.SqlServer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin;
+using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Jwt;
 using OgrenciPortalApi.Utils;
 using Owin;
 using System;
+using System.Data.SqlClient;
 using System.Text;
 using System.Web.Http;
-using Microsoft.Owin.Security;
 
 [assembly: OwinStartup(typeof(OgrenciPortalApi.Startup))]
 
@@ -16,6 +19,35 @@ namespace OgrenciPortalApi
     {
         public void Configuration(IAppBuilder app)
         {
+            var builder = new SqlConnectionStringBuilder
+            {
+                DataSource = AppSettings.DbServer,
+                InitialCatalog = AppSettings.DbName,
+                UserID = AppSettings.DbUser,
+                Password = AppSettings.DbPass,
+                TrustServerCertificate = true,
+                MultipleActiveResultSets = true,
+            };
+
+            // TODO: Productionda bunu aktifleştir.
+            var dashboardOptions = new DashboardOptions
+            {
+                Authorization = new[] { new HangfireDashboardAuthorizationFilter() }
+            };
+            Hangfire.GlobalConfiguration.Configuration
+                .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UseSqlServerStorage(builder.ConnectionString, new SqlServerStorageOptions
+                {
+                    SchemaName = "hangfire"
+                });
+            // TODO: İşte burada
+            //app.UseHangfireDashboard("/hangfire",dashboardOptions);
+            app.UseHangfireDashboard("/hangfire");
+            app.UseHangfireServer();
+
+
             ConfigureAuth(app);
             HttpConfiguration config = new HttpConfiguration();
 
