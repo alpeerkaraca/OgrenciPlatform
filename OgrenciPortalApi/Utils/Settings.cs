@@ -12,6 +12,11 @@
         public static string SmtpPort{ get; private set; }
         public static string SmtpUser { get; private set; }
         public static string SmtpPass { get; private set; }
+        public static string DeepseekApiKey { get; private set; }
+        public static string DbServer { get; private set; }
+        public static string DbName { get; private set; }
+        public static string DbUser { get; private set; }
+        public static string DbPass { get; private set; }
 
 
         public static void Load()
@@ -26,6 +31,11 @@
             SmtpPort = DotNetEnv.Env.GetString("SMTP_PORT");
             SmtpUser = DotNetEnv.Env.GetString("SMTP_USER");
             SmtpPass = DotNetEnv.Env.GetString("SMTP_PASS");
+            DeepseekApiKey = DotNetEnv.Env.GetString("DEEPSEEK_API_KEY");
+            DbServer = DotNetEnv.Env.GetString("DB_SERVER");
+            DbName = DotNetEnv.Env.GetString("DB_NAME");
+            DbUser = DotNetEnv.Env.GetString("DB_USER");
+            DbPass = DotNetEnv.Env.GetString("SQL_PASSWORD");
         }
     }
 }

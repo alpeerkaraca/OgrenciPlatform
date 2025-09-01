@@ -64,6 +64,12 @@
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\OgrenciPortali\packages\EntityFramework.6.5.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
+    <Reference Include="Hangfire.Core, Version=1.8.21.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Hangfire.Core.1.8.21\lib\net46\Hangfire.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Hangfire.SqlServer, Version=1.8.21.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Hangfire.SqlServer.1.8.21\lib\net451\Hangfire.SqlServer.dll</HintPath>
+    </Reference>
     <Reference Include="log4net, Version=3.1.0.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\OgrenciPortali\packages\log4net.3.1.0\lib\net462\log4net.dll</HintPath>
     </Reference>
@@ -481,6 +487,7 @@
     <Compile Include="Startup.cs" />
     <Compile Include="Utils\CheckEmail.cs" />
     <Compile Include="Utils\ConflictCheck.cs" />
+    <Compile Include="Utils\HangfireDashboardAuthorizationFilter.cs" />
     <Compile Include="Utils\Settings.cs" />
     <Compile Include="Utils\TokenManager.cs" />
     <Compile Include="Utils\Utils.cs" />

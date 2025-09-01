@@ -17,35 +17,35 @@
         <div class="card-body">
             <table id="coursesTable" class="table table-striped table-bordered" style="width: 100%">
                 <thead class="thead-dark">
-                @Html.AntiForgeryToken()
-                <tr class="text-center">
-                    <th>Bölüm</th>
-                    <th>Ders Kodu</th>
-                    <th>Ders Adı</th>
-                    <th>Kredi</th>
-                    <th>İşlemler</th>
-                </tr>
+                    @Html.AntiForgeryToken()
+                    <tr class="text-center">
+                        <th>Bölüm</th>
+                        <th>Ders Kodu</th>
+                        <th>Ders Adı</th>
+                        <th>Kredi</th>
+                        <th>İşlemler</th>
+                    </tr>
                 </thead>
                 <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td>@Html.DisplayFor(modelItem => item.DepartmentName)</td>
-                        <td class="text-center">@Html.DisplayFor(modelItem => item.CourseCode)</td>
-                        <td>@Html.DisplayFor(modelItem => item.CourseName)</td>
-                        <td class="text-center">@Html.DisplayFor(modelItem => item.Credits)</td>
-                        <td class="text-center">
-                            @* DÜZENLEME: ActionLink yerine modalı tetikleyecek buton eklendi *@
-                            <a href="#" class="btn btn-sm btn-info edit-button" data-id="@item.CourseId">
-                                <i class="bi bi-pen me-1"></i> Düzenle
-                            </a>
-                            <button type="button" class="btn btn-outline-danger btn-sm delete-button"
-                                    data-id="@item.CourseId" data-name="@item.CourseName">
-                                <i class="bi bi-trash"></i> Sil
-                            </button>
-                        </td>
-                    </tr>
-                }
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@Html.DisplayFor(modelItem => item.DepartmentName)</td>
+                            <td class="text-center">@Html.DisplayFor(modelItem => item.CourseCode)</td>
+                            <td>@Html.DisplayFor(modelItem => item.CourseName)</td>
+                            <td class="text-center">@Html.DisplayFor(modelItem => item.Credits)</td>
+                            <td class="text-center">
+                                @* DÜZENLEME: ActionLink yerine modalı tetikleyecek buton eklendi *@
+                                <a href="#" class="btn btn-sm btn-info edit-button" data-id="@item.CourseId">
+                                    <i class="bi bi-pen me-1"></i> Düzenle
+                                </a>
+                                <button type="button" class="btn btn-outline-danger btn-sm delete-button"
+                                        data-id="@item.CourseId" data-name="@item.CourseName">
+                                    <i class="bi bi-trash"></i> Sil
+                                </button>
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>
@@ -83,6 +83,17 @@
                                 <option value="" selected disabled>Yükleniyor...</option>
                             </select>
                             <div class="invalid-feedback" id="departmentIdError"></div>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="CourseDescription" class="form-label d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-chat-dots me-1"></i>Ders Açıklaması</span>
+                                <button type="button" class="btn btn-sm btn-outline-secondary ms-2 generate-description-btn" data-form-id="addCourseForm">
+                                    <i class="bi bi-stars me-1"></i>Açıklama Üret
+                                </button>
+                            </label>
+                            <textarea class="form-control" id="CourseDescription" name="CourseDescription" rows="3" maxlength="700" placeholder="Ders açıklaması. Yapay zekanın üretmesi için yandaki butonu tıklayabilirsiniz ya da arka planda tamamlanması için boş bırakabilirsiniz."></textarea>
+                            <small class="form-text text-muted float-end" id="add-char-counter">0 / 700</small>
+                            <div class="invalid-feedback" id="CourseDescriptionError"></div>
                         </div>
                     </div>
                 </form>
@@ -128,6 +139,17 @@
                             </select>
                             <div class="invalid-feedback" id="editDepartmentIdError"></div>
                         </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="editCourseDescription" class="form-label d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-chat-dots me-1"></i>Ders Açıklaması</span>
+                                <button type="button" class="btn btn-sm btn-outline-secondary ms-2 generate-description-btn" data-form-id="editCourseForm">
+                                    <i class="bi bi-stars me-1"></i>Açıklama Üret
+                                </button>
+                            </label>
+                            <textarea class="form-control" id="editCourseDescription" name="CourseDescription" rows="3" maxlength="700" placeholder="Ders açıklaması. Yapay zekanın üretmesi için yandaki butonu tıklayabilirsiniz."></textarea>
+                            <small class="form-text text-muted float-end" id="edit-char-counter">0 / 700</small>
+                            <div class="invalid-feedback" id="editCourseDescriptionError"></div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -141,133 +163,213 @@
 
 @section scripts {
     <script>
-    $(document).ready(function() {
-        $('#coursesTable').DataTable({
-            language: { url: '/Content/datatables/i18n/tr.json' },
-            responsive: true,
-            columnDefs: [{ orderable: false, targets: 4 }],
-            order: [[1, 'asc']]
+        $(document).ready(function () {
+            $('#coursesTable').DataTable({
+                language: { url: '/Content/datatables/i18n/tr.json' },
+                responsive: true,
+                columnDefs: [{ orderable: false, targets: 4 }],
+                order: [[1, 'asc']]
+            });
+
+            // --- Fonksiyonları Başlat ---
+            initializeAddCourseModal();
+            initializeEditCourseModal();
+            initializeDeleteFunctionality();
+            initializeCharCounters();
+            initializeDescriptionGenerator();
         });
 
-        // --- Fonksiyonları Başlat ---
-        initializeAddCourseModal();
-        initializeEditCourseModal();
-        initializeDeleteFunctionality();
-    });
+        // --- Genel Fonksiyonlar ---
+        function initializeFormValidation(formEl, saveBtnEl) {
+            const inputs = {
+                code: formEl.querySelector('[name="CourseCode"]'),
+                name: formEl.querySelector('[name="CourseName"]'),
+                credits: formEl.querySelector('[name="Credits"]'),
+                department: formEl.querySelector('[name="DepartmentId"]')
+            };
 
-// --- Genel Fonksiyonlar ---
-    function initializeFormValidation(formEl, saveBtnEl) {
-        const inputs = {
-            code: formEl.querySelector('[name="CourseCode"]'),
-            name: formEl.querySelector('[name="CourseName"]'),
-            credits: formEl.querySelector('[name="Credits"]'),
-            department: formEl.querySelector('[name="DepartmentId"]')
-        };
+            function validate() {
+                let isValid = true;
+                // Hataları temizle
+                Object.values(inputs).forEach(input => input.classList.remove('is-invalid'));
 
-        function validate() {
-            let isValid = true;
-            // Hataları temizle
-            Object.values(inputs).forEach(input => input.classList.remove('is-invalid'));
+                // Ders Kodu Doğrulama
+                const code = inputs.code.value.trim();
+                if (!code) {
+                    showError(inputs.code, 'Ders kodu gereklidir.');
+                    isValid = false;
+                } else if (code.length > 10) {
+                    showError(inputs.code, 'Ders kodu en fazla 10 karakter olabilir.');
+                    isValid = false;
+                }
 
-            // Ders Kodu Doğrulama
-            const code = inputs.code.value.trim();
-            if (!code) {
-                showError(inputs.code, 'Ders kodu gereklidir.');
-                isValid = false;
-            } else if (code.length > 10) { // 
-                showError(inputs.code, 'Ders kodu en fazla 10 karakter olabilir.'); // 
-                isValid = false;
+                // Ders Adı Doğrulama
+                const name = inputs.name.value.trim();
+                if (!name) {
+                    showError(inputs.name, 'Ders adı gereklidir.');
+                    isValid = false;
+                } else if (name.length > 100) {
+                    showError(inputs.name, 'Ders adı en fazla 100 karakter olabilir.');
+                    isValid = false;
+                }
+
+                // Kredi Doğrulama
+                const credits = parseInt(inputs.credits.value);
+                if (isNaN(credits) || credits < 0 || credits > 15) {
+                    showError(inputs.credits, 'Kredi 0 ile 15 arasında bir değer olmalıdır.');
+                    isValid = false;
+                }
+
+                // Bölüm Doğrulama
+                if (!inputs.department.value) {
+                    showError(inputs.department, 'Bölüm seçimi zorunludur.');
+                    isValid = false;
+                }
+
+                saveBtnEl.disabled = !isValid;
+                return isValid;
             }
 
-            // Ders Adı Doğrulama
-            const name = inputs.name.value.trim();
-            if (!name) {
-                showError(inputs.name, 'Ders adı gereklidir.');
-                isValid = false;
-            } else if (name.length > 100) { // 
-                showError(inputs.name, 'Ders adı en fazla 100 karakter olabilir.'); // 
-                isValid = false;
+            function showError(inputElement, message) {
+                inputElement.classList.add('is-invalid');
+                const errorEl = inputElement.nextElementSibling;
+                if (errorEl && errorEl.classList.contains('invalid-feedback')) {
+                    errorEl.textContent = message;
+                }
             }
 
-            // Kredi Doğrulama
-            const credits = parseInt(inputs.credits.value);
-            if (isNaN(credits) || credits < 0 || credits > 10) { // 
-                showError(inputs.credits, 'Kredi 0 ile 10 arasında bir değer olmalıdır.'); // 
-                isValid = false;
-            }
+            // Tüm alanlara anlık dinleyici ekle
+            Object.values(inputs).forEach(input => {
+                input.addEventListener('input', validate);
+            });
 
-            // Bölüm Doğrulama
-            if (!inputs.department.value) {
-                showError(inputs.department, 'Bölüm seçimi zorunludur.');
-                isValid = false;
-            }
-
-            saveBtnEl.disabled = !isValid;
-            return isValid;
+            return validate;
         }
 
-        function showError(inputElement, message) {
-            inputElement.classList.add('is-invalid');
-            const errorEl = inputElement.nextElementSibling; // Hata div'i input'un hemen sonrası
-            if (errorEl && errorEl.classList.contains('invalid-feedback')) {
-                errorEl.textContent = message;
+        async function fetchDepartments() {
+            try {
+                const apiUrl = encodeURIComponent('api/departments/');
+                const response = await fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`);
+                if (!response.ok) throw new Error('Bölüm listesi alınamadı.');
+                return await response.json();
+            } catch (error) {
+                console.error(error);
+                showFeedbackModal('error', 'Veri Hatası', 'Bölüm listesi sunucudan alınırken bir hata oluştu.');
+                return [];
             }
         }
 
-        // Tüm alanlara anlık dinleyici ekle
-        Object.values(inputs).forEach(input => {
-            input.addEventListener('input', validate);
-        });
-
-        return validate;
-    }
-
-    async function fetchDepartments() {
-        try {
-            const apiUrl = encodeURIComponent('api/departments/');
-            const response = await fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`);
-            if (!response.ok) throw new Error('Bölüm listesi alınamadı.');
-            return await response.json();
-        } catch (error) {
-            console.error(error);
-            showFeedbackModal('error', 'Veri Hatası', 'Bölüm listesi sunucudan alınırken bir hata oluştu.');
-            return []; // Hata durumunda boş dizi dön
+        function populateDepartmentDropdown(selectElement, departments, selectedId = null) {
+            selectElement.innerHTML = '<option value="" selected>Bölüm Seçiniz</option>';
+            departments.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept.DepartmentId;
+                option.textContent = dept.DepartmentName;
+                if (dept.DepartmentId.toString() === selectedId) {
+                    option.selected = true;
+                }
+                selectElement.appendChild(option);
+            });
         }
-    }
 
-    function populateDepartmentDropdown(selectElement, departments, selectedId = null) {
-        selectElement.innerHTML = '<option value="" selected>Bölüm Seçiniz</option>';
-        departments.forEach(dept => {
-            const option = document.createElement('option');
-            option.value = dept.DepartmentId;
-            option.textContent = dept.DepartmentName;
-            if (dept.DepartmentId === selectedId) {
-                option.selected = true;
+        // --- Character Counter (Karakter Sayacı) ---
+        function initializeCharCounters() {
+            const addDescriptionEl = document.getElementById('CourseDescription');
+            const editDescriptionEl = document.getElementById('editCourseDescription');
+            const addCounterEl = document.getElementById('add-char-counter');
+            const editCounterEl = document.getElementById('edit-char-counter');
+            const maxLength = 700;
+
+            function updateCounter(textarea, counter) {
+                const currentLength = textarea.value.length;
+                counter.textContent = `${currentLength} / ${maxLength}`;
+                if (currentLength > maxLength) {
+                    counter.style.color = 'red';
+                } else {
+                    counter.style.color = ''; // Varsayılan renge dön
+                }
             }
-            selectElement.appendChild(option);
-        });
-    }
 
-// --- ADD COURSE (EKLEME) ---
-    function initializeAddCourseModal() {
-        const addModalEl = document.getElementById('addCourseModal');
-        const addModal = new bootstrap.Modal(addModalEl);
-        const addForm = document.getElementById('addCourseForm');
-        const saveBtn = document.getElementById('saveCourseBtn');
-        const deptSelect = document.getElementById('departmentId');
+            if (addDescriptionEl && addCounterEl) {
+                addDescriptionEl.addEventListener('input', () => updateCounter(addDescriptionEl, addCounterEl));
+                updateCounter(addDescriptionEl, addCounterEl); // Sayfa yüklendiğinde başlangıç değerini ayarla
+            }
 
-        const validateAddForm = initializeFormValidation(addForm, saveBtn);
+            if (editDescriptionEl && editCounterEl) {
+                editDescriptionEl.addEventListener('input', () => updateCounter(editDescriptionEl, editCounterEl));
+            }
+        }
 
-        addModalEl.addEventListener('show.bs.modal',
-            async () => {
+        // --- AI Description Generator (AI Açıklama Oluşturucu) ---
+        function initializeDescriptionGenerator() {
+            document.querySelectorAll('.generate-description-btn').forEach(button => {
+                button.addEventListener('click', async function () {
+                    const formId = this.dataset.formId;
+                    const form = document.getElementById(formId);
+                    const courseNameInput = form.querySelector('[name="CourseName"]');
+                    const descriptionTextarea = form.querySelector('[name="CourseDescription"]');
+                    const originalText = this.innerHTML;
+
+                    const courseName = courseNameInput.value.trim();
+                    if (!courseName) {
+                        showFeedbackModal('info', 'Bilgi', 'Açıklama üretmek için önce bir Ders Adı girmelisiniz.');
+                        courseNameInput.focus();
+                        return;
+                    }
+
+                    this.disabled = true;
+                    this.classList.add("bg-primary");
+                    this.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Üretiliyor...`;
+
+                    try {
+                        const apiUrl = encodeURIComponent(`api/courses/fill-description?courseName=${encodeURIComponent(courseName)}`);
+                        const response = await fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`);
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            descriptionTextarea.value = result.Description;
+                            // Karakter sayacını güncelle
+                            if (formId === 'addCourseForm') {
+                                document.getElementById('add-char-counter').textContent = `${descriptionTextarea.value.length} / 700`;
+                            } else if (formId === 'editCourseForm') {
+                                document.getElementById('edit-char-counter').textContent = `${descriptionTextarea.value.length} / 700`;
+                            }
+                        } else {
+                            showFeedbackModal('error', 'Hata', result.Message || 'Açıklama üretilirken bir hata oluştu.');
+                        }
+                    } catch (error) {
+                        showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya bağlanırken bir hata oluştu.');
+                        console.table(error);
+                    } finally {
+                        this.classList.remove("bg-primary");
+                        this.disabled = false;
+                        this.innerHTML = originalText;
+                    }
+                });
+            });
+        }
+
+        // --- ADD COURSE (EKLEME) ---
+        function initializeAddCourseModal() {
+            const addModalEl = document.getElementById('addCourseModal');
+            const addModal = new bootstrap.Modal(addModalEl);
+            const addForm = document.getElementById('addCourseForm');
+            const saveBtn = document.getElementById('saveCourseBtn');
+            const deptSelect = document.getElementById('departmentId');
+            const addDescriptionEl = document.getElementById('CourseDescription');
+
+            const validateAddForm = initializeFormValidation(addForm, saveBtn);
+
+            addModalEl.addEventListener('show.bs.modal', async () => {
                 const departments = await fetchDepartments();
                 populateDepartmentDropdown(deptSelect, departments);
                 validateAddForm();
+                // Modal açıldığında sayacı sıfırla
+                addDescriptionEl.value = '';
+                document.getElementById('add-char-counter').textContent = '0 / 700';
             });
 
-
-        saveBtn.addEventListener('click',
-            async function() {
+            saveBtn.addEventListener('click', async function () {
                 if (!validateAddForm()) return;
                 const originalText = this.innerHTML;
                 this.disabled = true;
@@ -277,7 +379,8 @@
                     CourseCode: addForm.elements.CourseCode.value.trim(),
                     CourseName: addForm.elements.CourseName.value.trim(),
                     Credits: parseInt(addForm.elements.Credits.value),
-                    DepartmentId: addForm.elements.DepartmentId.value
+                    DepartmentId: addForm.elements.DepartmentId.value,
+                    CourseDescription: addForm.elements.CourseDescription.value.trim()
                 };
 
                 try {
@@ -293,9 +396,9 @@
 
                     if (response.ok) {
                         addModal.hide();
-                        showFeedbackModal('success', 'Başarılı', result.message || 'Ders başarıyla eklendi.', null, null, () => location.reload());
+                        showFeedbackModal('success', 'Başarılı', result.Message || 'Ders başarıyla eklendi.', null, null, () => location.reload());
                     } else {
-                        showFeedbackModal('error', 'Hata', result.message || 'Ders eklenirken bir hata oluştu.');
+                        showFeedbackModal('error', 'Hata', result.Message || 'Ders eklenirken bir hata oluştu.');
                     }
                 } catch (error) {
                     showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya bağlanırken bir hata oluştu.');
@@ -305,24 +408,21 @@
                 }
             });
 
-        addModalEl.addEventListener('hidden.bs.modal',
-            () => {
+            addModalEl.addEventListener('hidden.bs.modal', () => {
                 addForm.reset();
                 validateAddForm()
             });
-    }
+        }
 
-// --- EDIT COURSE (DÜZENLEME) ---
-    function initializeEditCourseModal() {
-        const editModalEl = document.getElementById('editCourseModal');
-        const editModal = new bootstrap.Modal(editModalEl);
-        const editForm = document.getElementById('editCourseForm');
-        const updateBtn = document.getElementById('updateCourseBtn');
-        const validateEditForm = initializeFormValidation(editForm, updateBtn);
+        // --- EDIT COURSE (DÜZENLEME) ---
+        function initializeEditCourseModal() {
+            const editModalEl = document.getElementById('editCourseModal');
+            const editModal = new bootstrap.Modal(editModalEl);
+            const editForm = document.getElementById('editCourseForm');
+            const updateBtn = document.getElementById('updateCourseBtn');
+            const validateEditForm = initializeFormValidation(editForm, updateBtn);
 
-        $('#coursesTable tbody').on('click',
-            '.edit-button',
-            async function() {
+            $('#coursesTable tbody').on('click', '.edit-button', async function () {
                 const courseId = $(this).data('id');
 
                 try {
@@ -337,23 +437,25 @@
                     editForm.elements.CourseCode.value = courseData.CourseCode;
                     editForm.elements.CourseName.value = courseData.CourseName;
                     editForm.elements.Credits.value = courseData.Credits;
-                    editForm.elements.DepartmentId = courseData.DepartmentId;
+                    editForm.elements.DepartmentId.value = courseData.DepartmentId;
+                    editForm.elements.CourseDescription.value = courseData.CourseDescription;
                     validateEditForm();
+                    document.getElementById('edit-char-counter').textContent = `${editForm.elements.CourseDescription.value.length} / 700`;
+
                     editModal.show();
                 } catch (error) {
                     showFeedbackModal('error', 'Veri Hatası', 'Ders bilgileri alınırken bir hata oluştu.');
                 }
             });
 
-        async function fetchCourseData(id) {
-            const apiUrl = encodeURIComponent(`api/courses/edit/${id}`);
-            const response = await fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`);
-            if (!response.ok) throw new Error('Ders bilgisi alınamadı.');
-            return await response.json();
-        }
+            async function fetchCourseData(id) {
+                const apiUrl = encodeURIComponent(`api/courses/edit/${id}`);
+                const response = await fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`);
+                if (!response.ok) throw new Error('Ders bilgisi alınamadı.');
+                return await response.json();
+            }
 
-        updateBtn.addEventListener('click',
-            async function() {
+            updateBtn.addEventListener('click', async function () {
                 if (!validateEditForm()) return;
 
                 const originalText = this.innerHTML;
@@ -365,7 +467,8 @@
                     CourseCode: editForm.elements.CourseCode.value.trim(),
                     CourseName: editForm.elements.CourseName.value.trim(),
                     Credits: parseInt(editForm.elements.Credits.value),
-                    DepartmentId: editForm.elements.DepartmentId.value
+                    DepartmentId: editForm.elements.DepartmentId.value,
+                    CourseDescription: editForm.elements.CourseDescription.value.trim()
                 };
 
                 try {
@@ -381,9 +484,9 @@
 
                     if (response.ok) {
                         editModal.hide();
-                        showFeedbackModal('success', 'Başarılı', result.message || 'Ders başarıyla güncellendi.', null, null, () => location.reload());
+                        showFeedbackModal('success', 'Başarılı', result.Message || 'Ders başarıyla güncellendi.', null, null, () => location.reload());
                     } else {
-                        showFeedbackModal('error', 'Hata', result.message || 'Ders güncellenirken bir hata oluştu.');
+                        showFeedbackModal('error', 'Hata', result.Message || 'Ders güncellenirken bir hata oluştu.');
                     }
                 } catch (error) {
                     showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya bağlanırken bir hata oluştu.');
@@ -393,12 +496,11 @@
                 }
             });
 
-        document.getElementById('editCourseModal').addEventListener('hidden.bs.modal',
-            () => {
+            document.getElementById('editCourseModal').addEventListener('hidden.bs.modal', () => {
                 editForm.reset();
                 validateEditForm();
             })
-    };
+        };
 
         // --- DELETE COURSE (SİLME) ---
         function initializeDeleteFunctionality() {
@@ -419,9 +521,9 @@
                             });
                             const result = await response.json();
                             if (response.ok) {
-                                showFeedbackModal("success", "Başarılı", result.message || "Ders başarıyla silindi.", null, null, () => location.reload());
+                                showFeedbackModal("success", "Başarılı", result.Message || "Ders başarıyla silindi.", null, null, () => location.reload());
                             } else {
-                                showFeedbackModal('error', 'Hata', result.message || 'Silme işlemi sırasında bir hata oluştu.');
+                                showFeedbackModal('error', 'Hata', result.Message || 'Silme işlemi sırasında bir hata oluştu.');
                             }
                         } catch (ex) {
                             showFeedbackModal("error", "Bağlantı Hatası", "Sunucuya bağlanırken bir hata oluştu.");
