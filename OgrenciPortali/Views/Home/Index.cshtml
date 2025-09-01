@@ -19,9 +19,10 @@
         var department = claimsIdentity?.FindFirst("department")?.Value;
         var studentNo = claimsIdentity?.FindFirst("student_no")?.Value;
         var userRole = claimsIdentity?.FindFirst(claimsIdentity.RoleClaimType)?.Value;
+        var userFullName = claimsIdentity?.FindFirst("full_name").Value;
 
         <h1 class="display-4 mb-3">
-            Hoş Geldiniz, @User.Identity.Name
+            Hoş Geldiniz, <br>@userFullName
         </h1>
         <p class="lead mb-4">
             @switch (userRole)

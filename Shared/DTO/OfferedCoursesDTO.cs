@@ -50,6 +50,8 @@ namespace Shared.DTO
         public Guid AdvisorId { get; set; }
         public int Quota { get; set; }
         public int DayOfWeek { get; set; }
+        public int CourseYear { get; set; }
+        public string Classroom { get; set; }
 
 
         public IEnumerable<SelectListItem> CourseList { get; set; }

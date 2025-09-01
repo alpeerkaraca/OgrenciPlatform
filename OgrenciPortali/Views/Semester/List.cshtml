@@ -330,7 +330,6 @@
                 });
             }
 
-            // --- YENİ: Edit Modal Fonksiyonu ---
             function initializeEditSemesterModal() {
                 const editModalElement = document.getElementById('editSemesterModal');
                 const editSemesterModal = new bootstrap.Modal(editModalElement);
@@ -347,7 +346,6 @@
                 const btnNo = document.getElementById('editBtnNo');
                 const dateError = document.getElementById('editDateError');
 
-                // Edit butonu tıklandığında verileri çek ve modalı doldur
                 $('#semestersTable tbody').on('click', '.edit-button', async function () {
                     const semesterId = $(this).data('id');
 
@@ -365,11 +363,9 @@
                         semesterIdInput.value = semesterId;
                         semesterNameInput.value = semester.SemesterName;
                         isActiveInput.value = semester.IsActive.toString();
-                        // Tarihleri YYYY-MM-DD formatına çevir
                         startDateInput.value = new Date(semester.StartDate).toISOString().split('T')[0];
                         endDateInput.value = new Date(semester.EndDate).toISOString().split('T')[0];
 
-                        // Butonları ve validasyonu güncelle
                         updateActiveButtons();
                         validateEditForm();
 

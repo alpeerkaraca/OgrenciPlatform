@@ -15,7 +15,7 @@ using Shared.DTO;
 namespace OgrenciPortali.Controllers
 {
     /// <summary>
-    /// Danýþman iþlemlerini yöneten controller sýnýfý
+    /// Danışman işlemlerini yöneten controller sınıfı
     /// </summary>
     [CustomAuth(Roles.Danışman)]
     public class AdvisorController : Controller

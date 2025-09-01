@@ -12,36 +12,51 @@ namespace OgrenciPortalApi.Utils
 
         private List<ConflictCheckDTO> GetStudentCourses(Guid studentId)
         {
-            //SELECT OfferedCourses.DayOfWeek, OfferedCourses.StartTime, OfferedCourses.EndTime 
-            // FROM StudentCourses JOIN OfferedCourses ON StudentCourses.OfferedCourseId = OfferedCourses.Id
-            // WHERE StudentCourses.StudentId= studentId
-
             return _db.StudentCourses
-                .Where(sc => sc.StudentId == studentId)
+                .Where(sc => sc.StudentId == studentId && sc.OfferedCourses.Semesters.IsActive)
                 .Select(sc => new ConflictCheckDTO
                 {
                     CourseId = sc.OfferedCourseId,
                     CourseName = sc.OfferedCourses.Courses.CourseName,
                     DayOfWeek = sc.OfferedCourses.DayOfWeek,
-                    EndTime = sc.OfferedCourses.StartTime,
-                    StartTime = sc.OfferedCourses.EndTime
+                    // Önceki hatanın düzeltildiğinden emin olalım:
+                    StartTime = sc.OfferedCourses.StartTime,
+                    EndTime = sc.OfferedCourses.EndTime
                 })
                 .ToList();
         }
 
         public bool CanEnroll(ConflictCheckDTO model, Guid userId)
         {
-            var courses = GetStudentCourses(userId);
-            var sameDayCourses = courses.Where(c => c.DayOfWeek == model.DayOfWeek);
+            // GetConflictingCourse metodunu kullanarak bu metodu daha basit hale getirebiliriz.
+            return GetConflictingCourse(model, userId) == null;
+        }
 
-            foreach (var course in sameDayCourses)
+        /// <summary>
+        /// Yeni bir dersin, öğrencinin mevcut programıyla çakışıp çakışmadığını kontrol eder
+        /// ve çakışma varsa çakışan dersi döndürür.
+        /// </summary>
+        /// <param name="model">Kontrol edilecek yeni dersin bilgileri.</param>
+        /// <param name="userId">Öğrencinin ID'si.</param>
+        /// <returns>Çakışma varsa çakışan dersi, yoksa null döner.</returns>
+        public ConflictCheckDTO GetConflictingCourse(ConflictCheckDTO model, Guid userId)
+        {
+            // Öğrencinin mevcut programını al
+            var existingCourses = GetStudentCourses(userId);
+
+            var sameDayCourses = existingCourses.Where(c => c.DayOfWeek == model.DayOfWeek);
+
+            foreach (var existingCourse in sameDayCourses)
             {
-                if (TimeSpan.Compare(model.StartTime, course.EndTime) < 0 &&
-                    TimeSpan.Compare(course.StartTime, model.EndTime) < 0)
-                    return false;
+                // Çakışma koşulu:
+                // (Yeni Dersin Başlangıcı < Mevcut Dersin Bitişi) VE (Mevcut Dersin Başlangıcı < Yeni Dersin Bitişi)
+                if (model.StartTime < existingCourse.EndTime && existingCourse.StartTime < model.EndTime)
+                {
+                    return existingCourse; // Çakışma bulundu, çakışan dersi döndür.
+                }
             }
 
-            return true;
+            return null; // Hiçbir dersle çakışma bulunamadı.
         }
     }
 }

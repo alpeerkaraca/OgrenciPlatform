@@ -36,11 +36,11 @@ namespace OgrenciPortali.Controllers
             {
                 var dto = await response.Content.ReadAsAsync<EnrollPageDTO>();
                 var viewModel = _mapper.Map<EnrollmentPageViewModel>(dto);
-                return View(viewModel);
+                return View(dto);
             }
 
             ModelState.AddModelError("", @"Seçilebilen dersler çekilirken hata oluştu.");
-            return View(new EnrollmentPageViewModel());
+            return View(new EnrollPageDTO());
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace OgrenciPortali.Controllers
         /// </summary>
         public async Task<ActionResult> MyCourses()
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, "api/students/my-courses");
+            var request = new HttpRequestMessage(HttpMethod.Get, "api/student/my-courses");
             var response = await _apiClient.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {

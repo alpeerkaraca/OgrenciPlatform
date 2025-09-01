@@ -55,7 +55,7 @@ function showFeedbackModal(status, title, message, confirmCallback, confirmButto
             async function() {
                 confirmBtn.prop('disabled', true);
                 closeBtn.prop('disabled', true);
-                confirmBtn.html('<span class="spinner-border spinner-border-sm"></span> Ýþleniyor...');
+                confirmBtn.html('<span class="spinner-border spinner-border-sm"></span> Ýsleniyor...');
 
                 try {
                     await confirmCallback();

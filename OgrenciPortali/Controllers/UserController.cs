@@ -65,7 +65,7 @@ namespace OgrenciPortali.Controllers
             var loginUserDto = _mapper.Map<LoginUserDTO>(viewModel);
             var request = new HttpRequestMessage(HttpMethod.Post, "api/user/login")
             {
-                Content = new StringContent(JsonConvert.SerializeObject(loginUserDto), System.Text.Encoding.UTF8,
+                Content = new StringContent(JsonConvert.SerializeObject(loginUserDto), Encoding.UTF8,
                     "application/json"),
             };
 
@@ -97,7 +97,8 @@ namespace OgrenciPortali.Controllers
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                ModelState.AddModelError("", "E-posta veya şifre hatalı.");
+                var json = await response.Content.ReadAsAsync<dynamic>();
+                ModelState.AddModelError("", json.Message.ToString());
                 return View(viewModel);
             }
 

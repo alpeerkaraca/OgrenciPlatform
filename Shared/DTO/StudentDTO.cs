@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Shared.DTO
 {
-    public  class EnrollDTO
+    public class EnrollDTO
     {
         public Guid OfferedCourseId { get; set; }
         public Guid? CourseId { get; set; }
@@ -18,12 +18,14 @@ namespace Shared.DTO
         public int Quota { get; set; }
         public int Credit { get; set; }
         public int CurrentUserCount { get; set; } = 0;
+        public string Classroom { get; set; }
     }
 
     public class EnrollPageDTO
     {
         public List<EnrollDTO> EnrollableList { get; set; }
         public List<EnrollDTO> PendingCourses { get; set; }
+        public string ActiveSemesterName { get; set; }
     }
 
     public class MyCoursesDTO
@@ -38,6 +40,8 @@ namespace Shared.DTO
         public int ApprovedCount { get; set; }
         public int PendingCount { get; set; }
         public int RejectedCount { get; set; }
+        public int ApprovedCredits { get; set; }
+        public int PendingCredits { get; set; }
     }
 
     public class MyCourseDto

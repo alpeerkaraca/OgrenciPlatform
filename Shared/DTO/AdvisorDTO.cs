@@ -6,7 +6,15 @@ namespace Shared.DTO
 {
     public class AdvisorApprovalDTO
     {
-        public List<ApprovalRequestDto> PendingApprovals { get; set; }
+        public List<StudentApprovalGroupDto> PendingStudentGroups { get; set; }
+    }
+    public class StudentApprovalGroupDto
+    {
+        public Guid StudentId { get; set; }
+        public string StudentName { get; set; }
+        public string StudentNo { get; set; }
+        public int TotalPendingCredits { get; set; } // Öğrencinin bekleyen toplam kredisi
+        public List<ApprovalRequestDto> CourseRequests { get; set; }
     }
 
     public class ApprovalRequestDto

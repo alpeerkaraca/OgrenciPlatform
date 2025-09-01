@@ -29,16 +29,13 @@ namespace OgrenciPortalApi.Controllers
         {
             try
             {
-                var advisor = User.Identity as ClaimsIdentity;
-
-                var advisorId =
-                    Guid.Parse(advisor?.FindFirst(ClaimTypes.NameIdentifier).Value);
+                var advisorId = GetActiveUserId();
 
                 var approvalsFromDb = await _db.StudentCourses
                     .Where(sc =>
                         sc.OfferedCourses.TeacherId == advisorId &&
                         sc.ApprovalStatus == (int)ApprovalStatus.Bekliyor)
-                    .Select(sc => new ApprovalRequestDto
+                    .Select(sc => new ApprovalRequestDto // Mevcut DTO'yu kullanmaya devam ediyoruz
                     {
                         StudentId = sc.StudentId,
                         OfferedCourseId = sc.OfferedCourseId,
@@ -54,12 +51,24 @@ namespace OgrenciPortalApi.Controllers
                         ApprovalStatus = sc.ApprovalStatus,
                         RequestDate = sc.CreatedAt
                     })
-                    .OrderByDescending(x => x.RequestDate)
+                    .OrderBy(x => x.StudentName).ThenBy(x => x.CourseCode) // Öğrenci ve derse göre sırala
                     .ToListAsync();
+
+                var groupedApprovals = approvalsFromDb
+                    .GroupBy(a => a.StudentId)
+                    .Select(g => new StudentApprovalGroupDto
+                    {
+                        StudentId = g.Key,
+                        StudentName = g.First().StudentName,
+                        StudentNo = g.First().StudentNo,
+                        CourseRequests = g.ToList(),
+                        TotalPendingCredits = g.Sum(c => c.Credits)
+                    })
+                    .ToList();
 
                 var dto = new AdvisorApprovalDTO
                 {
-                    PendingApprovals = approvalsFromDb ?? new List<ApprovalRequestDto>()
+                    PendingStudentGroups = groupedApprovals ?? new List<StudentApprovalGroupDto>()
                 };
                 return Ok(dto);
             }

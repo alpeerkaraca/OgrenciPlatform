@@ -4,7 +4,7 @@ using System.Web.Mvc;
 
 namespace Shared.DTO
 {
-    public class EditUserDTO : BaseClass
+    public class EditUserDTO
     {
         public Guid UserId { get; set; }
         public string Name { get; set; }
@@ -12,6 +12,7 @@ namespace Shared.DTO
         public string Email { get; set; }
         public int Role { get; set; }
         public string StudentNo { get; set; }
+        public int? StudentYear { get; set; }
 
         public Guid? DepartmentId { get; set; }
         public Guid? AdvisorId { get; set; }
