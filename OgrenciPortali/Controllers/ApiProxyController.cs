@@ -47,7 +47,7 @@ namespace OgrenciPortali.Controllers
         /// <param name="apiUrl">Hedef API'nin tam yolu</param>
         [HttpPost]
         [ValidateJsonAntiForgeryToken] // Bu attribute hala gerekli
-        [BufferRequestBody]         // YENİ attribute'ümüzü buraya ekliyoruz
+        [BufferRequestBody]
         public async Task<ActionResult> Post(string apiUrl)
         {
             if (string.IsNullOrEmpty(apiUrl))

@@ -1,29 +1,8 @@
 ﻿@model OgrenciPortali.ViewModels.DepartmentListViewModel
-
 @{
-    ViewBag.Title = "Bölüm Listesi";
+    ViewBag.Title = "Bölüm Yönetimi";
 }
 
-<body>
-<div class="d-flex justify-content-center align-self-center">
-    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModal" style="z-index: 2000">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteConfirmModalLabel">Emin misiniz?</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Bu bölümü silmek istediğinize emin misiniz? Bu işlem geri alınamaz!</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Sil</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>@ViewBag.Title</h2>
@@ -36,321 +15,320 @@
 
     <div class="card shadow-sm">
         <div class="card-body">
-            <table id="coursesTable" class="table table-striped table-bordered" style="width: 100%">
+            @* ID'yi daha anlamlı olması için departmentsTable olarak değiştirdim *@
+            <table id="departmentsTable" class="table table-striped table-bordered" style="width: 100%">
                 <thead class="thead-dark">
-                <tr>
-                    <th class="text-center">Bölüm Kodu</th>
-                    <th class="text-center">Bölüm Adı</th>
-                    <th class="text-center">İşlemler</th>
-                </tr>
+                    <tr class="text-center">
+                        <th>Bölüm Kodu</th>
+                        <th>Bölüm Adı</th>
+                        <th>İşlemler</th>
+                    </tr>
                 </thead>
                 <tbody>
-                @foreach (var item in Model.Departments)
-                {
-                    <tr>
-                        <td class="text-center">@Html.DisplayFor(modelItem => item.DepartmentCode)</td>
-                        <td class="text-center">@Html.DisplayFor(modelItem => item.DepartmentName)</td>
-                        <td class="text-center align-items-center">
-                            @Html.ActionLink("Düzenle", "Edit", "Department", new { id = item.DepartmentId }, new { @class = "btn btn-sm btn-info" })
-                            <button type="button" class="btn btn-outline-danger btn-sm delete-course"
-                                    data-department-id="@item.DepartmentId" data-department-name="@item.DepartmentName">
-                                <i class="bi bi-trash"></i> Sil
-                            </button>
-                        </td>
-                    </tr>
-                }
+                    @foreach (var item in Model.Departments)
+                    {
+                        <tr>
+                            <td class="text-center">@Html.DisplayFor(modelItem => item.DepartmentCode)</td>
+                            <td>@Html.DisplayFor(modelItem => item.DepartmentName)</td>
+                            <td class="text-center">
+                                @* DÜZENLEME: ActionLink yerine modalı tetikleyecek buton eklendi *@
+                                <a href="#" class="btn btn-sm btn-info edit-button" data-id="@item.DepartmentId">
+                                    <i class="bi bi-pen me-1"></i> Düzenle
+                                </a>
+                                <button type="button" class="btn btn-outline-danger btn-sm delete-button"
+                                        data-id="@item.DepartmentId" data-name="@item.DepartmentName">
+                                    <i class="bi bi-trash"></i> Sil
+                                </button>
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </table>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true" style="z-index: 2000">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="deleteConfirmModalLabel">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Bölüm Silme Onayı
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="mb-3">Bu bölümü silmek istediğinize emin misiniz?</p>
-                <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    <strong>Uyarı:</strong> Bu işlem geri alınamaz!
-                </div>
-                <p class="mb-0">
-                    <strong>Bölüm Adı:</strong> <span id="departmentNameToDelete"></span>
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
-                    <i class="bi bi-trash me-2"></i>Sil
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Add Department Modal -->
-<div class="modal fade" id="addDepartmentModal" tabindex="-1" aria-labelledby="addDepartmentModalLabel" aria-hidden="true" style="z-index: 2000">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title text-white" id="addDepartmentModalLabel">
-                    <i class="bi bi-plus-square me-2"></i>Yeni Bölüm Ekle
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addDepartmentForm" class="needs-validation" novalidate>
-                    <div class="row">
-                        <div class="col-12 mb-3">
-                            <label for="departmentCode" class="form-label">
-                                <i class="bi bi-journal me-1"></i>Bölüm Kodu
-                            </label>
-                            <input type="text" class="form-control" id="departmentCode" name="DepartmentCode" maxlength="10" required>
-                            <div class="invalid-feedback" id="departmentCodeError"></div>
-                        </div>
-                        <div class="col-12 mb-3">
-                            <label for="departmentName" class="form-label">
-                                <i class="bi bi-building me-1"></i>Bölüm Adı
-                            </label>
-                            <input type="text" class="form-control" id="departmentName" name="DepartmentName" maxlength="100" required>
-                            <div class="invalid-feedback" id="departmentNameError"></div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                <button type="button" class="btn btn-primary" id="saveDepartmentBtn">
-                    <i class="bi bi-check-lg me-2"></i>Bölüm Ekle
-                </button>
-            </div>
         </div>
     </div>
     @Html.AntiForgeryToken()
 </div>
 
+
+<div class="modal fade" id="addDepartmentModal" tabindex="-1" aria-labelledby="addDepartmentModalLabel" aria-hidden="true" style="z-index: 2000">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="addDepartmentModalLabel"><i class="bi bi-plus-square me-2 text-white"></i>Yeni Bölüm Ekle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addDepartmentForm" class="needs-validation" novalidate>
+                    <div class="mb-3">
+                        <label for="departmentCode" class="form-label"><i class="bi bi-journal me-1"></i>Bölüm Kodu</label>
+                        <input type="text" class="form-control" id="departmentCode" name="DepartmentCode" maxlength="10" required>
+                        <div class="invalid-feedback" id="departmentCodeError"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="departmentName" class="form-label"><i class="bi bi-building me-1"></i>Bölüm Adı</label>
+                        <input type="text" class="form-control" id="departmentName" name="DepartmentName" maxlength="100" required>
+                        <div class="invalid-feedback" id="departmentNameError"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" id="saveDepartmentBtn"><i class="bi bi-check-lg me-2"></i>Bölüm Ekle</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editDepartmentModal" tabindex="-1" aria-labelledby="editDepartmentModalLabel" aria-hidden="true" style="z-index: 2000">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="editDepartmentModalLabel"><i class="bi bi-pen me-2"></i>Bölümü Düzenle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editDepartmentForm" class="needs-validation" novalidate>
+                    <input type="hidden" id="editDepartmentId" name="DepartmentId">
+                    <div class="mb-3">
+                        <label for="editDepartmentCode" class="form-label"><i class="bi bi-journal me-1"></i>Bölüm Kodu</label>
+                        <input type="text" class="form-control" id="editDepartmentCode" name="DepartmentCode" maxlength="10" required>
+                        <div class="invalid-feedback" id="editDepartmentCodeError"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editDepartmentName" class="form-label"><i class="bi bi-building me-1"></i>Bölüm Adı</label>
+                        <input type="text" class="form-control" id="editDepartmentName" name="DepartmentName" maxlength="100" required>
+                        <div class="invalid-feedback" id="editDepartmentNameError"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-info" id="updateDepartmentBtn"><i class="bi bi-check-lg me-2"></i>Değişiklikleri Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 @section Scripts {
-
     <script>
-        $(document).ready(function() {
-            $('#coursesTable').DataTable({
-                language: {
-                    url: '/Content/datatables/i18n/tr.json'
-                },
-                responsive: {
-                    details: {
-                        type: 'inline',
-                        renderer: DataTable.Responsive.renderer.tableAll({ tableClass: 'table table-sm' })
-                    }
-                },
+        $(document).ready(function () {
+            $('#departmentsTable').DataTable({
+                language: { url: '/Content/datatables/i18n/tr.json' },
+                responsive: true,
                 columnDefs: [
-                    { className: 'dtr-control', orderable: false, targets: 0 },
-                    { orderable: false, targets: 2 }
+                    { orderable: false, targets: 2 } // İşlemler sütunu sıralanamaz
                 ],
-                order: [[1, 'asc']]
+                order: [[0, 'asc']] // İlk sütuna göre sırala
             });
 
-            // Auto-open Add modal if coming from quick action or Add link
-            const urlParams = new URLSearchParams(window.location.search);
-            const fromAdd = urlParams.get('add') === 'true';
-            const referrer = document.referrer;
-
-            if (fromAdd || referrer.includes('/Department/Add') || window.location.pathname.includes('/Add')) {
-                setTimeout(function() {
-                        const addModal = new bootstrap.Modal(document.getElementById('addDepartmentModal'));
-                        addModal.show();
-                    },
-                    500);
-            }
+            // --- Fonksiyonları Başlat ---
+            initializeAddDepartmentModal();
+            initializeEditDepartmentModal(); // Yeni edit fonksiyonunu başlat
+            initializeDeleteFunctionality(); // Silme fonksiyonunu başlat (iyileştirildi)
         });
-    </script>
 
-    <script>
-
-        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-
-        if (!token) {
-            showFeedbackModal("error", "Yetkisiz İşlem", "Bu işlemi yapmak için yeterli yetkiniz bulunmuyor. Sayfayı tekrar yükleyin ya da giriş yapın.", null, null, null);
-            return;
-        }
-
-        document.addEventListener("DOMContentLoaded",
-            function() {
-                initializeDeleteModal();
-            });
-
-        function initializeDeleteModal() {
-            const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-            const deleteButtons = document.querySelectorAll('.delete-course');
-            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-            const courseNameSpan = document.getElementById('departmentNameToDelete');
-            let departmentIdToDelete = null;
-
-            deleteButtons.forEach(button => {
-                button.addEventListener('click',
-                    function() {
-                        departmentIdToDelete = this.dataset.departmentId;
-                        const courseName = this.dataset.departmentName;
-                        courseNameSpan.textContent = courseName;
-                        deleteModal.show();
-                    });
-            });
-
-            confirmDeleteBtn.addEventListener('click',
-                function() {
-                    if (departmentIdToDelete) {
-                        var apiUrl = encodeURIComponent(`api/departments/delete/${departmentIdToDelete}`);
-                        fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`,
-                                {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'RequestVerificationToken': token
-                                    }
-                                }
-                            )
-                            .then(resp => {
-                                if (resp.ok) {
-                                    deleteModal.hide();
-                                    location.reload();
-                                } else {
-                                    console.error('Kullanıcı silinirken hata oluştu.');
-                                }
-                            });
-                    }
-                });
-        }
-
-        // Add Department Modal Functionality
-        initializeAddDepartmentModal();
-
+        // --- ADD DEPARTMENT (EKLEME) ---
         function initializeAddDepartmentModal() {
-            const addDepartmentModal = new bootstrap.Modal(document.getElementById('addDepartmentModal'));
-            const addDepartmentForm = document.getElementById('addDepartmentForm');
-            const saveDepartmentBtn = document.getElementById('saveDepartmentBtn');
+            const addModal = new bootstrap.Modal(document.getElementById('addDepartmentModal'));
+            const addForm = document.getElementById('addDepartmentForm');
+            const saveBtn = document.getElementById('saveDepartmentBtn');
+            const codeInput = document.getElementById('departmentCode');
+            const nameInput = document.getElementById('departmentName');
 
-            // Form validation
-            function validateDepartmentForm() {
+            function validateForm() {
                 let isValid = true;
-                const formData = new FormData(addDepartmentForm);
+                addForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
 
-                // Clear previous errors
-                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-
-                // Department Code validation
-                const departmentCode = formData.get('DepartmentCode').trim();
-                if (!departmentCode) {
-                    showDepartmentFieldError('departmentCode', 'departmentCodeError', 'Bölüm kodu gereklidir');
-                    isValid = false;
-                } else if (departmentCode.length > 10) {
-                    showDepartmentFieldError('departmentCode', 'departmentCodeError', 'Bölüm kodu en fazla 10 karakter olabilir');
+                if (!codeInput.value.trim()) {
+                    showError(codeInput, 'departmentCodeError', 'Bölüm kodu gereklidir.');
                     isValid = false;
                 }
-
-                // Department Name validation
-                const departmentName = formData.get('DepartmentName').trim();
-                if (!departmentName) {
-                    showDepartmentFieldError('departmentName', 'departmentNameError', 'Bölüm adı gereklidir');
-                    isValid = false;
-                } else if (departmentName.length > 100) {
-                    showDepartmentFieldError('departmentName', 'departmentNameError', 'Bölüm adı en fazla 100 karakter olabilir');
+                if (!nameInput.value.trim()) {
+                    showError(nameInput, 'departmentNameError', 'Bölüm adı gereklidir.');
                     isValid = false;
                 }
-
-                // Enable/disable save button based on validation
-                saveDepartmentBtn.disabled = !isValid;
-                if (!isValid) {
-                    saveDepartmentBtn.classList.add('button-disabled');
-                } else {
-                    saveDepartmentBtn.classList.remove('button-disabled');
-                }
-
+                saveBtn.disabled = !isValid;
                 return isValid;
             }
 
-            function showDepartmentFieldError(fieldId, errorId, message) {
-                document.getElementById(fieldId).classList.add('is-invalid');
+            function showError(inputElement, errorId, message) {
+                inputElement.classList.add('is-invalid');
                 document.getElementById(errorId).textContent = message;
             }
 
-            // Add real-time validation
-            const departmentCodeInput = document.getElementById('departmentCode');
-            const departmentNameInput = document.getElementById('departmentName');
-            
-            [departmentCodeInput, departmentNameInput].forEach(input => {
-                input.addEventListener('input', validateDepartmentForm);
-                input.addEventListener('change', validateDepartmentForm);
+            [codeInput, nameInput].forEach(input => input.addEventListener('input', validateForm));
+
+            saveBtn.addEventListener('click', async function () {
+                if (!validateForm()) return;
+
+                const originalText = this.innerHTML;
+                this.disabled = true;
+                this.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Ekleniyor...`;
+
+                const departmentData = {
+                    DepartmentCode: codeInput.value.trim(),
+                    DepartmentName: nameInput.value.trim()
+                };
+
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    const apiUrl = encodeURIComponent('api/departments/add');
+                    const response = await fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                        body: JSON.stringify(departmentData)
+                    });
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        addModal.hide();
+                        showFeedbackModal('success', 'Başarılı', result.message || 'Bölüm başarıyla eklendi.', null, null, () => location.reload());
+                    } else {
+                        showFeedbackModal('error', 'Hata', result.message || 'Bölüm eklenirken bir hata oluştu.');
+                    }
+                } catch (error) {
+                    showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya bağlanırken bir hata oluştu.');
+                } finally {
+                    this.disabled = false;
+                    this.innerHTML = originalText;
+                }
             });
 
-            // Initial validation
-            validateDepartmentForm();
+            document.getElementById('addDepartmentModal').addEventListener('hidden.bs.modal', () => {
+                addForm.reset();
+                addForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                validateForm();
+            });
 
-            // Save department
-            saveDepartmentBtn.addEventListener('click',
-                async function() {
-                    if (!validateDepartmentForm()) return;
-
-                    const originalText = saveDepartmentBtn.innerHTML;
-                    saveDepartmentBtn.disabled = true;
-                    saveDepartmentBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...';
-
-                    try {
-                        const formData = new FormData(addDepartmentForm);
-                        const departmentData = {
-                            DepartmentCode: formData.get('DepartmentCode').trim(),
-                            DepartmentName: formData.get('DepartmentName').trim()
-                        };
-                        const apiUrl = encodeURIComponent('api/departments/add');
-                        const response = await fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`,
-                            {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'RequestVerificationToken': token
-                                },
-                                body: JSON.stringify(departmentData)
-                            });
-
-                        const result = await response.json();
-
-                        if (result.success) {
-                            addDepartmentModal.hide();
-                            addDepartmentForm.reset();
-                            showFeedbackModal('success',
-                                'İşlem Başarılı',
-                                result.message || 'Bölüm başarıyla eklendi.',
-                                null,
-                                null,
-                                function() {
-                                    location.reload();
-                                });
-                        } else {
-                            showFeedbackModal('error', 'İşlem Başarısız', result.message || 'Bir hata oluştu.');
-                        }
-                    } catch (error) {
-                        console.error('Bölüm eklenirken hata:', error);
-                        showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya bağlanırken bir hata oluştu.');
-                    } finally {
-                        saveDepartmentBtn.disabled = false;
-                        saveDepartmentBtn.innerHTML = originalText;
-                    }
-                });
-
-            // Reset form when modal is hidden
-            document.getElementById('addDepartmentModal').addEventListener('hidden.bs.modal',
-                function() {
-                    addDepartmentForm.reset();
-                    document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-                    document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
-                });
+            validateForm();
         }
+
+        // --- EDIT DEPARTMENT (DÜZENLEME) ---
+        function initializeEditDepartmentModal() {
+            const editModal = new bootstrap.Modal(document.getElementById('editDepartmentModal'));
+            const editForm = document.getElementById('editDepartmentForm');
+            const updateBtn = document.getElementById('updateDepartmentBtn');
+            const idInput = document.getElementById('editDepartmentId');
+            const codeInput = document.getElementById('editDepartmentCode');
+            const nameInput = document.getElementById('editDepartmentName');
+
+            $('#departmentsTable tbody').on('click', '.edit-button', async function () {
+                const departmentId = $(this).data('id');
+                try {
+                    const apiUrl = encodeURIComponent(`api/departments/edit/${departmentId}`);
+                    const response = await fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`);
+                    if (!response.ok) throw new Error('Bölüm bilgisi alınamadı.');
+
+                    const data = await response.json();
+                    idInput.value = data.DepartmentId;
+                    codeInput.value = data.DepartmentCode;
+                    nameInput.value = data.DepartmentName;
+
+                    validateForm();
+                    editModal.show();
+                } catch (error) {
+                    showFeedbackModal('error', 'Veri Hatası', 'Bölüm bilgileri alınırken bir hata oluştu.');
+                }
+            });
+
+            function validateForm() {
+                let isValid = true;
+                editForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+                if (!codeInput.value.trim()) {
+                    showError(codeInput, 'editDepartmentCodeError', 'Bölüm kodu gereklidir.');
+                    isValid = false;
+                }
+                if (!nameInput.value.trim()) {
+                    showError(nameInput, 'editDepartmentNameError', 'Bölüm adı gereklidir.');
+                    isValid = false;
+                }
+                updateBtn.disabled = !isValid;
+                return isValid;
+            }
+
+            function showError(inputElement, errorId, message) {
+                inputElement.classList.add('is-invalid');
+                document.getElementById(errorId).textContent = message;
+            }
+
+            [codeInput, nameInput].forEach(input => input.addEventListener('input', validateForm));
+
+            updateBtn.addEventListener('click', async function () {
+                if (!validateForm()) return;
+
+                const originalText = this.innerHTML;
+                this.disabled = true;
+                this.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Güncelleniyor...`;
+
+                const departmentData = {
+                    DepartmentId: idInput.value,
+                    DepartmentCode: codeInput.value.trim(),
+                    DepartmentName: nameInput.value.trim()
+                };
+
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    const apiUrl = encodeURIComponent('api/departments/edit');
+                    const response = await fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                        body: JSON.stringify(departmentData)
+                    });
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        editModal.hide();
+                        showFeedbackModal('success', 'Başarılı', result.message || 'Bölüm başarıyla güncellendi.', null, null, () => location.reload());
+                    } else {
+                        showFeedbackModal('error', 'Hata', result.message || 'Bölüm güncellenirken bir hata oluştu.');
+                    }
+                } catch (error) {
+                    showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya bağlanırken bir hata oluştu.');
+                } finally {
+                    this.disabled = false;
+                    this.innerHTML = originalText;
+                }
+            });
+
+            document.getElementById('editDepartmentModal').addEventListener('hidden.bs.modal', () => {
+                editForm.reset();
+                editForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            });
+        }
+
+        // --- DELETE DEPARTMENT (SİLME) ---
+        function initializeDeleteFunctionality() {
+            $('#departmentsTable tbody').on('click', '.delete-button', function () {
+                const departmentId = $(this).data('id');
+                const departmentName = $(this).data('name');
+
+                showFeedbackModal('confirm',
+                    'Bölüm Silme Onayı',
+                    `<p><b>${departmentName}</b> adlı bölümü silmek istediğinize emin misiniz?</p><div class="alert alert-warning mb-0"><i class="bi bi-exclamation-triangle me-2"></i><strong>Uyarı:</strong> Bu işlem geri alınamaz!</div>`,
+                    async () => {
+                        try {
+                            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                            const apiUrl = encodeURIComponent(`api/departments/delete/${departmentId}`);
+                            const response = await fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`, {
+                                method: 'POST',
+                                headers: { 'RequestVerificationToken': token }
+                            });
+                            const result = await response.json();
+                            if (response.ok) {
+                                showFeedbackModal("success", "Başarılı", result.message || "Bölüm başarıyla silindi.", null, null, () => location.reload());
+                            } else {
+                                showFeedbackModal('error', 'Hata', result.message || 'Silme işlemi sırasında bir hata oluştu.');
+                            }
+                        } catch (ex) {
+                            showFeedbackModal("error", "Bağlantı Hatası", "Sunucuya bağlanırken bir hata oluştu.");
+                        }
+                    },
+                    'Evet, Sil'
+                );
+            });
+        }
+
     </script>
 }
-
-</body>

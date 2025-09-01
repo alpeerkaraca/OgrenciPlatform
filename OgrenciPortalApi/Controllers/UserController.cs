@@ -45,11 +45,13 @@ namespace OgrenciPortalApi.Controllers
 
                 var user =
                     await _db.Users.Include(users => users.Departments)
-                        .FirstOrDefaultAsync(u => u.Email == model.Email && !u.IsDeleted && u.IsActive);
+                        .FirstOrDefaultAsync(u => u.Email == model.Email);
                 if (user == null || !BCrypt.Net.BCrypt.Verify(model.Password, user.Password))
                 {
-                    return Request.CreateResponse(HttpStatusCode.Unauthorized);
+                    return Request.CreateResponse(HttpStatusCode.Unauthorized, new{Message="E-Posta adresiniz ya da parolanız hatalı."});
                 }
+                if (user.IsDeleted || !user.IsActive)
+                    return Request.CreateResponse(HttpStatusCode.Unauthorized, new { Message = "Hesabınız pasif hale getirilmiş ya da silinmiş." });
 
                 var claims = TokenManager.GetClaimsFromUser(user);
 
@@ -270,6 +272,7 @@ namespace OgrenciPortalApi.Controllers
                     DepartmentId = userInDb.DepartmentId,
                     AdvisorId = userInDb.AdvisorId,
                     StudentNo = userInDb.StudentNo,
+                    StudentYear = userInDb.StudentYear,
                 };
                 FillEditModel(dto);
 
@@ -301,7 +304,7 @@ namespace OgrenciPortalApi.Controllers
                 if (await _db.Users.AnyAsync(u =>
                         u.Email.ToLower() == model.Email.ToLower() && u.UserId != model.UserId))
                     return BadRequest("Bu e-posta adresine sahip bir kullanıcı bulunmakta.");
-                if (await _db.Users.AnyAsync(u =>
+                if (!string.IsNullOrEmpty(model.StudentNo) && await _db.Users.AnyAsync(u =>
                         u.StudentNo.ToLower() == model.StudentNo.ToLower() && u.UserId != model.UserId &&
                         u.Role == model.Role))
                     return BadRequest("Bu öğrenci numarasına sahip bir öğrenci bulunmakta.");
@@ -348,6 +351,12 @@ namespace OgrenciPortalApi.Controllers
                 {
                     return NotFound();
                 }
+
+                var advisorsCourses = await _db.OfferedCourses.Where(oc => oc.TeacherId == id).ToListAsync();
+
+                if (userInDb.Role == (int)Roles.Danışman &&
+                    await _db.OfferedCourses.AnyAsync(oc => oc.TeacherId == id && oc.Semesters.IsActive))
+                    return BadRequest("Danışmanın ders verdiği dönem aktif olduğu için danışman silinemez.");
 
                 userInDb.IsDeleted = true;
                 userInDb.DeletedAt = DateTime.Now;

@@ -4,13 +4,11 @@
     "Projects": [
       {
         "Path": "OgrenciPortalApi\\OgrenciPortalApi.csproj",
-        "Action": "Start",
-        "DebugTarget": "IIS Express (Zen)"
+        "Action": "Start"
       },
       {
         "Path": "OgrenciPortali\\OgrenciPortali.csproj",
-        "Action": "Start",
-        "DebugTarget": "IIS Express (Zen)"
+        "Action": "Start"
       }
     ]
   }

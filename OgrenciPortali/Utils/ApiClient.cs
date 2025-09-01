@@ -30,7 +30,7 @@ namespace OgrenciPortali.Utils
         }
 
         public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
-        {
+         {
             AddAuthorizationHeader(request);
 
             var response = await client.SendAsync(request);

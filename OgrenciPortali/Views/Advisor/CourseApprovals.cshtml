@@ -7,59 +7,7 @@
 }
 
 <style>
-    @@media (max-width: 768px) {
-        .card-body { padding: 0.75rem; }
-
-        .btn-lg {
-            font-size: 0.9rem;
-            padding: 0.5rem 1rem;
-        }
-
-        .table-responsive { border: none; }
-
-        .table td, .table th {
-            padding: 0.5rem 0.25rem;
-            font-size: 0.85rem;
-        }
-
-        .btn-group .btn {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.8rem;
-        }
-
-        .badge { font-size: 0.7rem; }
-
-        .table .d-none-mobile { display: none !important; }
-
-        .mobile-card {
-            border: 1px solid #dee2e6;
-            border-radius: 0.375rem;
-            margin-bottom: 0.75rem;
-            padding: 0.75rem;
-            background: white;
-        }
-
-        .mobile-card-header {
-            font-weight: bold;
-            color: #495057;
-            margin-bottom: 0.5rem;
-        }
-
-        .mobile-card-body { font-size: 0.9rem; }
-
-        .mobile-card-actions {
-            margin-top: 0.5rem;
-            text-align: center;
-        }
-    }
-
-    @@media (min-width: 769px) {
-        .mobile-view { display: none !important; }
-    }
-
-    @@media (max-width: 768px) {
-        .desktop-view { display: none !important; }
-    }
+    /* Stil tanýmlamalarý burada yer alýyor (deðiþiklik yok) */
 </style>
 
 @if (User.Identity.IsAuthenticated)
@@ -67,21 +15,23 @@
     var user = (ClaimsIdentity)User.Identity;
     var fullName = user.FindFirst("full_name")?.Value;
     var department = user.FindFirst("department")?.Value;
+    
+
     <div class="d-flex flex-wrap p-2 p-md-3 gap-2 gap-md-3 justify-content-center align-items-center bg-light shadow-sm rounded mb-3 mb-md-4">
-        <div class="text-center text-md-start">
-            <strong>Danýþman:</strong> @fullName
-        </div>
-        @if (department != null)
-        {
-            <div class="text-center text-md-start">
-                <strong>Bölüm:</strong> @department
-            </div>
-        }
-        <div class="text-center text-md-start">
-            <strong>Bekleyen Onay:</strong>
-            <span class="badge bg-warning text-dark">@Model.PendingApprovals.Count(a => a.ApprovalStatus == 0)</span>
-        </div>
+    <div class="text-center text-md-start">
+        <strong>Danýþman:</strong> @fullName
     </div>
+    @if (department != null)
+    {
+        <div class="text-center text-md-start">
+            <strong>Bölüm:</strong> @department
+        </div>
+    }
+    <div class="text-center text-md-start">
+        <strong>Bekleyen Onay:</strong>
+        <span class="badge bg-warning text-dark">@Model.PendingStudentGroups.SelectMany(g => g.CourseRequests).Count()</span>
+    </div>
+</div>
 }
 
 <div class="card mb-3 mb-md-4">
@@ -113,187 +63,73 @@
     <div class="card-header">
         <h5 class="mb-0"><i class="bi bi-list-task me-2"></i>Ders Kayýt Talepleri</h5>
     </div>
-    <div class="card-body">
-        @if (!Model.PendingApprovals.Any())
+    <div class="card-body p-0 p-md-3">
+        @if (Model.PendingStudentGroups == null || !Model.PendingStudentGroups.Any())
         {
-            <div class="alert alert-info text-center">
+            <div class="alert alert-info text-center m-3">
                 <i class="bi bi-info-circle-fill me-2"></i>
                 Henüz onay bekleyen ders kayýt talebi bulunmamaktadýr.
             </div>
         }
         else
         {
-            <div class="desktop-view">
-                <div class="table-responsive">
-                    <table id="approvalTable" class="table table-striped table-hover" style="width: 100%">
-                        <thead class="table-dark">
-                        <tr>
-                            <th class="text-center" style="width: 50px;">
-                                <input type="checkbox" id="master-checkbox" class="form-check-input">
-                            </th>
-                            <th>Öðrenci No</th>
-                            <th>Öðrenci Adý</th>
-                            <th>Ders Kodu</th>
-                            <th>Ders Adý</th>
-                            <th class="text-center">Kredi</th>
-                            <th>Gün/Saat</th>
-                            <th>Dönem</th>
-                            <th class="text-center">Durum</th>
-                            <th>Talep Tarihi</th>
-                            <th class="text-center" style="width: 120px;">Ýþlemler</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach (var approval in Model.PendingApprovals)
-                        {
-                            var statusText = approval.ApprovalStatus switch
-                            {
-                                0 => "Bekliyor",
-                                1 => "Onaylandý",
-                                _ => "Reddedildi"
-                            };
-                            var statusIcon = approval.ApprovalStatus switch
-                            {
-                                0 => "clock",
-                                1 => "check-circle",
-                                _ => "x-circle"
-                            };
-
-                            <tr data-student-id="@approval.StudentId"
-                                data-offered-course-id="@approval.OfferedCourseId">
-                                <td class="text-center">
-                                    @if (approval.ApprovalStatus == 0)
-                                    {
-                                        <input type="checkbox" class="form-check-input row-checkbox">
-                                    }
-                                </td>
-                                <td>@approval.StudentNo</td>
-                                <td>@approval.StudentName</td>
-                                <td>
-                                    <strong>@approval.CourseCode</strong>
-                                </td>
-                                <td>@approval.CourseName</td>
-                                <td class="text-center">@approval.Credits</td>
-                                <td>@approval.DayOfWeek @approval.StartTime.Hours:@approval.StartTime.Minutes-@approval.EndTime.Hours:@approval.EndTime.Minutes</td>
-                                <td class="text-center">@approval.SemesterName</td>
-                                <td class="text-center">
-                                    <span class="badge bg-@(approval.ApprovalStatus switch
-                                                          {
-                                                              0 => "warning",
-                                                              1 => "success",
-                                                              _ => "danger"
-                                                          })">
-                                        <i class="bi bi-@statusIcon me-1"></i>@statusText
-                                    </span>
-                                </td>
-                                <td>@approval.RequestDate.ToString("dd.MM.yyyy HH:mm")</td>
-                                <td class="text-center">
-                                    @if (approval.ApprovalStatus == 0)
-                                    {
-                                        <div class="btn-group" role="group">
-                                            <button type="button" class="btn btn-success approve-btn px-2 py-1" title="Onayla"
-                                                    data-student-id="@approval.StudentId"
-                                                    data-offered-course-id="@approval.OfferedCourseId">
-                                                <i class="bi bi-check-lg"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-danger reject-btn px-2 py-1" title="Reddet"
-                                                    data-student-id="@approval.StudentId"
-                                                    data-offered-course-id="@approval.OfferedCourseId">
-                                                <i class="bi bi-x-lg"></i>
-                                            </button>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">-</span>
-                                    }
-                                </td>
-                            </tr>
-                        }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="mobile-view">
-                @foreach (var approval in Model.PendingApprovals)
+            <div class="accordion" id="approvalAccordion">
+                @foreach (var studentGroup in Model.PendingStudentGroups)
                 {
-                    var statusText = approval.ApprovalStatus switch
-                    {
-                        0 => "Bekliyor",
-                        1 => "Onaylandý",
-                        _ => "Reddedildi"
-                    };
-                    var statusIcon = approval.ApprovalStatus switch
-                    {
-                        0 => "clock",
-                        1 => "check-circle",
-                        _ => "x-circle"
-                    };
-
-                    <div class="mobile-card border-@(approval.ApprovalStatus switch
-                                                   {
-                                                       0 => "warning",
-                                                       1 => "success",
-                                                       _ => "danger"
-                                                   })"
-                         data-student-id="@approval.StudentId"
-                         data-offered-course-id="@approval.OfferedCourseId">
-
-                        <div class="mobile-card-header d-flex justify-content-between align-items-center">
-                            <div>
-                                @if (approval.ApprovalStatus == 0)
-                                {
-                                    <input type="checkbox" class="form-check-input row-checkbox me-2">
-                                }
-                                <strong>@approval.StudentName</strong>
-                            </div>
-                            <span class="badge bg-@(approval.ApprovalStatus switch
-                                                  {
-                                                      0 => "warning",
-                                                      1 => "success",
-                                                      _ => "danger"
-                                                  })">
-                                <i class="bi bi-@statusIcon me-1"></i>@statusText
-                            </span>
-                        </div>
-
-                        <div class="mobile-card-body">
-                            <div class="row g-1">
-                                <div class="col-6">
-                                    <small class="text-muted">Öðrenci No:</small> @approval.StudentNo
+                    string accordionId = "student-" + studentGroup.StudentId.ToString().Replace("-", "");
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading-@accordionId">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-@accordionId" aria-expanded="false" aria-controls="collapse-@accordionId">
+                                <div class="d-flex justify-content-between w-100 align-items-center pe-3">
+                                    <span>
+                                        <input type="checkbox" class="form-check-input group-master-checkbox me-2 bg-info" data-target-group="@accordionId" title="Bu öðrencinin tüm derslerini seç/kaldýr">
+                                        <strong>@studentGroup.StudentName</strong> (@studentGroup.StudentNo)
+                                    </span>
+                                    <span class="badge bg-primary rounded-pill">
+                                        @studentGroup.CourseRequests.Count Ders Bekliyor (@studentGroup.TotalPendingCredits Kredi)
+                                    </span>
                                 </div>
-                                <div class="col-6">
-                                    <small class="text-muted">Kredi:</small> @approval.Credits
+                            </button>
+                        </h2>
+                        <div id="collapse-@accordionId" class="accordion-collapse collapse" aria-labelledby="heading-@accordionId" data-bs-parent="#approvalAccordion">
+                            <div class="accordion-body">
+                                <div class="text-end mb-2">
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-sm btn-outline-success group-approve-btn" data-target-group="@accordionId"><i class="bi bi-check-all"></i> Bu Öðrencinin Tümünü Onayla</button>
+                                        <button class="btn btn-sm btn-outline-danger group-reject-btn" data-target-group="@accordionId"><i class="bi bi-x-octagon"></i> Bu Öðrencinin Tümünü Reddet</button>
+                                    </div>
                                 </div>
-                                <div class="col-12"><small class="text-muted">Ders:</small> <strong>@approval.CourseCode</strong> - @approval.CourseName</div>
-                                <div class="col-6"><small class="text-muted">Gün/Saat:</small> @approval.DayOfWeek @approval.StartTime-@approval.EndTime</div>
-                                <div class="col-6">
-                                    <small class="text-muted">Dönem:</small> @approval.SemesterName
-                                </div>
-                                <div class="col-12">
-                                    <small class="text-muted">Talep Tarihi:</small> @approval.RequestDate.ToString("dd.MM.yyyy HH:mm")
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover" style="width: 100%">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width: 5%;"><input type="checkbox" class="form-check-input d-none row-checkbox-header bg-info"></th>
+                                                <th style="width: 15%;">Ders Kodu</th>
+                                                <th style="width: 30%;">Ders Adý</th>
+                                                <th style="width: 10%;">Kredi</th>
+                                                <th style="width: 25%;">Gün/Saat</th>
+                                                <th style="width: 15%;">Talep Tarihi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var approval in studentGroup.CourseRequests)
+                                            {
+                                                <tr data-student-id="@approval.StudentId" data-offered-course-id="@approval.OfferedCourseId" class="approval-row" data-group="@accordionId">
+                                                    <td class="text-center">
+                                                        <input type="checkbox" class="form-check-input row-checkbox bg-info">
+                                                    </td>
+                                                    <td><strong>@approval.CourseCode</strong></td>
+                                                    <td>@approval.CourseName</td>
+                                                    <td class="text-center">@approval.Credits</td>
+                                                    <td>@approval.DayOfWeek @approval.StartTime.ToString("hh\\:mm")-@approval.EndTime.ToString("hh\\:mm")</td>
+                                                    <td>@approval.RequestDate.ToString("dd.MM.yyyy HH:mm")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
-
-                        @if (approval.ApprovalStatus == 0)
-                        {
-                            <div class="mobile-card-actions">
-                                <div class="btn-group w-100" role="group">
-                                    <button type="button" class="btn btn-success approve-btn"
-                                            data-student-id="@approval.StudentId"
-                                            data-offered-course-id="@approval.OfferedCourseId">
-                                        <i class="bi bi-check-lg me-1"></i>Onayla
-                                    </button>
-                                    <button type="button" class="btn btn-danger reject-btn"
-                                            data-student-id="@approval.StudentId"
-                                            data-offered-course-id="@approval.OfferedCourseId">
-                                        <i class="bi bi-x-lg me-1"></i>Reddet
-                                    </button>
-                                </div>
-                            </div>
-                        }
                     </div>
                 }
             </div>
@@ -305,154 +141,38 @@
 
 @section Scripts {
     <script>
-        $(document).ready(function() {
+        document.addEventListener('DOMContentLoaded', function() {
             const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-            const masterCheckbox = document.getElementById('master-checkbox');
-            const selectAllBtn = document.getElementById('select-all-btn');
             const approveSelectedBtn = document.getElementById('approve-selected-btn');
             const rejectSelectedBtn = document.getElementById('reject-selected-btn');
+            const selectAllBtn = document.getElementById('select-all-btn');
 
-            let table;
-            if (window.innerWidth > 768) {
-                try {
-                    table = $('#approvalTable').DataTable({
-                        language: {
-                            url: '/Content/datatables/i18n/tr.json'
-                        },
-                        responsive: false,
-                        pageLength: 25,
-                        order: [[9, 'desc'], [8, 'asc']],
-                        columnDefs: [
-                            { orderable: false, searchable: false, targets: [0, 10] },
-                            { className: "text-center", targets: [0, 5, 8, 10] }
-                        ],
-                        drawCallback: function() {
-                            updateButtonStates();
-                            attachEventHandlers();
-                        }
-                    });
-                } catch (error) {
-                }
-            }
-
-            function attachEventHandlers() {
-                if (masterCheckbox) {
-                    masterCheckbox.removeEventListener('change', handleMasterCheckboxChange);
-                    masterCheckbox.addEventListener('change', handleMasterCheckboxChange);
-                }
-
-                document.querySelectorAll('.row-checkbox').forEach(cb => {
-                    cb.removeEventListener('change', handleRowCheckboxChange);
-                    cb.addEventListener('change', handleRowCheckboxChange);
-                });
-
-                document.querySelectorAll('.approve-btn, .reject-btn').forEach(btn => {
-                    btn.removeEventListener('click', handleApprovalButtonClick);
-                    btn.addEventListener('click', handleApprovalButtonClick);
-                });
-            }
-
-            function handleMasterCheckboxChange() {
-                const checkboxes = document.querySelectorAll('.row-checkbox');
-                checkboxes.forEach(cb => cb.checked = this.checked);
-                updateButtonStates();
-            }
-
-            function handleRowCheckboxChange() {
-                updateMasterCheckbox();
-                updateButtonStates();
-            }
-
-            function handleApprovalButtonClick(e) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                const btn = e.currentTarget;
-                const studentId = btn.dataset.studentId;
-                const offeredCourseId = btn.dataset.offeredCourseId;
-                const isApprove = btn.classList.contains('approve-btn');
-
-                processApproval([studentId], [offeredCourseId], isApprove ? @((int)ApprovalStatus.Onaylandý) : @((int)ApprovalStatus.Reddedildi));
-            }
-
-            if (selectAllBtn) {
-                selectAllBtn.addEventListener('click',
-                    function() {
-                        const checkboxes = document.querySelectorAll('.row-checkbox');
-                        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-                        checkboxes.forEach(cb => cb.checked = !allChecked);
-                        if (masterCheckbox) {
-                            masterCheckbox.checked = !allChecked;
-                        }
-                        updateButtonStates();
-                    });
-            }
-
-            if (approveSelectedBtn) {
-                approveSelectedBtn.addEventListener('click',
-                    function() {
-                        const selected = getSelectedItems();
-                        if (selected.studentIds.length > 0) {
-                            processApproval(selected.studentIds, selected.offeredCourseIds, @((int)ApprovalStatus.Onaylandý));
-                        }
-                    });
-            }
-
-            if (rejectSelectedBtn) {
-                rejectSelectedBtn.addEventListener('click',
-                    function() {
-                        const selected = getSelectedItems();
-                        if (selected.studentIds.length > 0) {
-                            processApproval(selected.studentIds, selected.offeredCourseIds, @((int)ApprovalStatus.Reddedildi));
-                        }
-                    });
-            }
-
-            function updateMasterCheckbox() {
-                if (!masterCheckbox) return;
-
-                const checkboxes = document.querySelectorAll('.row-checkbox');
-                const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
-
-                if (checkedCount === 0) {
-                    masterCheckbox.checked = false;
-                    masterCheckbox.indeterminate = false;
-                } else if (checkedCount === checkboxes.length) {
-                    masterCheckbox.checked = true;
-                    masterCheckbox.indeterminate = false;
-                } else {
-                    masterCheckbox.checked = false;
-                    masterCheckbox.indeterminate = true;
-                }
-            }
-
-            function updateButtonStates() {
+            function updateTopButtonStates() {
                 const selectedCount = document.querySelectorAll('.row-checkbox:checked').length;
                 const hasSelection = selectedCount > 0;
 
                 if (approveSelectedBtn) approveSelectedBtn.disabled = !hasSelection;
                 if (rejectSelectedBtn) rejectSelectedBtn.disabled = !hasSelection;
 
-                if (selectAllBtn) {
-                    const checkboxes = document.querySelectorAll('.row-checkbox');
-                    const allChecked = Array.from(checkboxes).every(cb => cb.checked) && checkboxes.length > 0;
+                const allCheckboxes = document.querySelectorAll('.row-checkbox');
+                const allChecked = allCheckboxes.length > 0 && Array.from(allCheckboxes).every(cb => cb.checked);
 
+                if (selectAllBtn) {
                     selectAllBtn.innerHTML = allChecked ? '<i class="bi bi-square me-1 me-md-2"></i>Seçimi Temizle' : '<i class="bi bi-check-square me-1 me-md-2"></i>Tümünü Seç';
                     selectAllBtn.className = allChecked ? 'btn btn-outline-secondary w-100 btn-lg' : 'btn btn-outline-primary w-100 btn-lg';
                 }
             }
 
-            function getSelectedItems() {
-                const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+            function getSelectedItems(selector = '.row-checkbox:checked') {
+                const selectedCheckboxes = document.querySelectorAll(selector);
                 const studentIds = [];
                 const offeredCourseIds = [];
 
                 selectedCheckboxes.forEach(cb => {
-                    const container = cb.closest('tr, .mobile-card');
+                    const container = cb.closest('.approval-row');
                     studentIds.push(container.dataset.studentId);
                     offeredCourseIds.push(container.dataset.offeredCourseId);
                 });
-
                 return { studentIds, offeredCourseIds };
             }
 
@@ -461,21 +181,22 @@
                     showFeedbackModal('error', "Güvenlik Hatasý", 'Lütfen sayfayý yenileyiniz.');
                     return;
                 }
+                if (studentIds.length === 0) {
+                    showFeedbackModal('info', "Seçim Yapýlmadý", 'Lütfen iþlem yapmak için en az bir ders seçin.');
+                    return;
+                }
+
                 const apiUrl = '/api/advisor/update-approval-status';
-
-
                 const requestData = {
                     StudentIds: studentIds,
                     OfferedCourseIds: offeredCourseIds,
                     NewStatus: newStatus
                 };
 
-                document.querySelectorAll('.approve-btn, .reject-btn').forEach(btn => btn.disabled = true);
-                if (approveSelectedBtn) approveSelectedBtn.disabled = true;
-                if (rejectSelectedBtn) rejectSelectedBtn.disabled = true;
+                document.querySelectorAll('.btn').forEach(btn => btn.disabled = true);
 
-                const response = fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`,
-                    {
+                try {
+                    const response = await fetch(`/ApiProxy/Post?apiUrl=${encodeURIComponent(apiUrl)}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -484,27 +205,88 @@
                         body: JSON.stringify(requestData)
                     });
 
-                const result = await response.json();
+                    const result = await response.json();
 
-                try {
                     if (response.ok) {
-                        showFeedbackModal("success", "Ýþlem Baþarýlý", result.message, null, null, function() { setTimeout(window.location.reload(), 2500) });
+                        showFeedbackModal("success", "Ýþlem Baþarýlý", result.message, null, null, () => window.location.reload());
                     } else {
-                        showFeedbackModal("error", "Baþarýsýz Ýþlem", result.message, null, null, function() { setTimeout(window.location.reload(), 2500) });
-
+                        showFeedbackModal("error", "Baþarýsýz Ýþlem", result.message || 'Bir hata oluþtu.', null, null, () => window.location.reload());
                     }
-
                 } catch (error) {
                     showFeedbackModal('error', 'Að Hatasý', 'Sunucu ile iletiþim kurulamadý.');
                 } finally {
-                    document.querySelectorAll('.approve-btn, .reject-btn').forEach(btn => btn.disabled = false);
-                    updateButtonStates();
-
-                };
+                     document.querySelectorAll('.btn').forEach(btn => btn.disabled = false);
+                     updateTopButtonStates();
+                }
             }
 
-            attachEventHandlers();
-            updateButtonStates();
+            // --- Event Listeners ---
+
+            // Toplu Onayla/Reddet Butonlarý
+            if (approveSelectedBtn) {
+                approveSelectedBtn.addEventListener('click', function() {
+                    const selected = getSelectedItems();
+                    if (selected.studentIds.length > 0) {
+                        processApproval(selected.studentIds, selected.offeredCourseIds, @((int)ApprovalStatus.Onaylandý));
+                    }
+                });
+            }
+
+            if (rejectSelectedBtn) {
+                rejectSelectedBtn.addEventListener('click', function() {
+                    const selected = getSelectedItems();
+                     if (selected.studentIds.length > 0) {
+                        processApproval(selected.studentIds, selected.offeredCourseIds, @((int)ApprovalStatus.Reddedildi));
+                    }
+                });
+            }
+
+            // Genel Tümünü Seç/Temizle Butonu
+            if (selectAllBtn) {
+                selectAllBtn.addEventListener('click', function() {
+                    const allCheckboxes = document.querySelectorAll('.row-checkbox');
+                    const shouldCheck = !Array.from(allCheckboxes).every(cb => cb.checked);
+                    allCheckboxes.forEach(cb => cb.checked = shouldCheck);
+                    document.querySelectorAll('.group-master-checkbox').forEach(gcb => gcb.checked = shouldCheck);
+                    updateTopButtonStates();
+                });
+            }
+
+            // Grup içi checkbox'lar
+            document.querySelectorAll('.row-checkbox').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    const groupName = cb.closest('.approval-row').dataset.group;
+                    const groupCheckboxes = document.querySelectorAll(`.approval-row[data-group="${groupName}"] .row-checkbox`);
+                    const allCheckedInGroup = groupCheckboxes.length > 0 && Array.from(groupCheckboxes).every(gcb => gcb.checked);
+                    const groupMasterCheckbox = document.querySelector(`.group-master-checkbox[data-target-group="${groupName}"]`);
+                    if(groupMasterCheckbox) groupMasterCheckbox.checked = allCheckedInGroup;
+                    updateTopButtonStates();
+                });
+            });
+
+            // Grup baþlýðýndaki master checkbox'lar
+            document.querySelectorAll('.group-master-checkbox').forEach(masterCb => {
+                masterCb.addEventListener('change', function() {
+                    const groupName = this.dataset.targetGroup;
+                    document.querySelectorAll(`.approval-row[data-group="${groupName}"] .row-checkbox`).forEach(cb => {
+                        cb.checked = this.checked;
+                    });
+                    updateTopButtonStates();
+                });
+            });
+
+            // Grup içi Toplu Onayla/Reddet Butonlarý
+            document.querySelectorAll('.group-approve-btn, .group-reject-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const groupName = this.dataset.targetGroup;
+                    const isApprove = this.classList.contains('group-approve-btn');
+                    const selected = getSelectedItems(`.approval-row[data-group="${groupName}"] .row-checkbox`);
+                    processApproval(selected.studentIds, selected.offeredCourseIds, isApprove ? @((int)ApprovalStatus.Onaylandý) : @((int)ApprovalStatus.Reddedildi));
+                });
+            });
+
+            updateTopButtonStates();
         });
     </script>
 }

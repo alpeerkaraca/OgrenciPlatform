@@ -135,7 +135,6 @@ namespace OgrenciPortalApi.Controllers
                     CurrentUserCount = 0,
                     CourseYear = dto.CourseYear,
                     Classroom = dto.Classroom,
-                    
                 };
 
                 _db.OfferedCourses.Add(offeredCourse);
@@ -159,7 +158,7 @@ namespace OgrenciPortalApi.Controllers
         [System.Web.Http.HttpGet]
         [System.Web.Http.Route("edit/{id:guid}")]
         [ResponseType(typeof(EditOfferedCoursesDTO))]
-        public async Task<IHttpActionResult> GetEditOfferedCourse([FromUri]Guid id)
+        public async Task<IHttpActionResult> GetEditOfferedCourse([FromUri] Guid id)
         {
             if (id == Guid.Empty)
             {
@@ -191,6 +190,8 @@ namespace OgrenciPortalApi.Controllers
                     EndTime = offeredCourseInDb.EndTime,
                     Quota = offeredCourseInDb.Quota,
                     CourseCode = course.CourseCode,
+                    Classroom = offeredCourseInDb.Classroom,
+                    CourseYear = offeredCourseInDb.CourseYear,
                     AdvisorList = _db.Users.Where(u => u.Role == (int)Roles.Danışman && !u.IsDeleted).Select(u =>
                         new SelectListItem { Value = u.UserId.ToString(), Text = u.Name + " " + u.Surname }),
                     SemesterList = _db.Semesters.Select(s => new SelectListItem
@@ -269,7 +270,8 @@ namespace OgrenciPortalApi.Controllers
 
             try
             {
-                var offeredCourseInDb = await _db.OfferedCourses.FindAsync(id);
+                var offeredCourseInDb = await _db.OfferedCourses.Include(s => s.Semesters)
+                    .FirstOrDefaultAsync(o => o.Id == id);
                 if (offeredCourseInDb == null)
                 {
                     return NotFound();
@@ -285,11 +287,15 @@ namespace OgrenciPortalApi.Controllers
                     return BadRequest("Bu derse kayıtlı öğrenciler bulunduğu için silinemez.");
                 }
 
+                if (offeredCourseInDb.Semesters.IsActive)
+                    return BadRequest("Bu dersin dönemi henüz sonlanmadığı için silinemez.");
+
                 offeredCourseInDb.IsDeleted = true;
                 offeredCourseInDb.UpdatedAt = DateTime.Now;
                 offeredCourseInDb.UpdatedBy = GetActiveUserIdString();
                 offeredCourseInDb.DeletedAt = DateTime.Now;
                 offeredCourseInDb.DeletedBy = GetActiveUserIdString();
+
                 await _db.SaveChangesAsync();
                 Logger.Info($"ID'si {id} olan açılmış ders başarıyla silindi.");
                 return Ok(new { Message = "Açılan ders başarıyla silindi." });
