@@ -1,32 +1,111 @@
-# 🎓 Öğrenci Platformu (Student Platform)
+# 🎓 Student Platform (Öğrenci Platformu)
 
-**Türkçe** | [English](#english-version)
+**English** | [Türkçe](#türkçe-sürüm)
 
-Bu proje, güvenlik odaklı bir öğrenci bilgi sistemi olarak geliştirilmiştir. Modern web uygulama mimarilerine uygun olarak tasarlanan sistem, JWT tabanlı kimlik doğrulama, rol tabanlı yetkilendirme ve kapsamlı güvenlik önlemleriyle kurumsal kullanıma hazır bir platform sunmaktadır.
+A comprehensive, security-focused student information management system built with modern web application architecture. This enterprise-ready platform provides JWT-based authentication, role-based authorization, and comprehensive security measures for academic institutions.
 
-## 🔒 Güvenlik Özellikleri
+## 🎯 What This System Does
 
-### Kimlik Doğrulama ve Yetkilendirme
-- **JWT Token Tabanlı Kimlik Doğrulama**: Stateless authentication ile ölçeklenebilir güvenlik
-- **Refresh Token Mekanizması**: Güvenli oturum yenileme ve uzun süreli erişim yönetimi
-- **Rol Tabanlı Erişim Kontrolü**: Admin, Danışman ve Öğrenci rolleri ile detaylı yetki yönetimi
-- **Özel Yetkilendirme Filtreleri**: CustomAuth attribute ile granüler erişim kontrolü
+The **Student Platform** is a complete academic management solution that facilitates:
 
-### Parola Güvenliği
-- **BCrypt Hash Algoritması**: Endüstri standardı parola şifreleme
-- **Güçlü Parola Politikaları**: Minimum karmaşıklık gereksinimleri
-- **Güvenli Parola Sıfırlama**: Token tabanlı sıfırlama mekanizması (15 dakika geçerlilik)
+- **Student Information Management**: Comprehensive student records, academic history, and profile management
+- **Course Management**: Course creation, scheduling, enrollment, and academic planning
+- **Academic Advising**: Advisor-student relationship management with approval workflows
+- **Multi-Role Access**: Secure access control for Administrators, Academic Advisors, and Students
+- **Department Administration**: Departmental structure management and academic organization
+- **Semester Management**: Academic calendar and semester-based course offerings
+- **Conflict Detection**: Automatic detection and prevention of scheduling conflicts
+- **Audit Trail**: Complete tracking of all system changes and user activities
 
-### Oturum Güvenliği
-- **HttpOnly ve Secure Çerezler**: XSS ve MITM saldırılarına karşı koruma
-- **CSRF Koruması**: Anti-forgery token implementasyonu
-- **Oturum Zaman Aşımı**: Yapılandırılabilir token yaşam süresi
-- **Güvenli Çıkış**: Refresh token'ların sunucu tarafında iptal edilmesi
+## 🏗️ System Architecture
 
-### Veri Güvenliği
-- **Input Validasyonu**: Model state validation ve form doğrulama
-- **SQL Injection Koruması**: Entity Framework ORM kullanımı
-- **Güvenli API Endpoint'leri**: Yetkilendirme kontrollü REST servisleri
+### Multi-Tier Architecture
+
+```
+┌─────────────────────────────────────────────────┐
+│                Frontend Layer                   │
+│            (OgrenciPortali - MVC)               │
+│  ┌─────────────┬─────────────┬─────────────┐   │
+│  │ Controllers │    Views    │ ViewModels  │   │
+│  │             │   (Razor)   │             │   │
+│  └─────────────┴─────────────┴─────────────┘   │
+└─────────────────────────────────────────────────┘
+                        │ HTTP/HTTPS
+                        │ JWT Authentication
+┌─────────────────────────────────────────────────┐
+│              API & Business Layer               │
+│           (OgrenciPortalApi - Web API)          │
+│  ┌─────────────┬─────────────┬─────────────┐   │
+│  │ Controllers │ JWT Security│  Utilities  │   │
+│  │             │   & Auth    │             │   │
+│  └─────────────┴─────────────┴─────────────┘   │
+└─────────────────────────────────────────────────┘
+                        │ Entity Framework 6
+                        │ SQL Server
+┌─────────────────────────────────────────────────┐
+│                Data Layer                       │
+│  ┌─────────────┬─────────────┬─────────────┐   │
+│  │  Database   │   Models    │    Cache    │   │
+│  │ SQL Server  │    (EF6)    │   (Redis)   │   │
+│  └─────────────┴─────────────┴─────────────┘   │
+└─────────────────────────────────────────────────┘
+```
+
+### Project Structure
+
+```
+OgrenciPlatform/
+├── OgrenciPortali/                    # MVC Frontend Application
+│   ├── Controllers/                   # MVC Controllers
+│   ├── Views/                         # Razor View Templates  
+│   ├── Attributes/                    # Custom Authorization Attributes
+│   ├── ViewModels/                    # View-specific Data Models
+│   └── Utils/                         # Frontend Utility Classes
+│
+├── OgrenciPortalApi/                  # Web API Backend
+│   ├── Controllers/                   # API Controllers (REST Endpoints)
+│   ├── Models/                        # Entity Framework Data Models
+│   ├── Utils/                         # JWT, Security, Email Utilities
+│   ├── Areas/HelpPage/                # Swagger API Documentation
+│   └── App_Start/                     # Configuration Files
+│
+├── Shared/                           # Common Library
+│   ├── DTO/                          # Data Transfer Objects
+│   ├── Enums/                        # System-wide Enumerations
+│   └── Constants/                    # Shared Constants
+│
+└── Documentation/
+    ├── API.md                        # API Documentation
+    ├── Security.md                   # Security Guidelines
+    └── Deployment.md                 # Deployment Instructions
+```
+
+## 🔒 Security Features
+
+### Authentication & Authorization
+- **🔐 JWT Token-Based Authentication**: Stateless, scalable security with industry-standard JSON Web Tokens
+- **🔄 Refresh Token Mechanism**: Secure session renewal with automatic token rotation
+- **👥 Role-Based Access Control (RBAC)**: Granular permissions for Admin, Academic Advisor, and Student roles
+- **🛡️ Custom Authorization Filters**: Fine-grained access control with CustomAuth attributes
+- **🚪 Single Sign-On Ready**: Extensible authentication system
+
+### Password Security
+- **🔐 BCrypt Hashing**: Industry-standard password encryption with salt
+- **📏 Strong Password Policies**: Configurable complexity requirements
+- **🔄 Secure Password Reset**: Time-limited token-based reset (15-minute expiry)
+- **🔒 Account Lockout Protection**: Brute force attack prevention
+
+### Session Security
+- **🍪 Secure Cookie Management**: HttpOnly, Secure, and SameSite attributes
+- **🛡️ CSRF Protection**: Anti-forgery token implementation
+- **⏱️ Configurable Session Timeout**: Customizable token lifespan
+- **🚪 Secure Logout**: Server-side token revocation
+
+### Data Protection
+- **✅ Input Validation**: Comprehensive model state validation
+- **🛡️ SQL Injection Prevention**: Entity Framework ORM with parameterized queries
+- **🔒 Secure API Endpoints**: Authorization-protected REST services
+- **📊 Audit Logging**: Complete user activity tracking
 
 ## 🏗️ Proje Mimarisi
 
@@ -50,260 +129,107 @@ Bu proje, güvenlik odaklı bir öğrenci bilgi sistemi olarak geliştirilmişti
     └── Constants/                    # Sabit Değerler
 ```
 
-### Kullanıcı Rolleri ve Yetkileri
-- **👤 Admin**: Sistem yöneticisi - Tüm modüllere erişim
-- **👨‍🏫 Danışman**: Akademik danışman - Ders ve öğrenci yönetimi
-- **👨‍🎓 Öğrenci**: Öğrenci kullanıcı - Ders kayıt ve takip işlemleri
-
-## 🚀 Teknoloji Yığını
-
-### Backend Teknolojileri
-- **ASP.NET MVC 5** (.NET Framework 4.7.2) - Web uygulama framework'ü
-- **ASP.NET Web API 2** (.NET Framework 4.7.2) - RESTful API servisleri
-- **Entity Framework 6** - ORM ve veritabanı erişimi
-- **Microsoft SQL Server** - Veritabanı yönetim sistemi
-
-### Güvenlik ve Kimlik Doğrulama
-- **System.IdentityModel.Tokens.Jwt** - JWT token işlemleri
-- **BCrypt.Net-Next 4.0.3** - Parola hashleme
-- **Claims-based Authentication** - Kullanıcı bilgileri ve roller
-
-### İstemci Tarafı
-- **Bootstrap 5** - Responsive UI framework
-- **jQuery** - JavaScript kütüphanesi
-- **Bootstrap Icons** - İkon seti
-
-### Geliştirici Araçları
-- **AutoMapper** - Object mapping
-- **log4net** - Loglama framework'ü
-- **Newtonsoft.Json** - JSON serialize/deserialize
-- **DotNetEnv** - Environment variables yönetimi
-
-## ⚙️ Kurulum ve Yapılandırma
-
-### Ön Gereksinimler
-- Visual Studio 2019 veya üzeri
-- .NET Framework 4.7.2
-- Microsoft SQL Server 2016 veya üzeri
-- IIS Express veya IIS
-
-### 1. Projeyi Klonlayın
-```bash
-git clone https://github.com/alpeerkaraca/OgrenciPlatform.git
-cd OgrenciPlatform
-```
-
-### 2. Veritabanı Kurulumu
-1. SQL Server'da yeni bir veritabanı oluşturun
-2. `OgrenciPortalApi/Web.config` dosyasında connection string'i güncelleyin:
-```xml
-<connectionStrings>
-  <add name="OgrenciPortalContext" 
-       connectionString="Data Source=SERVER;Initial Catalog=DBNAME;User ID=USER;Password=PASS" />
-</connectionStrings>
-```
-
-### 3. Çevresel Değişkenler
-API projesinde `.env` dosyası oluşturun (`.env.example`'dan kopyalayın):
-```bash
-# JWT Configuration
-JWT_MASTER_KEY="your_super_secret_jwt_key_minimum_256_bits"
-JWT_ISSUER="https://yourdomain.com"
-JWT_AUDIENCE="https://yourdomain.com"
-ACCESS_TOKEN_EXPIRATION_MINUTES=15
-REFRESH_TOKEN_EXPIRATION_DAYS=7
-
-# API Configuration
-API_BASE_ADDRESS="https://localhost:44301/"
-
-# Email Configuration (Password Reset)
-SMTP_HOST="smtp.gmail.com"
-SMTP_PORT=587
-SMTP_USER="your-email@gmail.com"
-SMTP_PASS="your-app-password"
-```
-
-### 4. Güvenlik Yapılandırması
-⚠️ **Önemli Güvenlik Notları:**
-- JWT_MASTER_KEY en az 256 bit (32 karakter) olmalıdır
-- Üretim ortamında güçlü, rastgele bir anahtar kullanın
-- SMTP bilgilerini güvenli şekilde saklayın
-- SQL Server bağlantı bilgilerini şifreleyin
-
-### 5. Projeyi Çalıştırma
-1. **İlk olarak API'yi başlatın**:
-   - Visual Studio'da OgrenciPortalApi projesini başlatın
-   - Swagger UI: `https://localhost:44301/swagger`
-
-2. **Ardından MVC uygulamasını başlatın**:
-   - OgrenciPortali projesini başlatın
-   - Web arayüzü: `https://localhost:44302`
-
-## 🔐 Güvenlik Best Practices
-
-### Geliştirme Ortamında
-- [ ] `.env` dosyalarını `.gitignore`'a ekleyin
-- [ ] Varsayılan admin hesabı için güçlü parola kullanın
-- [ ] Development sertifikalarını kullanın (HTTPS)
-- [ ] SQL Server authentication yerine Windows Authentication tercih edin
-
-### Üretim Ortamında
-- [ ] JWT anahtarlarını Azure Key Vault veya benzeri servislerde saklayın
-- [ ] SSL/TLS sertifikası yapılandırın (Let's Encrypt)
-- [ ] Database connection string'lerini şifreleyin
-- [ ] Application Insights veya benzeri monitoring ekleyin
-- [ ] Rate limiting implementasyonu
-- [ ] IP whitelist/blacklist yapılandırması
-- [ ] Güvenlik başlıkları (HSTS, CSP, X-Frame-Options)
-
-### Monitoring ve Logging
-- [ ] log4net ile güvenlik olaylarını loglayin
-- [ ] Başarısız giriş denemelerini takip edin
-- [ ] API rate limiting logları
-- [ ] Kritik işlemler için audit trail
-
-## 📚 API Dokümantasyonu
-
-API endpoint'leri ve güvenlik modeli için Swagger UI kullanın:
-- **Development**: `https://localhost:44301/swagger`
-- **API Base URL**: `https://localhost:44301/api/`
-
-### Temel API Endpoint'leri
-```
-POST /api/user/login          # Kullanıcı girişi
-POST /api/auth/refresh-token  # Token yenileme
-POST /api/user/logout         # Çıkış
-GET  /api/user/profile        # Kullanıcı profili
-POST /api/user/change-password # Parola değişikliği
-```
-
-## 🤝 Katkı Sağlama
-
-1. Bu repository'yi fork edin
-2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Değişikliklerinizi commit edin (`git commit -m 'Add amazing feature'`)
-4. Branch'inizi push edin (`git push origin feature/amazing-feature`)
-5. Pull Request oluşturun
-
-### Güvenlik Raporu
-Güvenlik açığı tespit ederseniz, lütfen public issue açmak yerine doğrudan [maintainer]'a ulaşın.
-
-## 📄 Lisans
-
-Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosyasına bakın.
-
----
-
-## English Version
-
-# 🎓 Student Platform (Öğrenci Platformu)
-
-This project is a security-focused student information system developed with modern web application architecture. The system offers an enterprise-ready platform with JWT-based authentication, role-based authorization, and comprehensive security measures.
-
-## 🔒 Security Features
-
-### Authentication and Authorization
-- **JWT Token-Based Authentication**: Scalable security with stateless authentication
-- **Refresh Token Mechanism**: Secure session renewal and long-term access management
-- **Role-Based Access Control**: Detailed permission management with Admin, Advisor, and Student roles
-- **Custom Authorization Filters**: Granular access control with CustomAuth attributes
-
-### Password Security
-- **BCrypt Hash Algorithm**: Industry-standard password encryption
-- **Strong Password Policies**: Minimum complexity requirements
-- **Secure Password Reset**: Token-based reset mechanism (15-minute validity)
-
-### Session Security
-- **HttpOnly and Secure Cookies**: Protection against XSS and MITM attacks
-- **CSRF Protection**: Anti-forgery token implementation
-- **Session Timeout**: Configurable token lifespan
-- **Secure Logout**: Server-side refresh token revocation
-
-### Data Security
-- **Input Validation**: Model state validation and form verification
-- **SQL Injection Protection**: Entity Framework ORM usage
-- **Secure API Endpoints**: Authorization-controlled REST services
-
-## 🏗️ Project Architecture
-
-### Layered Architecture
-```
-├── OgrenciPortali (MVC Frontend)     # User Interface Layer
-│   ├── Controllers/                  # MVC Controllers
-│   ├── Views/                        # Razor Views
-│   ├── Attributes/                   # Custom Authorization
-│   └── Utils/                        # Helper Classes
-│
-├── OgrenciPortalApi (Web API)        # Business Logic and Data Layer
-│   ├── Controllers/                  # API Controllers
-│   ├── Models/                       # Entity Framework Models
-│   ├── Utils/                        # JWT, Security Utilities
-│   └── Areas/SwaggerUI/              # API Documentation
-│
-└── Shared                            # Common Components
-    ├── DTO/                          # Data Transfer Objects
-    ├── Enums/                        # System Enums
-    └── Constants/                    # Sabit Değerler
-```
-
-### User Roles and Permissions
-- **👤 Admin**: System administrator - Full system access
-- **👨‍🏫 Advisor (Danışman)**: Academic advisor - Course and student management
-- **👨‍🎓 Student (Öğrenci)**: Student user - Course registration and tracking
-
 ## 🚀 Technology Stack
 
 ### Backend Technologies
-- **ASP.NET MVC 5** (.NET Framework 4.7.2) - Web application framework
-- **ASP.NET Web API 2** (.NET Framework 4.7.2) - RESTful API services
-- **Entity Framework 6** - ORM and database access
-- **Microsoft SQL Server** - Database management system
+| Component | Technology | Version | Purpose |
+|-----------|------------|---------|---------|
+| **Framework** | ASP.NET Web API 2 | .NET 4.7.2 | RESTful API services |
+| **ORM** | Entity Framework 6 | 6.5.1 | Database access & management |
+| **Authentication** | JWT + OWIN | 4.2.3 | Token-based security |
+| **Password Hashing** | BCrypt.Net-Next | 4.0.3 | Secure password storage |
+| **Documentation** | Swashbuckle | 5.6.0 | API documentation |
+| **Logging** | log4net | 3.1.0 | Application logging |
+| **Email** | MailKit | 4.13.0 | Email services |
+| **Caching** | Redis Stack | 2.8.58 | Performance optimization |
+| **DI Container** | Unity Container | 5.11.8 | Dependency injection |
 
-### Security and Authentication
-- **System.IdentityModel.Tokens.Jwt** - JWT token operations
-- **BCrypt.Net-Next 4.0.3** - Password hashing
-- **Claims-based Authentication** - User information and roles
+### Frontend Technologies
+| Component | Technology | Version | Purpose |
+|-----------|------------|---------|---------|
+| **Framework** | ASP.NET MVC 5 | .NET 4.7.2 | Web application framework |
+| **UI Framework** | Bootstrap | 5.3.7 | Responsive design |
+| **JavaScript** | jQuery | 3.7.1 | Client-side scripting |
+| **Validation** | jQuery Validation | 1.21.0 | Form validation |
+| **Mapping** | AutoMapper | 15.0.1 | Object-to-object mapping |
+| **DI Container** | Autofac | 6.4.0 | Dependency injection |
+| **Cloud Integration** | Azure SDK | Latest | Azure services |
 
-### Client-Side
-- **Bootstrap 5** - Responsive UI framework
-- **jQuery** - JavaScript library
-- **Bootstrap Icons** - Icon set
+### Database & Storage
+- **Primary Database**: Microsoft SQL Server
+- **ORM Strategy**: Entity Framework 6 Database-First
+- **Caching Layer**: Redis Stack with NRedisStack
+- **Connection Management**: Microsoft.Data.SqlClient 6.1.0
+- **Audit Trail**: Comprehensive entity tracking (Created/Updated/Deleted)
 
-### Developer Tools
-- **AutoMapper** - Object mapping
-- **log4net** - Logging framework
-- **Newtonsoft.Json** - JSON serialize/deserialize
-- **DotNetEnv** - Environment variables management
+### Security Stack
+- **JWT Implementation**: System.IdentityModel.Tokens.Jwt 8.13.0
+- **OWIN Middleware**: Microsoft.Owin.Security.Jwt 4.2.3
+- **Password Hashing**: BCrypt.Net-Next 4.0.3
+- **CORS Support**: Microsoft.AspNet.Cors 5.3.0
+- **Environment Config**: DotNetEnv 3.1.1
 
-## ⚙️ Installation and Setup
+### Development Tools
+- **API Documentation**: Swagger UI with Swashbuckle
+- **Build System**: MSBuild (.NET Framework)
+- **Package Management**: NuGet Package Manager
+- **Version Control**: Git with GitHub
+
+## 👥 User Roles & Permissions
+
+### Role Hierarchy
+```
+┌─────────────────┐
+│     🛡️ Admin     │  ← Full System Control
+│                 │
+├─────────────────┤
+│  👨‍🏫 Academic    │  ← Course & Student Management  
+│    Advisor      │
+├─────────────────┤
+│   👨‍🎓 Student   │  ← Course Enrollment & Tracking
+└─────────────────┘
+```
+
+### Detailed Permissions
+| Role | Users | Departments | Courses | Enrollments | Reports |
+|------|-------|-------------|---------|-------------|---------|
+| **Admin** | ✅ Full CRUD | ✅ Full CRUD | ✅ Full CRUD | ✅ Full CRUD | ✅ All Reports |
+| **Academic Advisor** | ✅ View Students | ❌ Read Only | ✅ Manage Assigned | ✅ Approve/Reject | ✅ Student Reports |
+## ⚙️ Installation & Setup
 
 ### Prerequisites
-- Visual Studio 2019 or higher
-- .NET Framework 4.7.2
-- Microsoft SQL Server 2016 or higher
-- IIS Express or IIS
+- **Visual Studio 2019+** or **Visual Studio Code** with C# extension
+- **.NET Framework 4.7.2** or higher
+- **Microsoft SQL Server 2016+** (Express, Developer, or Standard)
+- **IIS Express** (included with Visual Studio) or IIS
+- **Redis Server** (optional, for caching - can be disabled)
 
-### 1. Clone the Repository
+### 🚀 Quick Start
+
+#### 1. Clone the Repository
 ```bash
 git clone https://github.com/alpeerkaraca/OgrenciPlatform.git
 cd OgrenciPlatform
 ```
 
-### 2. Database Setup
-1. Create a new database in SQL Server
-2. Update the connection string in `OgrenciPortalApi/Web.config`:
+#### 2. Database Configuration
+1. Create a new SQL Server database
+2. Update connection string in `OgrenciPortalApi/Web.config`:
 ```xml
 <connectionStrings>
   <add name="OgrenciPortalContext" 
-       connectionString="Data Source=SERVER;Initial Catalog=DBNAME;User ID=USER;Password=PASS" />
+       connectionString="Data Source=YOUR_SERVER;Initial Catalog=OgrenciPlatformDB;Integrated Security=true" 
+       providerName="System.Data.SqlClient" />
 </connectionStrings>
 ```
 
-### 3. Environment Variables
-Create a `.env` file in the API project (copy from `.env.example`):
+#### 3. Environment Configuration
+Create `.env` files in both projects (copy from `.env.example`):
+
+**OgrenciPortalApi/.env:**
 ```bash
-# JWT Configuration
-JWT_MASTER_KEY="your_super_secret_jwt_key_minimum_256_bits"
+# JWT Security Configuration
+JWT_MASTER_KEY="your_super_secret_jwt_key_minimum_256_bits_long"
 JWT_ISSUER="https://yourdomain.com"
 JWT_AUDIENCE="https://yourdomain.com"
 ACCESS_TOKEN_EXPIRATION_MINUTES=15
@@ -312,78 +238,290 @@ REFRESH_TOKEN_EXPIRATION_DAYS=7
 # API Configuration
 API_BASE_ADDRESS="https://localhost:44301/"
 
-# Email Configuration (Password Reset)
+# Database Configuration
+SQL_SERVER="YOUR_SERVER_NAME"
+SQL_DATABASE="OgrenciPlatformDB"
+SQL_USER="your_username"          # Optional: leave empty for Windows Auth
+SQL_PASSWORD="your_password"      # Optional: leave empty for Windows Auth
+
+# Email Configuration (for password reset)
 SMTP_HOST="smtp.gmail.com"
 SMTP_PORT=587
 SMTP_USER="your-email@gmail.com"
 SMTP_PASS="your-app-password"
+
+# Redis Configuration (optional)
+REDIS_CONNECTION="localhost:6379"
+REDIS_ENABLED=true
 ```
 
-### 4. Security Configuration
-⚠️ **Important Security Notes:**
-- JWT_MASTER_KEY must be at least 256 bits (32 characters)
-- Use a strong, random key in production
-- Secure SMTP credentials
-- Encrypt SQL Server connection information
+**OgrenciPortali/.env:**
+```bash
+# API Connection
+API_BASE_ADDRESS="https://localhost:44301/"
 
-### 5. Running the Project
-1. **Start the API first**:
-   - Launch OgrenciPortalApi project in Visual Studio
-   - Swagger UI: `https://localhost:44301/swagger`
+# Application Settings  
+APP_NAME="Student Platform"
+APP_VERSION="1.0.0"
+ENVIRONMENT="Development"
+```
 
-2. **Then start the MVC application**:
-   - Launch OgrenciPortali project
-   - Web interface: `https://localhost:44302`
+#### 4. Build & Run
+```bash
+# Restore NuGet packages
+dotnet restore
 
-## 🔐 Security Best Practices
+# Build the solution
+dotnet build
 
-### Development Environment
-- [ ] Add `.env` files to `.gitignore`
-- [ ] Use strong passwords for default admin accounts
-- [ ] Use development certificates (HTTPS)
-- [ ] Prefer Windows Authentication over SQL Server authentication
+# Run API project (Terminal 1)
+cd OgrenciPortalApi
+dotnet run
 
-### Production Environment
-- [ ] Store JWT keys in Azure Key Vault or similar services
-- [ ] Configure SSL/TLS certificates (Let's Encrypt)
-- [ ] Encrypt database connection strings
-- [ ] Add Application Insights or similar monitoring
-- [ ] Implement rate limiting
-- [ ] Configure IP whitelist/blacklist
-- [ ] Set security headers (HSTS, CSP, X-Frame-Options)
+# Run MVC project (Terminal 2)
+cd OgrenciPortali  
+dotnet run
+```
 
-### Monitoring and Logging
-- [ ] Log security events with log4net
-- [ ] Track failed login attempts
-- [ ] Monitor API rate limiting
-- [ ] Implement audit trail for critical operations
+### 🔧 Advanced Configuration
+
+#### Database Initialization
+The system uses Entity Framework Database-First approach. To initialize:
+
+1. **First Run**: The application will create necessary tables automatically
+2. **Seed Data**: Run the following SQL to create an admin user:
+```sql
+INSERT INTO Users (UserId, Name, Surname, Email, Password, Role, IsActive, IsFirstLogin, CreatedAt, UpdatedAt, IsDeleted)
+VALUES 
+(NEWID(), 'Admin', 'User', 'admin@example.com', 
+ '$2a$11$yourhhashedpasswordhere', 1, 1, 0, GETDATE(), GETDATE(), 0)
+```
+
+#### Security Configuration
+
+⚠️ **Critical Security Settings:**
+
+1. **JWT_MASTER_KEY**: Must be at least 256 bits (32 characters)
+2. **Strong Passwords**: Use complex passwords for all accounts
+3. **HTTPS**: Always use HTTPS in production
+4. **Environment Variables**: Never commit `.env` files to version control
+
+#### Redis Cache Setup (Optional)
+```bash
+# Install Redis (Windows - using Chocolatey)
+choco install redis-64
+
+# Start Redis service
+redis-server
+
+# Verify Redis connection
+redis-cli ping
+```
+
+#### Email Configuration
+For password reset functionality, configure SMTP settings:
+
+**Gmail Setup:**
+1. Enable 2-factor authentication
+2. Generate an app-specific password
+3. Use the app password in `SMTP_PASS`
+
+**Custom SMTP:**
+```bash
+SMTP_HOST="mail.yourdomain.com"
+SMTP_PORT=587
+SMTP_USER="noreply@yourdomain.com"
+SMTP_PASS="your-smtp-password"
+```
+### 🔐 Security Best Practices
+
+#### Development Environment
+- ✅ Add `.env` files to `.gitignore`
+- ✅ Use strong passwords for default admin accounts  
+- ✅ Enable HTTPS with development certificates
+- ✅ Prefer Windows Authentication over SQL authentication
+- ✅ Use local development databases
+
+#### Production Environment
+- 🔒 **Store JWT keys securely** (Azure Key Vault, AWS Secrets Manager)
+- 🔒 **Configure SSL/TLS certificates** (Let's Encrypt recommended)
+- 🔒 **Encrypt database connection strings**
+- 📊 **Add Application Insights or monitoring services**
+- ⚡ **Implement rate limiting** (e.g., AspNetCoreRateLimit)
+- 🛡️ **Configure IP whitelist/blacklist**
+- 📋 **Set security headers** (HSTS, CSP, X-Frame-Options, X-Content-Type-Options)
+
+#### Monitoring & Logging
+- 📝 **Log security events** with log4net
+- 🚨 **Track failed login attempts** 
+- 📊 **Monitor API usage and rate limiting**
+- 🔍 **Implement audit trail** for critical operations
+- 📈 **Set up alerting** for suspicious activities
+
+### 🚀 Running the Application
+
+#### Development Mode
+```bash
+# Terminal 1: Start API Server
+cd OgrenciPortalApi
+dotnet run
+# API available at: https://localhost:44301
+# Swagger UI: https://localhost:44301/swagger
+
+# Terminal 2: Start MVC Application  
+cd OgrenciPortali
+dotnet run
+# Web App available at: https://localhost:44302
+```
+
+#### Production Deployment
+```bash
+# Publish API project
+dotnet publish OgrenciPortalApi -c Release -o ./publish/api
+
+# Publish MVC project
+dotnet publish OgrenciPortali -c Release -o ./publish/web
+
+# Deploy to IIS or cloud provider
+```
 
 ## 📚 API Documentation
 
-Use Swagger UI for API endpoints and security model:
-- **Development**: `https://localhost:44301/swagger`
-- **API Base URL**: `https://localhost:44301/api/`
+### API Endpoints Overview
+| Endpoint Category | Description | Authentication |
+|------------------|-------------|----------------|
+| **Authentication** | Login, logout, password reset | Public/Private |
+| **Users** | User management (CRUD) | Admin, Advisor |
+| **Students** | Student-specific operations | Student, Advisor, Admin |
+| **Courses** | Course management | Advisor, Admin |
+| **Enrollments** | Course enrollment/withdrawal | Student, Advisor |
+| **Departments** | Department management | Admin |
+| **Semesters** | Academic semester management | Admin |
 
-### Core API Endpoints
+### Swagger Documentation
+Interactive API documentation is available at:
+- **Development**: `https://localhost:44301/swagger`
+- **Production**: `https://yourapi.domain.com/swagger`
+
+### Authentication Flow
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API
+    participant Database
+    
+    Client->>API: POST /api/auth/login {email, password}
+    API->>Database: Validate credentials
+    Database-->>API: User data
+    API->>API: Generate JWT + Refresh Token
+    API-->>Client: {accessToken, refreshToken, user}
+    
+    Client->>API: API Request with Bearer Token
+    API->>API: Validate JWT
+    API-->>Client: Response Data
+    
+    Client->>API: POST /api/auth/refresh {refreshToken}
+    API->>Database: Validate refresh token
+    API->>API: Generate new JWT
+    API-->>Client: {accessToken}
 ```
-POST /api/user/login          # User login
-POST /api/auth/refresh-token  # Token refresh
-POST /api/user/logout         # Logout
-GET  /api/user/profile        # User profile
-POST /api/user/change-password # Password change
+
+## 🧪 Testing
+
+### Running Tests
+```bash
+# Run all tests
+dotnet test
+
+# Run with coverage
+dotnet test --collect:"XPlat Code Coverage"
+
+# Run specific test project
+dotnet test OgrenciPlatform.Tests
 ```
+
+### Test Categories
+- **Unit Tests**: Business logic validation
+- **Integration Tests**: API endpoint testing
+- **Security Tests**: Authentication and authorization
+- **Performance Tests**: Load and stress testing
+
+## 🚀 Deployment
+
+### IIS Deployment
+1. **Publish applications**:
+```bash
+dotnet publish -c Release
+```
+
+2. **Configure IIS**:
+   - Create application pools for API and MVC
+   - Set .NET Framework v4.0 Classic
+   - Configure SSL certificates
+   - Set appropriate permissions
+
+3. **Update configurations**:
+   - Update connection strings for production database
+   - Configure production environment variables
+   - Set up logging directories
+
+### Docker Deployment
+```dockerfile
+# API Dockerfile
+FROM mcr.microsoft.com/dotnet/framework/aspnet:4.8
+COPY ./publish/api /app
+WORKDIR /app
+EXPOSE 80 443
+```
+
+### Cloud Deployment (Azure)
+- **Azure App Service**: For web applications
+- **Azure SQL Database**: For database
+- **Azure Key Vault**: For secrets management
+- **Azure Application Insights**: For monitoring
 
 ## 🤝 Contributing
 
-1. Fork this repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Create a Pull Request
+### Development Workflow
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Make your changes** following coding standards
+4. **Add tests** for new functionality
+5. **Run tests**: `dotnet test`
+6. **Commit changes**: `git commit -m 'Add amazing feature'`
+7. **Push to branch**: `git push origin feature/amazing-feature`
+8. **Open a Pull Request**
 
-### Security Reporting
-If you discover a security vulnerability, please contact the maintainer directly instead of opening a public issue.
+### Coding Standards
+- **C# Conventions**: Follow Microsoft C# coding conventions
+- **Database**: Use proper naming conventions for tables and columns
+- **Security**: Always validate input and use parameterized queries
+- **Documentation**: Document all public APIs and complex business logic
+- **Testing**: Maintain minimum 80% code coverage
+
+### Code Review Guidelines
+- Security implications of changes
+- Performance impact assessment
+- Backward compatibility considerations
+- Documentation updates
+- Test coverage verification
 
 ## 📄 License
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+
+---
+
+## Türkçe Sürüm
+
+*Bu projenin Türkçe dokümantasyonu için lütfen [TR-README.md](TR-README.md) dosyasına bakınız.*
+
+---
+
+<div align="center">
+
+### 🚀 Built with ❤️ by the Development Team
+
+**[Documentation](docs/)** • **[API Reference](https://localhost:44301/swagger)** • **[Issues](https://github.com/alpeerkaraca/OgrenciPlatform/issues)** • **[Discussions](https://github.com/alpeerkaraca/OgrenciPlatform/discussions)**
+
+</div>
