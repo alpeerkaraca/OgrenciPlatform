@@ -44,10 +44,13 @@ Bu proje, güvenlik odaklı bir öğrenci bilgi sistemi olarak geliştirilmişti
 │   ├── Utils/                        # JWT, Security Utilities
 │   └── Areas/SwaggerUI/              # API Documentation
 │
-└── Shared                            # Ortak Bileşenler
-    ├── DTO/                          # Data Transfer Objects
-    ├── Enums/                        # Sistem Enums
-    └── Constants/                    # Sabit Değerler
+├── Shared                            # Ortak Bileşenler Kütüphanesi
+│   ├── DTO/                          # Data Transfer Objects
+│   ├── Enums/                        # Sistem Enums
+│   └── Constants/                    # Sabit Değerler
+│
+└── OgrenciPlatform.Shared            # Veri Transfer Katmanı
+    └── DTO/                          # Web-Optimized DTOs
 ```
 
 ### Kullanıcı Rolleri ve Yetkileri
@@ -177,6 +180,14 @@ GET  /api/user/profile        # Kullanıcı profili
 POST /api/user/change-password # Parola değişikliği
 ```
 
+## 📋 Son Güncellemeler
+
+### 2025-01-01 - Dokümantasyon Geliştirmeleri
+- **✅ Kapsamlı README dosyaları**: Tüm projeler için detaylı dokümantasyon eklendi
+- **📚 Shared Kütüphane Dokümantasyonu**: `Shared` ve `OgrenciPlatform.Shared` projelerine README dosyaları eklendi
+- **🏗️ Mimari Güncellemeleri**: Proje mimarisi diyagramı iki ayrı Shared kütüphanesini yansıtacak şekilde güncellendi
+- **🔄 Tutarlılık İyileştirmeleri**: Çok dilli dokümantasyon tutarlılığı sağlandı
+
 ## 🤝 Katkı Sağlama
 
 1. Bu repository'yi fork edin
@@ -240,10 +251,13 @@ This project is a security-focused student information system developed with mod
 │   ├── Utils/                        # JWT, Security Utilities
 │   └── Areas/SwaggerUI/              # API Documentation
 │
-└── Shared                            # Common Components
-    ├── DTO/                          # Data Transfer Objects
-    ├── Enums/                        # System Enums
-    └── Constants/                    # Sabit Değerler
+├── Shared                            # Common Components Library
+│   ├── DTO/                          # Data Transfer Objects
+│   ├── Enums/                        # System Enums
+│   └── Constants/                    # Constants
+│
+└── OgrenciPlatform.Shared            # Data Transfer Layer
+    └── DTO/                          # Web-Optimized DTOs
 ```
 
 ### User Roles and Permissions
@@ -372,6 +386,14 @@ POST /api/user/logout         # Logout
 GET  /api/user/profile        # User profile
 POST /api/user/change-password # Password change
 ```
+
+## 📋 Recent Updates
+
+### 2025-01-01 - Documentation Improvements
+- **✅ Comprehensive README Files**: Detailed documentation added for all projects
+- **📚 Shared Library Documentation**: README files added to `Shared` and `OgrenciPlatform.Shared` projects
+- **🏗️ Architecture Updates**: Project architecture diagram updated to reflect both Shared libraries
+- **🔄 Consistency Improvements**: Multilingual documentation consistency ensured
 
 ## 🤝 Contributing
 
