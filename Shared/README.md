@@ -9,7 +9,7 @@ Bu proje, Öğrenci Platformu çözümünde ortak olarak kullanılan sınıflar�
 ### DTO (Data Transfer Objects)
 Katmanlar arası veri aktarımı için kullanılan sınıflar:
 - **AdvisorDTO.cs** - Danışman bilgileri
-- **AiRequestDto.cs** - AI entegrasyonu için istek modelleri  
+- **AiRequestDto.cs** - AI entegrasyonu için istek modelleri (Deepseek API)
 - **BaseClass.cs** - Temel DTO sınıfı
 - **ConflictsDTO.cs** - Ders çakışma bilgileri
 - **CoursesDTO.cs** - Ders bilgileri
@@ -18,6 +18,7 @@ Katmanlar arası veri aktarımı için kullanılan sınıflar:
 - **OfferedCoursesDTO.cs** - Sunulan dersler
 - **SemesterDTO.cs** - Dönem bilgileri
 - **StudentDTO.cs** - Öğrenci bilgileri
+- **TestEmailDto.cs** - Real-time email validation için test modelleri
 - **UserDTO.cs** - Kullanıcı bilgileri
 
 ### Constants (Sabitler)
@@ -52,7 +53,7 @@ This project contains shared classes, constants, enums, and data transfer object
 ### DTO (Data Transfer Objects)
 Classes used for data transfer between layers:
 - **AdvisorDTO.cs** - Advisor information
-- **AiRequestDto.cs** - Request models for AI integration
+- **AiRequestDto.cs** - Request models for AI integration (Deepseek API)
 - **BaseClass.cs** - Base DTO class
 - **ConflictsDTO.cs** - Course conflict information
 - **CoursesDTO.cs** - Course information
@@ -61,6 +62,7 @@ Classes used for data transfer between layers:
 - **OfferedCoursesDTO.cs** - Offered courses
 - **SemesterDTO.cs** - Semester information
 - **StudentDTO.cs** - Student information
+- **TestEmailDto.cs** - Test models for real-time email validation
 - **UserDTO.cs** - User information
 
 ### Constants

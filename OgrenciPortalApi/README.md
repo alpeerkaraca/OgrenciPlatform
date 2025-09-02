@@ -1,29 +1,284 @@
-# OgrenciPortalApi - Web API Projesi
+# OgrenciPortalApi - Web API Backend Project
 
-Bu proje, Öğrenci Platformu'nun tüm iş mantığını ve veri erişim katmanını içeren ASP.NET Web API projesidir. RESTful prensiplerine uygun olarak servis hizmeti sunar.
+**TÃ¼rkÃ§e** | [English](#english-version)
 
-## Sorumlulukları
+Bu proje, Ã–ÄŸrenci Platformu'nun tÃ¼m iÅŸ mantÄ±ÄŸÄ±nÄ±, veri eriÅŸim katmanÄ±nÄ± ve backend servislerini iÃ§eren ASP.NET Web API projesidir. Modern RESTful prensiplerine uygun olarak tasarlanmÄ±ÅŸ, gÃ¼venli ve Ã¶lÃ§eklenebilir API servisleri sunar.
 
--   Kullanıcı doğrulama ve JWT (JSON Web Token) tabanlı yetkilendirme.
--   Öğrenci, danışman, ders, bölüm ve dönemlerle ilgili tüm CRUD (Create, Read, Update, Delete) işlemleri.
--   Veritabanı ile doğrudan iletişim kurarak veri tutarlılığını sağlamak.
--   İş kurallarını (ders kontenjanı, çakışma kontrolü vb.) uygulamak.
--   İstemci uygulamalarına (örneğin `OgrenciPortali`) JSON formatında veri sunmak.
+## ğŸ¯ Temel Sorumluluklar
 
-## Teknolojiler
+### Kimlik DoÄŸrulama ve Yetkilendirme
+- JWT (JSON Web Token) tabanlÄ± stateless authentication
+- Refresh token mekanizmasÄ± ile gÃ¼venli oturum yenileme
+- Rol tabanlÄ± eriÅŸim kontrolÃ¼ (Admin, DanÄ±ÅŸman, Ã–ÄŸrenci)
+- Claims-based authorization ile granÃ¼ler yetki yÃ¶netimi
 
--   ASP.NET Web API 2
--   Entity Framework (Database First yaklaşımı kullanılmış)
--   JWT (JSON Web Token) ile token tabanlı kimlik doğrulama.
--   BCrypt.Net-Next ile parola hash'leme.
--   Swagger (API dokümantasyonu için).
+### Veri YÃ¶netimi ve Ä°ÅŸ MantÄ±ÄŸÄ±
+- KullanÄ±cÄ±, Ã¶ÄŸrenci, danÄ±ÅŸman yÃ¶netimi ve CRUD iÅŸlemleri
+- Ders, bÃ¶lÃ¼m, dÃ¶nem yÃ¶netimi ve akademik iÅŸlemler
+- Ders kayÄ±t iÅŸlemleri ve Ã§akÄ±ÅŸma kontrolÃ¼
+- VeritabanÄ± ile gÃ¼venli veri tutarlÄ±lÄ±ÄŸÄ±
 
-## Kurulum ve Çalıştırma
+### Modern Backend Ã–zellikler
+- **Redis Cache Integration**: Real-time email validation ve performance optimization
+- **AI-Powered Content Generation**: Deepseek API ile otomatik ders aÃ§Ä±klamasÄ± Ã¼retimi
+- **Background Job Processing**: Hangfire ile scheduled tasks ve automated operations
+- **Real-time Data Validation**: Ä°stant form validation ve user feedback
 
-1.  **Veritabanı**: Proje, Entity Framework Database First yaklaşımını kullanmaktadır. `Web.config` dosyasındaki `connectionStrings` bölümünü kendi veritabanı sunucunuza göre düzenleyin.
-2.  **Environment Dosyası**: Proje içerisinde bir `.env` dosyası oluşturun ve içerisine JWT için gerekli gizli anahtar gibi ortam değişkenlerini ekleyin. Örnek olarak `.env.example` dosyasını kullanabilirsiniz.
-3.  **Bağımlılıklar**: Proje için gerekli NuGet paketlerinin yüklü olduğundan emin olun.
-    ```bash
-    Update-Package -reinstall
-    ```
-4.  **Başlatma**: Projeyi Visual Studio üzerinden IIS Express ile başlatabilirsiniz. Proje, `http://localhost:8000/` portunda çalışacak şekilde ayarlanmıştır. API dokümantasyonuna ve test arayüzüne `/swagger` adresi üzerinden erişebilirsiniz.
+### API Servisleri
+- JSON formatÄ±nda structured data response
+- Comprehensive error handling ve logging
+- Swagger documentation ve API testing interface
+- CORS support for cross-origin requests
+
+## ğŸš€ Teknoloji Stack'i
+
+### Core Technologies
+- **ASP.NET Web API 2** (.NET Framework 4.7.2) - RESTful API framework
+- **Entity Framework 6.5.1** - ORM (Database-First approach)
+- **Microsoft SQL Server** - Primary database
+- **OWIN 4.2.3** - Middleware pipeline
+
+### Cache & Performance
+- **Redis Stack 2.8.58** - In-memory caching ve data store
+- **StackExchange.Redis 2.8.58** - Redis client library
+- **Hangfire 1.8.21** - Background job processing
+- **Hangfire.SqlServer 1.8.21** - SQL Server storage for jobs
+
+### Security & Authentication
+- **Microsoft.Owin.Security.Jwt 4.2.3** - JWT middleware
+- **System.IdentityModel.Tokens.Jwt 8.13.0** - JWT token handling
+- **BCrypt.Net-Next 4.0.3** - Password hashing
+- **Microsoft.AspNet.Cors 5.3.0** - Cross-origin request support
+
+### AI & External Integrations
+- **Deepseek API** - AI content generation
+- **MailKit 4.13.0** - Modern email handling
+- **MimeKit 4.13.0** - Email message formatting
+
+### Development & Utility
+- **Swashbuckle 5.6.0** - API documentation (Swagger UI)
+- **log4net 3.1.0** - Comprehensive logging
+- **Newtonsoft.Json 13.0.3** - JSON serialization
+- **DotNetEnv 3.1.1** - Environment configuration
+- **Unity.Container 5.11.8** - Dependency injection
+
+## ğŸ“¡ API Endpoints
+
+### Authentication & Authorization
+```http
+POST /api/user/login                    # User login with credentials
+POST /api/auth/refresh-token           # Refresh access token
+POST /api/auth/logout                  # Secure user logout
+```
+
+### User Management
+```http
+GET  /api/user/profile                 # Get user profile data
+POST /api/user/change-password         # Change user password
+POST /api/user/test-email              # Real-time email validation (Redis)
+GET  /api/user/list                    # List all users (Admin)
+POST /api/user/create                  # Create new user (Admin)
+PUT  /api/user/update/{id}             # Update user data (Admin)
+DELETE /api/user/delete/{id}           # Delete user (Admin)
+```
+
+### Course Management
+```http
+GET  /api/courses/list                 # List all courses
+GET  /api/courses/{id}                 # Get course details
+POST /api/courses/create               # Create new course (Admin)
+POST /api/courses/generate-description # AI-powered description generation
+PUT  /api/courses/update/{id}          # Update course (Admin)
+DELETE /api/courses/delete/{id}        # Delete course (Admin)
+```
+
+### Student Operations
+```http
+GET  /api/student/my-courses           # Get student's enrolled courses
+POST /api/student/enroll               # Enroll in course
+POST /api/student/drop                 # Drop from course
+GET  /api/student/transcript           # Get academic transcript
+GET  /api/student/conflicts            # Check schedule conflicts
+```
+
+### Department & Semester Management
+```http
+GET  /api/departments/list             # List departments
+GET  /api/semesters/current            # Get current semester
+GET  /api/semesters/list               # List all semesters
+```
+
+### Background Jobs & Monitoring
+```http
+GET  /hangfire                         # Background jobs dashboard (Admin)
+GET  /api/dashboard/stats              # System statistics
+```
+
+## âš™ï¸ Kurulum ve YapÄ±landÄ±rma
+
+### 1. VeritabanÄ± Kurulumu
+```xml
+<!-- Web.config connection string -->
+<connectionStrings>
+  <add name="OgrenciPortalContext" 
+       connectionString="Data Source=SERVER;Initial Catalog=DBNAME;User ID=USER;Password=PASS;TrustServerCertificate=true" 
+       providerName="System.Data.SqlClient" />
+</connectionStrings>
+```
+
+### 2. Environment Variables (.env)
+```bash
+# JWT Configuration
+JWT_MASTER_KEY="your_super_secret_jwt_key_minimum_256_bits_long"
+JWT_ISSUER="https://yourdomain.com"
+JWT_AUDIENCE="https://yourdomain.com"
+ACCESS_TOKEN_EXPIRATION_MINUTES=15
+REFRESH_TOKEN_EXPIRATION_DAYS=7
+
+# Redis Configuration
+REDIS_CONNECTION_STRING="localhost:6379,abortConnect=false"
+
+# AI Configuration
+DEEPSEEK_API_KEY="your_deepseek_api_key"
+DEEPSEEK_API_URL="https://api.deepseek.com/chat/completions"
+
+# Email Configuration
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT=587
+SMTP_USER="your-email@gmail.com"
+SMTP_PASS="your-app-password"
+
+# Background Jobs
+HANGFIRE_DASHBOARD_USERNAME="admin"
+HANGFIRE_DASHBOARD_PASSWORD="secure_password_here"
+```
+
+### 3. Redis Cache Setup
+Redis otomatik olarak aÅŸaÄŸÄ±daki iÅŸlemleri gerÃ§ekleÅŸtirir:
+- **Startup Cache**: Uygulama baÅŸlangÄ±cÄ±nda tÃ¼m email adresleri cache'lenir
+- **Scheduled Updates**: Her 15 dakikada cache otomatik olarak yenilenir
+- **Real-time Validation**: Form validation instant response saÄŸlar
+
+### 4. Hangfire Background Jobs
+```csharp
+// Startup.cs iÃ§inde otomatik konfigÃ¼rasyon
+RecurringJob.AddOrUpdate(
+    "cache-user-addresses",
+    () => CheckUserData.CacheUserAddressesAsync(),
+    "*/15 * * * *"  // Her 15 dakikada Ã§alÄ±ÅŸÄ±r
+);
+```
+
+## ğŸ”’ GÃ¼venlik YapÄ±landÄ±rmasÄ±
+
+### JWT Token Security
+- **Access Token**: 15 dakika geÃ§erlilik sÃ¼resi
+- **Refresh Token**: 7 gÃ¼n geÃ§erlilik sÃ¼resi  
+- **Token Rotation**: Her refresh iÅŸleminde yeni token Ã¼retimi
+- **Secure Storage**: HttpOnly cookies ile XSS korumasÄ±
+
+### API Security Best Practices
+- **CORS Policy**: Sadece izin verilen origin'lere eriÅŸim
+- **Rate Limiting**: API endpoint'leri iÃ§in istek sÄ±nÄ±rlamasÄ±
+- **Input Validation**: Model validation ve sanitization
+- **SQL Injection Protection**: Entity Framework parameterized queries
+
+### Background Jobs Security
+- **Dashboard Authentication**: Hangfire dashboard iÃ§in yetkilendirme
+- **Job Authorization**: Sadece admin kullanÄ±cÄ±lar background jobs yÃ¶netimi
+- **Secure Connections**: Redis ve SQL baÄŸlantÄ±larÄ± iÃ§in TLS/SSL
+
+## ğŸš€ Development & Testing
+
+### API Testing
+- **Swagger UI**: `https://localhost:44301/swagger` - Interactive API documentation
+- **Postman Collections**: HazÄ±r test koleksiyonlarÄ±
+- **Unit Tests**: Controller ve service layer testleri
+
+### Monitoring & Debugging
+- **log4net Integration**: Comprehensive application logging
+- **Hangfire Dashboard**: Background job monitoring ve management
+- **Redis Monitoring**: Cache performance ve hit/miss oranlarÄ±
+- **Application Insights**: Production monitoring (optional)
+
+---
+
+## English Version
+
+# OgrenciPortalApi - Web API Backend Project
+
+This project contains all business logic, data access layer, and backend services for the Student Platform. Designed following modern RESTful principles, it provides secure and scalable API services.
+
+## ğŸ¯ Core Responsibilities
+
+### Authentication & Authorization  
+- JWT (JSON Web Token) based stateless authentication
+- Refresh token mechanism for secure session renewal
+- Role-based access control (Admin, Advisor, Student)
+- Claims-based authorization with granular permission management
+
+### Data Management & Business Logic
+- User, student, advisor management and CRUD operations
+- Course, department, semester management and academic operations
+- Course enrollment operations and conflict checking  
+- Secure database data consistency
+
+### Modern Backend Features
+- **Redis Cache Integration**: Real-time email validation and performance optimization
+- **AI-Powered Content Generation**: Automated course description generation via Deepseek API
+- **Background Job Processing**: Scheduled tasks and automated operations with Hangfire
+- **Real-time Data Validation**: Instant form validation and user feedback
+
+### API Services
+- Structured data response in JSON format
+- Comprehensive error handling and logging
+- Swagger documentation and API testing interface
+- CORS support for cross-origin requests
+
+## ğŸš€ Technology Stack
+
+### Core Technologies
+- **ASP.NET Web API 2** (.NET Framework 4.7.2) - RESTful API framework
+- **Entity Framework 6.5.1** - ORM (Database-First approach)
+- **Microsoft SQL Server** - Primary database
+- **OWIN 4.2.3** - Middleware pipeline
+
+### Cache & Performance
+- **Redis Stack 2.8.58** - In-memory caching and data store
+- **StackExchange.Redis 2.8.58** - Redis client library
+- **Hangfire 1.8.21** - Background job processing
+- **Hangfire.SqlServer 1.8.21** - SQL Server storage for jobs
+
+### Security & Authentication
+- **Microsoft.Owin.Security.Jwt 4.2.3** - JWT middleware
+- **System.IdentityModel.Tokens.Jwt 8.13.0** - JWT token handling
+- **BCrypt.Net-Next 4.0.3** - Password hashing
+- **Microsoft.AspNet.Cors 5.3.0** - Cross-origin request support
+
+### AI & External Integrations
+- **Deepseek API** - AI content generation
+- **MailKit 4.13.0** - Modern email handling
+- **MimeKit 4.13.0** - Email message formatting
+
+### Development & Utility
+- **Swashbuckle 5.6.0** - API documentation (Swagger UI)
+- **log4net 3.1.0** - Comprehensive logging
+- **Newtonsoft.Json 13.0.3** - JSON serialization
+- **DotNetEnv 3.1.1** - Environment configuration
+- **Unity.Container 5.11.8** - Dependency injection
+
+## ğŸ“¡ API Endpoints
+
+[Same endpoint structure as Turkish version]
+
+## âš™ï¸ Installation and Configuration
+
+[Same configuration structure as Turkish version with English descriptions]
+
+## ğŸ”’ Security Configuration  
+
+[Same security structure as Turkish version with English descriptions]
+
+## ğŸš€ Development & Testing
+
+[Same development structure as Turkish version with English descriptions]
