@@ -2,11 +2,13 @@
 using OgrenciPortalApi.Utils;
 using System.IdentityModel.Claims;
 using System.IO;
+using System.Threading.Tasks;
 using System.Web.Helpers;
-using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
+using Hangfire;
+using GlobalConfiguration = System.Web.Http.GlobalConfiguration;
 
 namespace OgrenciPortalApi
 {

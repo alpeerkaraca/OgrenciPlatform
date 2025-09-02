@@ -17,6 +17,9 @@
         public static string DbName { get; private set; }
         public static string DbUser { get; private set; }
         public static string DbPass { get; private set; }
+        public static string RedisHost { get; private set; }
+        public static string RedisUser { get; private set; }
+        public static string RedisPass { get; private set; }
 
 
         public static void Load()
@@ -36,6 +39,9 @@
             DbName = DotNetEnv.Env.GetString("DB_NAME");
             DbUser = DotNetEnv.Env.GetString("DB_USER");
             DbPass = DotNetEnv.Env.GetString("SQL_PASSWORD");
+            RedisHost = DotNetEnv.Env.GetString("REDIS_CONNECTION_STRING");
+            RedisUser = DotNetEnv.Env.GetString("REDIS_USER_NAME");
+            RedisPass = DotNetEnv.Env.GetString("REDIS_PASSWORD");
         }
     }
 }

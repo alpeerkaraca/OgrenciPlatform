@@ -46,6 +46,12 @@ namespace OgrenciPortalApi
             //app.UseHangfireDashboard("/hangfire",dashboardOptions);
             app.UseHangfireDashboard("/hangfire");
             app.UseHangfireServer();
+            BackgroundJob.Enqueue(() => CheckUserData.CacheUserAddressesAsync());
+            RecurringJob.AddOrUpdate(
+                "cache-user-addresses",
+                () => CheckUserData.CacheUserAddressesAsync(),
+                "*/15 * * * *"
+            );
 
 
             ConfigureAuth(app);

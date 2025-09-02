@@ -15,10 +15,10 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
-        .user-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
+    .user-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
 
     .list-user-avatar {
         width: 60px;
@@ -55,9 +55,7 @@
         margin-top: 1.5rem;
     }
 
-    .stats-item {
-        text-align: center;
-    }
+    .stats-item { text-align: center; }
 
     .stats-number {
         font-size: 2.5rem;
@@ -70,9 +68,7 @@
         opacity: 0.9;
     }
 
-    .filter-section {
-        margin-bottom: 2rem;
-    }
+    .filter-section { margin-bottom: 2rem; }
 
     .filter-btn {
         background: transparent;
@@ -85,15 +81,13 @@
         transition: all 0.3s ease;
     }
 
-        .filter-btn.active {
-            background: #667eea;
-            border-color: #667eea;
-            color: white;
-        }
+    .filter-btn.active {
+        background: #667eea;
+        border-color: #667eea;
+        color: white;
+    }
 
-        .filter-btn:hover {
-            transform: translateY(-1px);
-        }
+    .filter-btn:hover { transform: translateY(-1px); }
 
     .search-box {
         border-radius: 25px;
@@ -103,10 +97,10 @@
         transition: all 0.3s ease;
     }
 
-        .search-box:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-        }
+    .search-box:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
 
     .list-user-info {
         padding: 1.25rem;
@@ -143,11 +137,11 @@
         color: #6c757d;
     }
 
-        .no-users i {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
+    .no-users i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
 
     .password-bubble {
         position: absolute;
@@ -162,45 +156,41 @@
         box-shadow: 0 4px 8px rgba(0, 0, 0, .2)
     }
 
-        .password-bubble::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 30px;
-            border-width: 8px;
-            border-style: solid;
-            border-color: #343a40 transparent transparent transparent
-        }
-
-        .password-bubble ul {
-            list-style-type: none;
-            padding-left: 0;
-            margin-bottom: 0;
-            font-size: .9em
-        }
-
-        .password-bubble li {
-            margin-bottom: 2px;
-            transition: color .3s
-        }
-
-    .invalid {
-        color: #d9534f
+    .password-bubble::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 30px;
+        border-width: 8px;
+        border-style: solid;
+        border-color: #343a40 transparent transparent transparent
     }
 
-        .invalid::before {
-            content: '✗ ';
-            margin-right: 5px
-        }
-
-    .valid {
-        color: #4bbf73
+    .password-bubble ul {
+        list-style-type: none;
+        padding-left: 0;
+        margin-bottom: 0;
+        font-size: .9em
     }
 
-        .valid::before {
-            content: '✓ ';
-            margin-right: 5px
-        }
+    .password-bubble li {
+        margin-bottom: 2px;
+        transition: color .3s
+    }
+
+    .invalid { color: #d9534f }
+
+    .invalid::before {
+        content: '✗ ';
+        margin-right: 5px
+    }
+
+    .valid { color: #4bbf73 }
+
+    .valid::before {
+        content: '✓ ';
+        margin-right: 5px
+    }
 </style>
 
 <div class="container-fluid">
@@ -507,330 +497,396 @@
 
 @section Scripts {
     <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Initialize existing page functions
-        initializeFiltering();
-        initializeSearch();
+        document.addEventListener('DOMContentLoaded',
+            function() {
+                // Initialize existing page functions
+                initializeFiltering();
+                initializeSearch();
 
-        // Initialize modal functionalities
-        initializeAddUserModal();
-        initializeEditUserModal();
-        initializeDeleteFunctionality();
-    });
+                // Initialize modal functionalities
+                initializeAddUserModal();
+                initializeEditUserModal();
+                initializeDeleteFunctionality();
+            });
 
-    // --- CENTRAL FORM MANAGEMENT ---
-    function initializeUserForm(options) {
-        const { form, modal, isEditMode } = options;
-        const saveBtn = form.querySelector('.btn-primary, .btn-info'); // Use class selector for flexibility
+// --- CENTRAL FORM MANAGEMENT ---
+        function initializeUserForm(options) {
+            const { form, modal, isEditMode } = options;
+            const saveBtn = form.querySelector('.btn-primary, .btn-info');
 
-        const fields = {
-            name: form.querySelector('[name="Name"]'),
-            surname: form.querySelector('[name="Surname"]'),
-            email: form.querySelector('[name="Email"]'),
-            role: form.querySelector('[name="Role"]'),
-            password: form.querySelector('[name="Password"]'),
-            passwordBubble: form.querySelector('.password-bubble'),
-            passwordRules: {
-                length: form.querySelector('li[id$="length"]'),
-                capital: form.querySelector('li[id$="capital"]'),
-                number: form.querySelector('li[id$="number"]'),
-                symbol: form.querySelector('li[id$="symbol"]'),
-            },
-            department: form.querySelector('[name="DepartmentId"]'),
-            advisor: form.querySelector('[name="AdvisorId"]'),
-            studentNo: form.querySelector('[name="StudentNo"]'),
-            studentYear: form.querySelector('[name="StudentYear"]'),
-            departmentContainer: form.querySelector('[id$="department-container"]'),
-            advisorContainer: form.querySelector('[id$="advisor-container"]'),
-            studentNoContainer: form.querySelector('[id$="student-no-container"]'),
-            studentYearContainer: form.querySelector('[id$="student-year-container"]')
-        };
+            const fields = {
+                name: form.querySelector('[name="Name"]'),
+                surname: form.querySelector('[name="Surname"]'),
+                email: form.querySelector('[name="Email"]'),
+                role: form.querySelector('[name="Role"]'),
+                password: form.querySelector('[name="Password"]'),
+                passwordBubble: form.querySelector('.password-bubble'),
+                passwordRules: {
+                    length: form.querySelector('li[id$="length"]'),
+                    capital: form.querySelector('li[id$="capital"]'),
+                    number: form.querySelector('li[id$="number"]'),
+                    symbol: form.querySelector('li[id$="symbol"]'),
+                },
+                department: form.querySelector('[name="DepartmentId"]'),
+                advisor: form.querySelector('[name="AdvisorId"]'),
+                studentNo: form.querySelector('[name="StudentNo"]'),
+                studentYear: form.querySelector('[name="StudentYear"]'),
+                departmentContainer: form.querySelector('[id$="department-container"]'),
+                advisorContainer: form.querySelector('[id$="advisor-container"]'),
+                studentNoContainer: form.querySelector('[id$="student-no-container"]'),
+                studentYearContainer: form.querySelector('[id$="student-year-container"]')
+            };
 
-        function handleRoleChange() {
-            const role = fields.role.value;
-            form.querySelectorAll('.conditional').forEach(el => el.style.display = 'none');
-            [fields.department, fields.advisor, fields.studentNo].forEach(el => { if (el) el.required = false; });
+            function handleRoleChange() {
+                const role = fields.role.value;
+                form.querySelectorAll('.conditional').forEach(el => el.style.display = 'none');
+                [fields.department, fields.advisor, fields.studentNo].forEach(el => { if (el) el.required = false; });
 
-            if (role === '2') { // Advisor
-                fields.departmentContainer.style.display = 'block';
-                fields.department.required = true;
-            } else if (role === '3') { // Student
-                fields.departmentContainer.style.display = 'block';
-                fields.department.required = true;
-                fields.advisorContainer.style.display = 'block';
-                fields.advisor.required = true;
-                fields.studentNoContainer.style.display = 'block';
-                fields.studentNo.required = true;
-                fields.studentYearContainer.style.display = 'block';
+                if (role === '2') { // Advisor
+                    fields.departmentContainer.style.display = 'block';
+                    fields.department.required = true;
+                } else if (role === '3') { // Student
+                    fields.departmentContainer.style.display = 'block';
+                    fields.department.required = true;
+                    fields.advisorContainer.style.display = 'block';
+                    fields.advisor.required = true;
+                    fields.studentNoContainer.style.display = 'block';
+                    fields.studentNo.required = true;
+                    fields.studentYearContainer.style.display = 'block';
+                }
             }
-        }
 
-        function validatePassword() {
-            if (!fields.password) return true; // No password field
-            const pass = fields.password.value;
-            let isValid = true;
+            function validatePassword() {
+                if (!fields.password) return true;
+                const pass = fields.password.value;
+                let isValid = true;
 
-            const rules = [
-                { el: fields.passwordRules.length, regex: /.{8,}/ },
-                { el: fields.passwordRules.capital, regex: /[A-Z]/ },
-                { el: fields.passwordRules.number, regex: /[0-9]/ },
-                { el: fields.passwordRules.symbol, regex: /[^A-Za-z0-9]/ }
-            ];
+                const rules = [
+                    { el: fields.passwordRules.length, regex: /.{8,}/ },
+                    { el: fields.passwordRules.capital, regex: /[A-Z]/ },
+                    { el: fields.passwordRules.number, regex: /[0-9]/ },
+                    { el: fields.passwordRules.symbol, regex: /[^A-Za-z0-9]/ }
+                ];
 
-            rules.forEach(rule => {
-                if (rule.el) {
-                    if (rule.regex.test(pass)) {
-                        rule.el.classList.add('valid');
-                        rule.el.classList.remove('invalid');
+                rules.forEach(rule => {
+                    if (rule.el) {
+                        if (rule.regex.test(pass)) {
+                            rule.el.classList.add('valid');
+                            rule.el.classList.remove('invalid');
+                        } else {
+                            rule.el.classList.add('invalid');
+                            rule.el.classList.remove('valid');
+                            isValid = false;
+                        }
+                    }
+                });
+                return isValid;
+            }
+
+            function showError(inputEl, message) {
+                inputEl.classList.add('is-invalid');
+                const errorEl = inputEl.nextElementSibling;
+                if (errorEl && errorEl.classList.contains('invalid-feedback')) {
+                    errorEl.textContent = message;
+                }
+            }
+
+            async function checkEmailOnFocusOut() {
+                const emailField = fields.email;
+                const email = emailField.value.trim();
+
+                if (!email || !/^\S+@@\S+\.\S+$/.test(email)) {
+                    return;
+                }
+
+                try {
+                    const apiUrl = encodeURIComponent('api/user/test-email');
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    const response = await fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`,
+                        {
+                            method: "POST",
+                            headers: {
+                                'Content-Type': 'application/json',
+                                RequestVerificationToken: token
+                            },
+                            body: JSON.stringify({ 'email': email })
+                        });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.status) {
+                        showError(emailField, 'Bu e-posta adresi başka bir kullanıcı tarafından kullanılmaktadır.');
+                        if (saveBtn) saveBtn.disabled = true;
                     } else {
-                        rule.el.classList.add('invalid');
-                        rule.el.classList.remove('valid');
+                        emailField.classList.remove('is-invalid');
+                        validateForm();
+                    }
+
+                } catch (error) {
+                    console.error('Email check request failed:', error);
+                    showError(emailField, 'E-posta kontrolü sırasında bir ağ hatası oluştu.');
+                    if (saveBtn) saveBtn.disabled = true;
+                }
+            }
+
+            function validateForm() {
+                let isValid = true;
+                form.querySelectorAll('[required]').forEach(input => {
+                    input.classList.remove('is-invalid');
+                    if (!input.value.trim()) {
+                        showError(input, 'Bu alanın doldurulması zorunludur.');
+                        isValid = false;
+                    }
+                });
+
+                if (fields.email.value && !/^\S+@@\S+\.\S+$/.test(fields.email.value)) {
+                    showError(fields.email, 'Geçerli bir e-posta adresi giriniz.');
+                    isValid = false;
+                }
+
+                if (!isEditMode || (fields.password && fields.password.value)) {
+                    if (!validatePassword()) {
                         isValid = false;
                     }
                 }
-            });
-            return isValid;
-        }
 
-        function validateForm() {
-            let isValid = true;
-            form.querySelectorAll('[required]').forEach(input => {
-                input.classList.remove('is-invalid');
-                if (!input.value.trim()) {
-                    showError(input, 'Bu alanın doldurulması zorunludur.');
+                if (fields.email && fields.email.classList.contains('is-invalid')) {
                     isValid = false;
                 }
-            });
 
-            if (fields.email.value && !/^\S+@@\S+\.\S+$/.test(fields.email.value)) {
-                showError(fields.email, 'Geçerli bir e-posta adresi giriniz..');
-                isValid = false;
-            }
-
-            if (!isEditMode || (fields.password && fields.password.value)) {
-                if (!validatePassword()) {
-                    isValid = false;
+                if (saveBtn) {
+                    saveBtn.disabled = !isValid;
                 }
+                return isValid;
             }
 
-            if (saveBtn) {
-                saveBtn.disabled = !isValid;
+            // --- OLAY DİNLEYİCİLERİNİ TANIMLAMA ---
+
+            if (fields.email) {
+                fields.email.addEventListener('focusout', checkEmailOnFocusOut);
             }
-            return isValid;
-        }
 
-        function showError(inputEl, message) {
-            inputEl.classList.add('is-invalid');
-            const errorEl = inputEl.nextElementSibling;
-            if (errorEl && errorEl.classList.contains('invalid-feedback')) {
-                errorEl.textContent = message;
+            fields.role.addEventListener('change',
+                () => {
+                    handleRoleChange();
+                    validateForm();
+                });
+
+            if (fields.password) {
+                fields.password.addEventListener('focus', () => fields.passwordBubble?.classList.remove('d-none'));
+                fields.password.addEventListener('blur', () => fields.passwordBubble?.classList.add('d-none'));
+                fields.password.addEventListener('input',
+                    () => {
+                        validatePassword();
+                        validateForm();
+                    });
             }
-        }
 
-        fields.role.addEventListener('change', () => {
-            handleRoleChange();
-            validateForm();
-        });
+            form.querySelectorAll('input, select').forEach(input => {
 
-        if (fields.password) {
-            fields.password.addEventListener('focus', () => fields.passwordBubble?.classList.remove('d-none'));
-            fields.password.addEventListener('blur', () => fields.passwordBubble?.classList.add('d-none'));
-            fields.password.addEventListener('input', () => {
-                validatePassword();
-                validateForm();
-            });
-        }
-        form.querySelectorAll('input, select').forEach(input => input.addEventListener('input', validateForm));
-
-        modal.addEventListener('hidden.bs.modal', () => {
-            form.reset();
-            form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-            if(fields.passwordRules.length) {
-                Object.values(fields.passwordRules).forEach(el => el?.classList.replace('valid', 'invalid'));
-            }
-            handleRoleChange();
-        });
-
-        handleRoleChange();
-        return validateForm;
-    }
-
-    // --- GENERAL DATA FETCHING ---
-    let formDataCache = null;
-    async function fetchFormData() {
-        if (formDataCache) return formDataCache;
-        try {
-            // NOTE: Ensure this API endpoint exists and returns all necessary lists
-            const apiUrl = encodeURIComponent('api/user/register');
-            const response = await fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`);
-            if (!response.ok) throw new Error('Form verisi alınamadı.');
-            formDataCache = await response.json();
-            return formDataCache;
-        } catch (error) {
-            showFeedbackModal('error', 'Veri Hatası', 'Gerekli listeler alınamadı.');
-            return null;
-        }
-    }
-
-    function populateDropdowns(form, data, selected = {}) {
-        const populate = (name, list, valueKey, textKey) => {
-            const select = form.querySelector(`[name="${name}"]`);
-            if (!select) return;
-            select.innerHTML = `<option value="">Seçiniz...</option>`;
-            list.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item[valueKey];
-                option.textContent = item[textKey];
-                if (selected[name] && item[valueKey].toString() === selected[name].toString()) {
-                    option.selected = true;
+                if (input !== fields.email) {
+                    input.addEventListener('input', validateForm);
                 }
-                select.appendChild(option);
             });
-        };
-        populate('Role', data.RolesList, 'Value', 'Text');
-        populate('DepartmentId', data.DepartmentsList, 'Value', 'Text');
-        populate('AdvisorId', data.AdvisorsList, 'Value', 'Text');
-    }
 
-    // --- ADD MODAL ---
-    function initializeAddUserModal() {
-        const modalEl = document.getElementById('addUserModal');
-        const modal = new bootstrap.Modal(modalEl);
-        const form = document.getElementById('addUserForm');
-        const saveBtn = document.getElementById('saveUserBtn');
+            modal.addEventListener('hidden.bs.modal',
+                () => {
+                    form.reset();
+                    form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                    if (fields.passwordRules.length) {
+                        Object.values(fields.passwordRules).forEach(el => el?.classList.replace('valid', 'invalid'));
+                    }
+                    handleRoleChange();
+                    if (saveBtn) saveBtn.disabled = false;
+                });
 
-        const validate = initializeUserForm({ form: form, modal: modalEl, isEditMode: false });
+            handleRoleChange();
+            return validateForm;
+        }
 
-        modalEl.addEventListener('show.bs.modal', async () => {
-            const data = await fetchFormData();
-            if (data) {
-                populateDropdowns(form, data);
-                validate();
-            }
-        });
+// --- GENERAL DATA FETCHING ---
+        let formDataCache = null;
 
-        saveBtn.addEventListener('click', async function() {
-            if (!validate()) return;
-            const originalText = this.innerHTML;
-            this.disabled = true;
-            this.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Ekleniyor...`;
-
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData.entries());
-
+        async function fetchFormData() {
+            if (formDataCache) return formDataCache;
             try {
-                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                // NOTE: Ensure this API endpoint exists and returns all necessary lists
                 const apiUrl = encodeURIComponent('api/user/register');
-                const response = await fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
-                if (response.ok) {
-                    modal.hide();
-                    showFeedbackModal('success', 'Başarılı', result.Message || 'Kullanıcı başarıyla eklendi.', null, null, () => location.reload());
-                } else {
-                    showFeedbackModal('error', 'Hata', result.Message || 'Kullanıcı eklenirken hata oluştu.');
-                }
-            } catch (err) {
-                showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya bağlanılamadı.');
-            } finally {
-                this.disabled = false;
-                this.innerHTML = `<i class="bi bi-check-lg me-2"></i>Kullanıcı Ekle`;
+                const response = await fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`);
+                if (!response.ok) throw new Error('Form verisi alınamadı.');
+                formDataCache = await response.json();
+                return formDataCache;
+            } catch (error) {
+                showFeedbackModal('error', 'Veri Hatası', 'Gerekli listeler alınamadı.');
+                return null;
             }
-        });
-    }
-
-    // --- EDIT MODAL ---
-    function initializeEditUserModal() {
-        const modalEl = document.getElementById('editUserModal');
-        const modal = new bootstrap.Modal(modalEl);
-        const form = document.getElementById('editUserForm');
-        const updateBtn = document.getElementById('updateUserBtn');
-
-        const validate = initializeUserForm({ form: form, modal: modalEl, isEditMode: true });
-
-        document.getElementById('usersContainer').addEventListener('click', async function(e) {
-            if (e.target.closest('.edit-button')) {
-                const userId = e.target.closest('.edit-button').dataset.id;
-                try {
-                    const [formData, userData] = await Promise.all([
-                        fetchFormData(),
-                        fetchUserData(userId)
-                    ]);
-                    if (!formData || !userData) return;
-
-                    const selected = {
-                        Role: userData.Role,
-                        DepartmentId: userData.DepartmentId,
-                        AdvisorId: userData.AdvisorId
-                    };
-                    populateDropdowns(form, formData, selected);
-
-                    form.elements.UserId.value = userData.UserId;
-                    form.elements.Name.value = userData.Name;
-                    form.elements.Surname.value = userData.Surname;
-                    form.elements.Email.value = userData.Email;
-                    form.elements.StudentNo.value = userData.StudentNo || '';
-                    form.elements.StudentYear.value = userData.StudentYear || '';
-
-                    const roleChangeEvent = new Event('change');
-                    form.elements.Role.dispatchEvent(roleChangeEvent);
-
-                    validate();
-                    modal.show();
-                } catch (error) {
-                    showFeedbackModal('error', 'Veri Hatası', 'Kullanıcı bilgisi alınamadı.');
-                    console.error(error);
-                }
-            }
-        });
-
-        async function fetchUserData(id) {
-            const apiUrl = encodeURIComponent(`api/user/edit/${id}`);
-            const response = await fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`);
-            if (!response.ok) throw new Error('Kullanıcı verisi alınamadı.');
-            return await response.json();
         }
 
-        updateBtn.addEventListener('click', async function() {
-            if (!validate()) return;
-            const originalText = this.innerHTML;
-            this.disabled = true;
-            this.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Güncelleniyor...`;
-
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData.entries());
-            if (!data.Password) {
-                delete data.Password;
-            }
-
-            try {
-                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-                const apiUrl = encodeURIComponent('api/user/edit');
-                const response = await fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
-                    body: JSON.stringify(data)
+        function populateDropdowns(form, data, selected = {}) {
+            const populate = (name, list, valueKey, textKey) => {
+                const select = form.querySelector(`[name="${name}"]`);
+                if (!select) return;
+                select.innerHTML = `<option value="">Seçiniz...</option>`;
+                list.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item[valueKey];
+                    option.textContent = item[textKey];
+                    if (selected[name] && item[valueKey].toString() === selected[name].toString()) {
+                        option.selected = true;
+                    }
+                    select.appendChild(option);
                 });
-                const result = await response.json();
-                if (response.ok) {
-                    modal.hide();
-                    showFeedbackModal('success', 'Başarılı', result.Message || 'Kullanıcı başarıyla güncellendi.', null, null, () => setTimeout( () => window.location.reload(), 1500));
-                } else {
-                    showFeedbackModal('error', 'Hata', result.Message || 'Bir hata oluştu.');
-                }
-            } catch (err) {
-                showFeedbackModal('error', 'Bağlantı hatası', 'Sunucuya bağlanırken bir hata oluştu.');
-            } finally {
-                this.disabled = false;
-                this.innerHTML = `<i class="bi bi-check-lg me-2"></i>Değişiklikleri Kaydet`;
-            }
-        });
-    }
+            };
+            populate('Role', data.RolesList, 'Value', 'Text');
+            populate('DepartmentId', data.DepartmentsList, 'Value', 'Text');
+            populate('AdvisorId', data.AdvisorsList, 'Value', 'Text');
+        }
 
-    // --- DELETE MODAL ---
+// --- ADD MODAL ---
+        function initializeAddUserModal() {
+            const modalEl = document.getElementById('addUserModal');
+            const modal = new bootstrap.Modal(modalEl);
+            const form = document.getElementById('addUserForm');
+            const saveBtn = document.getElementById('saveUserBtn');
+
+            const validate = initializeUserForm({ form: form, modal: modalEl, isEditMode: false });
+
+            modalEl.addEventListener('show.bs.modal',
+                async () => {
+                    const data = await fetchFormData();
+                    if (data) {
+                        populateDropdowns(form, data);
+                        validate();
+                    }
+                });
+
+            saveBtn.addEventListener('click',
+                async function() {
+                    if (!validate()) return;
+                    const originalText = this.innerHTML;
+                    this.disabled = true;
+                    this.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Ekleniyor...`;
+
+                    const formData = new FormData(form);
+                    const data = Object.fromEntries(formData.entries());
+
+                    try {
+                        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                        const apiUrl = encodeURIComponent('api/user/register');
+                        const response = await fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`,
+                            {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                                body: JSON.stringify(data)
+                            });
+                        const result = await response.json();
+                        if (response.ok) {
+                            modal.hide();
+                            showFeedbackModal('success', 'Başarılı', result.Message || 'Kullanıcı başarıyla eklendi.', null, null, () => location.reload());
+                        } else {
+                            showFeedbackModal('error', 'Hata', result.Message || 'Kullanıcı eklenirken hata oluştu.');
+                        }
+                    } catch (err) {
+                        showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya bağlanılamadı.');
+                    } finally {
+                        this.disabled = false;
+                        this.innerHTML = `<i class="bi bi-check-lg me-2"></i>Kullanıcı Ekle`;
+                    }
+                });
+        }
+
+// --- EDIT MODAL ---
+        function initializeEditUserModal() {
+            const modalEl = document.getElementById('editUserModal');
+            const modal = new bootstrap.Modal(modalEl);
+            const form = document.getElementById('editUserForm');
+            const updateBtn = document.getElementById('updateUserBtn');
+
+            const validate = initializeUserForm({ form: form, modal: modalEl, isEditMode: true });
+
+            document.getElementById('usersContainer').addEventListener('click',
+                async function(e) {
+                    if (e.target.closest('.edit-button')) {
+                        const userId = e.target.closest('.edit-button').dataset.id;
+                        try {
+                            const [formData, userData] = await Promise.all([
+                                fetchFormData(),
+                                fetchUserData(userId)
+                            ]);
+                            if (!formData || !userData) return;
+
+                            const selected = {
+                                Role: userData.Role,
+                                DepartmentId: userData.DepartmentId,
+                                AdvisorId: userData.AdvisorId
+                            };
+                            populateDropdowns(form, formData, selected);
+
+                            form.elements.UserId.value = userData.UserId;
+                            form.elements.Name.value = userData.Name;
+                            form.elements.Surname.value = userData.Surname;
+                            form.elements.Email.value = userData.Email;
+                            form.elements.StudentNo.value = userData.StudentNo || '';
+                            form.elements.StudentYear.value = userData.StudentYear || '';
+
+                            const roleChangeEvent = new Event('change');
+                            form.elements.Role.dispatchEvent(roleChangeEvent);
+
+                            validate();
+                            modal.show();
+                        } catch (error) {
+                            showFeedbackModal('error', 'Veri Hatası', 'Kullanıcı bilgisi alınamadı.');
+                            console.error(error);
+                        }
+                    }
+                });
+
+            async function fetchUserData(id) {
+                const apiUrl = encodeURIComponent(`api/user/edit/${id}`);
+                const response = await fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`);
+                if (!response.ok) throw new Error('Kullanıcı verisi alınamadı.');
+                return await response.json();
+            }
+
+            updateBtn.addEventListener('click',
+                async function() {
+                    if (!validate()) return;
+                    const originalText = this.innerHTML;
+                    this.disabled = true;
+                    this.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Güncelleniyor...`;
+
+                    const formData = new FormData(form);
+                    const data = Object.fromEntries(formData.entries());
+                    if (!data.Password) {
+                        delete data.Password;
+                    }
+
+                    try {
+                        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                        const apiUrl = encodeURIComponent('api/user/edit');
+                        const response = await fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`,
+                            {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                                body: JSON.stringify(data)
+                            });
+                        const result = await response.json();
+                        if (response.ok) {
+                            modal.hide();
+                            showFeedbackModal('success', 'Başarılı', result.Message || 'Kullanıcı başarıyla güncellendi.', null, null, () => setTimeout(() => window.location.reload(), 1500));
+                        } else {
+                            showFeedbackModal('error', 'Hata', result.Message || 'Bir hata oluştu.');
+                        }
+                    } catch (err) {
+                        showFeedbackModal('error', 'Bağlantı hatası', 'Sunucuya bağlanırken bir hata oluştu.');
+                    } finally {
+                        this.disabled = false;
+                        this.innerHTML = `<i class="bi bi-check-lg me-2"></i>Değişiklikleri Kaydet`;
+                    }
+                });
+        }
+
+// --- DELETE MODAL ---
         function initializeDeleteFunctionality() {
             const deleteModalEl = document.getElementById('deleteConfirmModal');
             // Eğer sayfada silme modalı yoksa (örneğin hiç kullanıcı yoksa), hata almamak için kontrol ekliyoruz.
@@ -842,90 +898,94 @@
             let userIdToDelete = null;
 
             // Silme butonlarına tıklandığında modalı aç ve silinecek kullanıcıyı ayarla
-            document.getElementById('usersContainer').addEventListener('click', function (e) {
-                if (e.target.closest('.delete-button')) {
-                    const button = e.target.closest('.delete-button');
-                    userIdToDelete = button.dataset.id;
-                    const userName = button.dataset.name;
+            document.getElementById('usersContainer').addEventListener('click',
+                function(e) {
+                    if (e.target.closest('.delete-button')) {
+                        const button = e.target.closest('.delete-button');
+                        userIdToDelete = button.dataset.id;
+                        const userName = button.dataset.name;
 
-                    // Modalın içini doldur
-                    if (userNameSpan) userNameSpan.textContent = userName;
+                        // Modalın içini doldur
+                        if (userNameSpan) userNameSpan.textContent = userName;
 
-                    // Modalı göster
-                    deleteModal.show();
-                }
-            });
+                        // Modalı göster
+                        deleteModal.show();
+                    }
+                });
 
             // Modal'daki "Sil" butonuna tıklandığında asıl silme işlemini yap
-            confirmDeleteBtn.addEventListener('click', async function () {
-                if (!userIdToDelete) return;
+            confirmDeleteBtn.addEventListener('click',
+                async function() {
+                    if (!userIdToDelete) return;
 
-                // Silme işlemi sırasında butonu pasif yap ve spinner ekle
-                const originalText = this.innerHTML;
-                this.disabled = true;
-                this.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Siliniyor...`;
+                    // Silme işlemi sırasında butonu pasif yap ve spinner ekle
+                    const originalText = this.innerHTML;
+                    this.disabled = true;
+                    this.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Siliniyor...`;
 
-                try {
-                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-                    const apiUrl = encodeURIComponent(`api/user/delete/${userIdToDelete}`);
-                    const response = await fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`, {
-                        method: 'POST',
-                        headers: { 'RequestVerificationToken': token }
-                    });
+                    try {
+                        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                        const apiUrl = encodeURIComponent(`api/user/delete/${userIdToDelete}`);
+                        const response = await fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`,
+                            {
+                                method: 'POST',
+                                headers: { 'RequestVerificationToken': token }
+                            });
 
-                    const result = await response.json();
+                        const result = await response.json();
 
-                    // Silme onay modalını kapat
-                    deleteModal.hide();
+                        // Silme onay modalını kapat
+                        deleteModal.hide();
 
-                    // Sonuç modalını göster
-                    if (response.ok) {
-                        showFeedbackModal("success", "Başarılı", result.Message || "Kullanıcı başarıyla silindi.", null, null, () => location.reload());
-                    } else {
-                        showFeedbackModal('error', 'Hata', result.Message || 'Kullanıcı silinirken bir hata oluştu.');
+                        // Sonuç modalını göster
+                        if (response.ok) {
+                            showFeedbackModal("success", "Başarılı", result.Message || "Kullanıcı başarıyla silindi.", null, null, () => location.reload());
+                        } else {
+                            showFeedbackModal('error', 'Hata', result.Message || 'Kullanıcı silinirken bir hata oluştu.');
+                        }
+                    } catch (ex) {
+                        // Silme onay modalını kapat
+                        deleteModal.hide();
+                        // Hata modalını göster
+                        showFeedbackModal("error", "Bağlantı Hatası", "Sunucuya bağlanırken bir hata oluştu.");
+                    } finally {
+                        // Butonu eski haline getir
+                        this.disabled = false;
+                        this.innerHTML = originalText;
+                        userIdToDelete = null; // Bir sonraki işlem için ID'yi temizle
                     }
-                } catch (ex) {
-                    // Silme onay modalını kapat
-                    deleteModal.hide();
-                    // Hata modalını göster
-                    showFeedbackModal("error", "Bağlantı Hatası", "Sunucuya bağlanırken bir hata oluştu.");
-                } finally {
-                    // Butonu eski haline getir
-                    this.disabled = false;
-                    this.innerHTML = originalText;
-                    userIdToDelete = null; // Bir sonraki işlem için ID'yi temizle
-                }
+                });
+        }
+
+// --- EXISTING FILTER AND SEARCH FUNCTIONS ---
+        function initializeFiltering() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const userItems = document.querySelectorAll('.user-item');
+            filterButtons.forEach(button => {
+                button.addEventListener('click',
+                    function() {
+                        const filter = this.dataset.filter;
+                        filterButtons.forEach(btn => btn.classList.remove('active'));
+                        this.classList.add('active');
+                        userItems.forEach(item => {
+                            const filterData = item.dataset.filter;
+                            item.style.display = (filter === 'all' || filterData.includes(filter)) ? 'block' : 'none';
+                        });
+                    });
             });
         }
 
-    // --- EXISTING FILTER AND SEARCH FUNCTIONS ---
-    function initializeFiltering() {
-        const filterButtons = document.querySelectorAll('.filter-btn');
-        const userItems = document.querySelectorAll('.user-item');
-        filterButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                const filter = this.dataset.filter;
-                filterButtons.forEach(btn => btn.classList.remove('active'));
-                this.classList.add('active');
-                userItems.forEach(item => {
-                    const filterData = item.dataset.filter;
-                    item.style.display = (filter === 'all' || filterData.includes(filter)) ? 'block' : 'none';
+        function initializeSearch() {
+            const searchInput = document.getElementById('userSearch');
+            const userItems = document.querySelectorAll('.user-item');
+            searchInput.addEventListener('input',
+                function() {
+                    const searchTerm = this.value.toLowerCase();
+                    userItems.forEach(item => {
+                        const searchData = item.dataset.search;
+                        item.style.display = searchData.includes(searchTerm) ? 'block' : 'none';
+                    });
                 });
-            });
-        });
-    }
-
-    function initializeSearch() {
-        const searchInput = document.getElementById('userSearch');
-        const userItems = document.querySelectorAll('.user-item');
-        searchInput.addEventListener('input', function () {
-            const searchTerm = this.value.toLowerCase();
-            userItems.forEach(item => {
-                const searchData = item.dataset.search;
-                item.style.display = searchData.includes(searchTerm) ? 'block' : 'none';
-            });
-        });
-    }
+        }
     </script>
 }
-
