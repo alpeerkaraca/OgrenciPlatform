@@ -18,6 +18,7 @@ using System.Web.Mvc;
 using MailKit.Net.Smtp;
 using MimeKit;
 using Org.BouncyCastle.Ocsp;
+using ModelStateDictionary = System.Web.Http.ModelBinding.ModelStateDictionary;
 
 namespace OgrenciPortalApi.Controllers
 {
@@ -48,10 +49,13 @@ namespace OgrenciPortalApi.Controllers
                         .FirstOrDefaultAsync(u => u.Email == model.Email);
                 if (user == null || !BCrypt.Net.BCrypt.Verify(model.Password, user.Password))
                 {
-                    return Request.CreateResponse(HttpStatusCode.Unauthorized, new{Message="E-Posta adresiniz ya da parolanız hatalı."});
+                    return Request.CreateResponse(HttpStatusCode.Unauthorized,
+                        new { Message = "E-Posta adresiniz ya da parolanız hatalı." });
                 }
+
                 if (user.IsDeleted || !user.IsActive)
-                    return Request.CreateResponse(HttpStatusCode.Unauthorized, new { Message = "Hesabınız pasif hale getirilmiş ya da silinmiş." });
+                    return Request.CreateResponse(HttpStatusCode.Unauthorized,
+                        new { Message = "Hesabınız pasif hale getirilmiş ya da silinmiş." });
 
                 var claims = TokenManager.GetClaimsFromUser(user);
 
@@ -428,6 +432,17 @@ namespace OgrenciPortalApi.Controllers
             student.StudentYear++;
             await _db.SaveChangesAsync();
             return Ok(new { Message = "Öğrenci sınıfı güncellendi" });
+        }
+
+        [System.Web.Http.HttpPost]
+        [System.Web.Http.Route("test-email")]
+        public async Task<IHttpActionResult> TestEmail([FromBody]TestEmailDto dto)
+        {
+            if (string.IsNullOrEmpty(dto.email.Trim()))
+                return Ok(new { status = true });
+
+            bool status = await CheckUserData.CheckEmailAddressAsync(dto.email.Trim());
+            return Ok(new { status });
         }
 
 

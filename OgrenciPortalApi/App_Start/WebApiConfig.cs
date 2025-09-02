@@ -7,10 +7,6 @@ namespace OgrenciPortalApi
     {
         public static void Register(HttpConfiguration config)
         {
-            // Web API configuration and services
-
-            // Web API routes
-
             var cors = new EnableCorsAttribute(
                 origins: "https://localhost:3000",
                 headers: "*",

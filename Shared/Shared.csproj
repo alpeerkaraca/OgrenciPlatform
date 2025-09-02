@@ -73,6 +73,7 @@
     <Compile Include="DTO\OfferedCoursesDTO.cs" />
     <Compile Include="DTO\SemesterDTO.cs" />
     <Compile Include="DTO\StudentDTO.cs" />
+    <Compile Include="DTO\TestEmailDto.cs" />
     <Compile Include="DTO\UserDTO.cs" />
     <Compile Include="Enums\Enums.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

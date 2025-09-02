@@ -485,9 +485,10 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
-    <Compile Include="Utils\CheckEmail.cs" />
+    <Compile Include="Utils\CheckUserData.cs" />
     <Compile Include="Utils\ConflictCheck.cs" />
     <Compile Include="Utils\HangfireDashboardAuthorizationFilter.cs" />
+    <Compile Include="Utils\RedisService.cs" />
     <Compile Include="Utils\Settings.cs" />
     <Compile Include="Utils\TokenManager.cs" />
     <Compile Include="Utils\Utils.cs" />
