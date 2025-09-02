@@ -65,6 +65,8 @@ Bu proje, güvenlik odaklı bir öğrenci bilgi sistemi olarak geliştirilmişti
 - **ASP.NET Web API 2** (.NET Framework 4.7.2) - RESTful API servisleri
 - **Entity Framework 6** - ORM ve veritabanı erişimi
 - **Microsoft SQL Server** - Veritabanı yönetim sistemi
+- **Redis** - In-memory cache ve real-time data validation
+- **Hangfire** - Background job scheduling ve task automation
 
 ### Güvenlik ve Kimlik Doğrulama
 - **System.IdentityModel.Tokens.Jwt** - JWT token işlemleri
@@ -182,6 +184,13 @@ POST /api/user/change-password # Parola değişikliği
 
 ## 📋 Son Güncellemeler
 
+### 2025-09-02 - Redis Entegrasyonu ve Real-time Veri Kontrolü
+- **⚡ Redis Cache Sistemi**: Kullanıcı e-posta adreslerinin Redis'te önbelleklenmesi
+- **🔄 Otomatik Cache Güncelleme**: Hangfire ile her 15 dakikada bir cache yenileme
+- **⏱️ Real-time E-posta Kontrolü**: Form girişlerinde anlık e-posta varlık kontrolü
+- **🚀 Performans İyileştirmesi**: Veritabanı sorgu sayısının azaltılması
+- **📡 Yeni API Endpoint**: `POST /api/user/test-email` endpoint'i eklendi
+
 ### 2025-01-01 - Dokümantasyon Geliştirmeleri
 - **✅ Kapsamlı README dosyaları**: Tüm projeler için detaylı dokümantasyon eklendi
 - **📚 Shared Kütüphane Dokümantasyonu**: `Shared` ve `OgrenciPlatform.Shared` projelerine README dosyaları eklendi
@@ -272,6 +281,8 @@ This project is a security-focused student information system developed with mod
 - **ASP.NET Web API 2** (.NET Framework 4.7.2) - RESTful API services
 - **Entity Framework 6** - ORM and database access
 - **Microsoft SQL Server** - Database management system
+- **Redis** - In-memory cache and real-time data validation
+- **Hangfire** - Background job scheduling and task automation
 
 ### Security and Authentication
 - **System.IdentityModel.Tokens.Jwt** - JWT token operations
@@ -388,6 +399,13 @@ POST /api/user/change-password # Password change
 ```
 
 ## 📋 Recent Updates
+
+### 2025-09-02 - Redis Integration and Real-time Data Validation
+- **⚡ Redis Cache System**: User email addresses cached in Redis for improved performance
+- **🔄 Automated Cache Updates**: Hangfire background jobs update cache every 15 minutes
+- **⏱️ Real-time Email Validation**: Instant email existence checking during form input
+- **🚀 Performance Enhancement**: Reduced database query load for email validation
+- **📡 New API Endpoint**: Added `POST /api/user/test-email` endpoint for email checking
 
 ### 2025-01-01 - Documentation Improvements
 - **✅ Comprehensive README Files**: Detailed documentation added for all projects

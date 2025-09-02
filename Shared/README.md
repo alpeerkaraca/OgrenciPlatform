@@ -18,6 +18,7 @@ Katmanlar arası veri aktarımı için kullanılan sınıflar:
 - **OfferedCoursesDTO.cs** - Sunulan dersler
 - **SemesterDTO.cs** - Dönem bilgileri
 - **StudentDTO.cs** - Öğrenci bilgileri
+- **TestEmailDto.cs** - E-posta varlık kontrolü için istek modeli
 - **UserDTO.cs** - Kullanıcı bilgileri
 
 ### Constants (Sabitler)
@@ -61,6 +62,7 @@ Classes used for data transfer between layers:
 - **OfferedCoursesDTO.cs** - Offered courses
 - **SemesterDTO.cs** - Semester information
 - **StudentDTO.cs** - Student information
+- **TestEmailDto.cs** - Request model for email existence checking
 - **UserDTO.cs** - User information
 
 ### Constants

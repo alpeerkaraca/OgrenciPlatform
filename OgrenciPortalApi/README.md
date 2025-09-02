@@ -1,29 +1,40 @@
 # OgrenciPortalApi - Web API Projesi
 
-Bu proje, Öðrenci Platformu'nun tüm iþ mantýðýný ve veri eriþim katmanýný içeren ASP.NET Web API projesidir. RESTful prensiplerine uygun olarak servis hizmeti sunar.
+Bu proje, ï¿½ï¿½renci Platformu'nun tï¿½m iï¿½ mantï¿½ï¿½ï¿½nï¿½ ve veri eriï¿½im katmanï¿½nï¿½ iï¿½eren ASP.NET Web API projesidir. RESTful prensiplerine uygun olarak servis hizmeti sunar.
 
-## Sorumluluklarý
+## Sorumluluklarï¿½
 
--   Kullanýcý doðrulama ve JWT (JSON Web Token) tabanlý yetkilendirme.
--   Öðrenci, danýþman, ders, bölüm ve dönemlerle ilgili tüm CRUD (Create, Read, Update, Delete) iþlemleri.
--   Veritabaný ile doðrudan iletiþim kurarak veri tutarlýlýðýný saðlamak.
--   Ýþ kurallarýný (ders kontenjaný, çakýþma kontrolü vb.) uygulamak.
--   Ýstemci uygulamalarýna (örneðin `OgrenciPortali`) JSON formatýnda veri sunmak.
+-   Kullanï¿½cï¿½ doï¿½rulama ve JWT (JSON Web Token) tabanlï¿½ yetkilendirme.
+-   ï¿½ï¿½renci, danï¿½ï¿½man, ders, bï¿½lï¿½m ve dï¿½nemlerle ilgili tï¿½m CRUD (Create, Read, Update, Delete) iï¿½lemleri.
+-   Veritabanï¿½ ile doï¿½rudan iletiï¿½im kurarak veri tutarlï¿½lï¿½ï¿½ï¿½nï¿½ saï¿½lamak.
+-   ï¿½ï¿½ kurallarï¿½nï¿½ (ders kontenjanï¿½, ï¿½akï¿½ï¿½ma kontrolï¿½ vb.) uygulamak.
+-   ï¿½stemci uygulamalarï¿½na (ï¿½rneï¿½in `OgrenciPortali`) JSON formatï¿½nda veri sunmak.
+-   **Redis ile cache yï¿½netimi**: Kullanï¿½cï¿½ e-posta adreslerinin ï¿½nbelleklenmesi ve real-time validation.
+-   **Background job scheduling**: Hangfire ile otomatik cache gï¿½ncelleme ve periyodik gï¿½revler.
 
 ## Teknolojiler
 
 -   ASP.NET Web API 2
--   Entity Framework (Database First yaklaþýmý kullanýlmýþ)
--   JWT (JSON Web Token) ile token tabanlý kimlik doðrulama.
+-   Entity Framework (Database First yaklaï¿½ï¿½mï¿½ kullanï¿½lmï¿½ï¿½)
+-   JWT (JSON Web Token) ile token tabanlï¿½ kimlik doï¿½rulama.
 -   BCrypt.Net-Next ile parola hash'leme.
--   Swagger (API dokümantasyonu için).
+-   Swagger (API dokï¿½mantasyonu iï¿½in).
+-   **Redis**: In-memory cache sistemi ve real-time data validation.
+-   **Hangfire**: Background job processing ve otomatik gï¿½rev ï¿½alï¿½ï¿½tï¿½rma.
+-   **StackExchange.Redis**: Redis client kï¿½tï¿½phanesi.
 
-## Kurulum ve Çalýþtýrma
+## Kurulum ve ï¿½alï¿½ï¿½tï¿½rma
 
-1.  **Veritabaný**: Proje, Entity Framework Database First yaklaþýmýný kullanmaktadýr. `Web.config` dosyasýndaki `connectionStrings` bölümünü kendi veritabaný sunucunuza göre düzenleyin.
-2.  **Environment Dosyasý**: Proje içerisinde bir `.env` dosyasý oluþturun ve içerisine JWT için gerekli gizli anahtar gibi ortam deðiþkenlerini ekleyin. Örnek olarak `.env.example` dosyasýný kullanabilirsiniz.
-3.  **Baðýmlýlýklar**: Proje için gerekli NuGet paketlerinin yüklü olduðundan emin olun.
+1.  **Veritabanï¿½**: Proje, Entity Framework Database First yaklaï¿½ï¿½mï¿½nï¿½ kullanmaktadï¿½r. `Web.config` dosyasï¿½ndaki `connectionStrings` bï¿½lï¿½mï¿½nï¿½ kendi veritabanï¿½ sunucunuza gï¿½re dï¿½zenleyin.
+2.  **Environment Dosyasï¿½**: Proje iï¿½erisinde bir `.env` dosyasï¿½ oluï¿½turun ve iï¿½erisine JWT iï¿½in gerekli gizli anahtar gibi ortam deï¿½iï¿½kenlerini ekleyin. ï¿½rnek olarak `.env.example` dosyasï¿½nï¿½ kullanabilirsiniz.
+3.  **Redis Yapï¿½landï¿½rmasï¿½**: `.env` dosyasï¿½na Redis baï¿½lantï¿½ bilgilerini ekleyin:
+    ```
+    REDIS_CONNECTION_STRING=localhost:6379
+    REDIS_USER_NAME=default
+    REDIS_PASSWORD=your_redis_password
+    ```
+4.  **Baï¿½ï¿½mlï¿½lï¿½klar**: Proje iï¿½in gerekli NuGet paketlerinin yï¿½klï¿½ olduï¿½undan emin olun.
     ```bash
     Update-Package -reinstall
     ```
-4.  **Baþlatma**: Projeyi Visual Studio üzerinden IIS Express ile baþlatabilirsiniz. Proje, `http://localhost:8000/` portunda çalýþacak þekilde ayarlanmýþtýr. API dokümantasyonuna ve test arayüzüne `/swagger` adresi üzerinden eriþebilirsiniz.
+5.  **Baï¿½latma**: Projeyi Visual Studio ï¿½zerinden IIS Express ile baï¿½latabilirsiniz. Proje, `http://localhost:8000/` portunda ï¿½alï¿½ï¿½acak ï¿½ekilde ayarlanmï¿½ï¿½tï¿½r. API dokï¿½mantasyonuna ve test arayï¿½zï¿½ne `/swagger` adresi ï¿½zerinden eriï¿½ebilirsiniz.

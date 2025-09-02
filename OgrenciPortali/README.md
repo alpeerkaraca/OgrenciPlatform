@@ -1,28 +1,30 @@
 # OgrenciPortali - MVC Projesi
 
-Bu proje, Öðrenci Platformu'nun kullanýcý arayüzünü oluþturan ASP.NET MVC projesidir. Kullanýcýlarýn sistemle etkileþime girdiði tüm ekranlar burada yer alýr.
+Bu proje, ï¿½ï¿½renci Platformu'nun kullanï¿½cï¿½ arayï¿½zï¿½nï¿½ oluï¿½turan ASP.NET MVC projesidir. Kullanï¿½cï¿½larï¿½n sistemle etkileï¿½ime girdiï¿½i tï¿½m ekranlar burada yer alï¿½r.
 
-## Sorumluluklarý
+## Sorumluluklarï¿½
 
--   Kullanýcý giriþi, kaydý ve yetkilendirme yönetimi arayüzleri.
--   Öðrenciler için ders seçme ve görüntüleme ekranlarý.
--   Danýþmanlar için öðrenci ve ders onayý iþlemleri.
--   Adminler için kullanýcý, bölüm, ders ve dönem yönetimi panelleri.
--   `OgrenciPortalApi` projesi ile HTTP istekleri üzerinden iletiþim kurarak verileri görüntülemek ve iþlemek.
+-   Kullanï¿½cï¿½ giriï¿½i, kaydï¿½ ve yetkilendirme yï¿½netimi arayï¿½zleri.
+-   ï¿½ï¿½renciler iï¿½in ders seï¿½me ve gï¿½rï¿½ntï¿½leme ekranlarï¿½.
+-   Danï¿½ï¿½manlar iï¿½in ï¿½ï¿½renci ve ders onayï¿½ iï¿½lemleri.
+-   Adminler iï¿½in kullanï¿½cï¿½, bï¿½lï¿½m, ders ve dï¿½nem yï¿½netimi panelleri.
+-   `OgrenciPortalApi` projesi ile HTTP istekleri ï¿½zerinden iletiï¿½im kurarak verileri gï¿½rï¿½ntï¿½lemek ve iï¿½lemek.
+-   **Real-time Form Validation**: E-posta adresleri iï¿½in anlï¿½k varlÄ±k kontrolï¿½ ve kullanï¿½cï¿½ geri bildirimi.
 
 ## Teknolojiler
 
 -   ASP.NET MVC 5
 -   Razor View Engine
 -   Bootstrap & CSS
--   jQuery & JavaScript
--   Entity Framework (Veritabaný iþlemleri için API'ye istek atar)
+-   jQuery & JavaScript - Real-time form validation ve AJAX istekleri iï¿½in
+-   Entity Framework (Veritabanï¿½ iï¿½lemleri iï¿½in API'ye istek atar)
+-   **Async/Await**: E-posta validation iï¿½in asenkron API istekleri
 
-## Kurulum ve Çalýþtýrma
+## Kurulum ve ï¿½alï¿½ï¿½tï¿½rma
 
-1.  **API Baðlantýsý**: Projenin `Web.config` veya `.env` dosyasýnda yer alan `ApiBaseAddress` ayarýnýn, çalýþan `OgrenciPortalApi` projesinin adresini doðru bir þekilde gösterdiðinden emin olun.
-2.  **Baðýmlýlýklar**: Proje için gerekli NuGet paketlerinin yüklü olduðundan emin olun.
+1.  **API Baï¿½lantï¿½sï¿½**: Projenin `Web.config` veya `.env` dosyasï¿½nda yer alan `ApiBaseAddress` ayarï¿½nï¿½n, ï¿½alï¿½ï¿½an `OgrenciPortalApi` projesinin adresini doï¿½ru bir ï¿½ekilde gï¿½sterdiï¿½inden emin olun.
+2.  **Baï¿½ï¿½mlï¿½lï¿½klar**: Proje iï¿½in gerekli NuGet paketlerinin yï¿½klï¿½ olduï¿½undan emin olun.
     ```bash
     Update-Package -reinstall
     ```
-3.  **Baþlatma**: Projeyi Visual Studio üzerinden IIS Express ile baþlatabilirsiniz. Proje, `http://localhost:3000/` portunda çalýþacak þekilde ayarlanmýþtýr.
+3.  **Baï¿½latma**: Projeyi Visual Studio ï¿½zerinden IIS Express ile baï¿½latabilirsiniz. Proje, `http://localhost:3000/` portunda ï¿½alï¿½ï¿½acak ï¿½ekilde ayarlanmï¿½ï¿½tï¿½r.
