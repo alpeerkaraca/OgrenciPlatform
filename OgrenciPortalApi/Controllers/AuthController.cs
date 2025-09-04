@@ -10,7 +10,6 @@ using log4net;
 using Newtonsoft.Json;
 using OgrenciPortalApi.Models;
 using OgrenciPortalApi.Utils;
-using Org.BouncyCastle.Asn1.Cms;
 using Shared.DTO;
 using Shared.Enums;
 
