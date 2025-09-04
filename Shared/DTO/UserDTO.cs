@@ -1,6 +1,7 @@
 ﻿using Shared.Enums;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Web.Mvc;
 
 namespace Shared.DTO
@@ -69,4 +70,43 @@ namespace Shared.DTO
         public string NewPassword { get; set; }
     }
 
+    public class SsoLoginRequestDTO
+    {
+        public string Email { get; set; }
+        public string Name { get; set; }
+
+        public static Tuple<string, string> ParseNameCompatible(string fullName)
+        {
+            // 1. Gelen verinin null veya boş olup olmadığını kontrol et
+            if (string.IsNullOrWhiteSpace(fullName))
+            {
+                // Eski Tuple syntax'ı ile boş bir sonuç dön
+                return new Tuple<string, string>("", "");
+            }
+
+            // 2. İsmi boşluklara göre kelimelere ayır
+            var parts = fullName.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            // 3. Kelime sayısına göre if/else ile kontrol et
+            if (parts.Length == 0)
+            {
+                return new Tuple<string, string>("", "");
+            }
+            else if (parts.Length == 1)
+            {
+                // Tek kelime varsa Ad olarak kabul et
+                return new Tuple<string, string>(parts[0], "");
+            }
+            else
+            {
+                // 4. Son kelimeyi Soyad olarak al (LINQ ile)
+                string surname = parts.Last();
+
+                // 5. Son kelime hariç diğer tüm kelimeleri Ad olarak birleştir (LINQ ile)
+                string name = string.Join(" ", parts.Take(parts.Length - 1));
+
+                return new Tuple<string, string>(name, surname);
+            }
+        }
+    }
 }
