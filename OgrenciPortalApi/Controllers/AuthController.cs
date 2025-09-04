@@ -88,7 +88,6 @@ namespace OgrenciPortalApi.Controllers
         {
             try
             {
-                string name, surname;
                 var tuple = SsoLoginRequestDTO.ParseNameCompatible(reqDto.Name);
                 var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == reqDto.Email);
                 if (user == null)
