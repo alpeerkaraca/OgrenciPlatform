@@ -440,6 +440,7 @@
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\CoursesController.cs" />
     <Compile Include="Controllers\DepartmentController.cs" />
+    <Compile Include="Controllers\ErrorController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\OfferedCoursesController.cs" />
     <Compile Include="Controllers\SemesterController.cs" />
@@ -570,6 +571,10 @@
     <Content Include="Views\User\LoginSuccess.cshtml" />
     <Content Include="Views\User\ResetPassword.cshtml" />
     <Content Include="Views\Shared\_StudentSchedule.cshtml" />
+    <Content Include="Views\Error\NotFound.cshtml" />
+    <Content Include="Views\Error\ServerError.cshtml" />
+    <Content Include="Views\Error\AuthError.cshtml" />
+    <Content Include="Views\Error\AccessError.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
