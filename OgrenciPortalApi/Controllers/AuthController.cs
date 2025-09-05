@@ -81,27 +81,37 @@ namespace OgrenciPortalApi.Controllers
             return (Ok());
         }
 
-        [AllowAnonymous]
         [HttpPost]
+        [AllowAnonymous]
         [Route("sso-login")]
         public async Task<HttpResponseMessage> SsoLogin([FromBody] SsoLoginRequestDTO reqDto)
         {
             try
             {
-                var tuple = SsoLoginRequestDTO.ParseNameCompatible(reqDto.Name);
-                var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == reqDto.Email);
+                if (reqDto == null || string.IsNullOrEmpty(reqDto.Email))
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, new { Message = "E-posta adresi gerekli." });
+                }
+
+                // Senin mevcut mantığını koruyoruz: Kullanıcıyı bul veya oluştur.
+                var user = await _db.Users.Include(u => u.Departments)
+                    .FirstOrDefaultAsync(u => u.Email == reqDto.Email && !u.IsDeleted);
+
+                // Eğer kullanıcı sistemde yoksa, senin iş kurallarına göre yeni bir kullanıcı oluşturuyoruz.
                 if (user == null)
                 {
+                    // İsim ve soyismi ayıran kendi metodunu kullanıyoruz.
+                    var tuple = SsoLoginRequestDTO.ParseNameCompatible(reqDto.Name);
                     user = new Users
                     {
                         UserId = Guid.NewGuid(),
                         Name = tuple.Item1,
                         Surname = tuple.Item2,
                         Email = reqDto.Email,
-                        Role = (int)Roles.Admin,
+                        Role = (int)Roles.Öğrenci, // YENİ KULLANICI İÇİN VARSAYILAN ROL! Burayı 'Admin' yerine 'Öğrenci' olarak değiştirdim, daha güvenli.
                         IsActive = true,
                         IsFirstLogin = true,
-                        Password = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString()),
+                        Password = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString()), // Rastgele şifre oluşturma.
                         CreatedAt = DateTime.Now,
                         CreatedBy = "Single Sign On",
                         UpdatedAt = DateTime.Now,
@@ -110,32 +120,50 @@ namespace OgrenciPortalApi.Controllers
                     _db.Users.Add(user);
                 }
 
+                // Mevcut kullanıcının aktif olduğundan emin ol.
+                user.IsActive = true;
+
+                // Kullanıcı için kendi token'larımızı oluşturalım.
                 var claims = TokenManager.GetClaimsFromUser(user);
                 var accessToken = TokenManager.GenerateAccessToken(claims);
-                var refreshToken = TokenManager.GenerateRefreshToken();
+                var refreshToken = TokenManager.GenerateRefreshToken(); // URL-safe token ürettiğimizden eminiz.
+
                 user.RefreshToken = refreshToken;
-                user.RefreshTokenExpTime = DateTime.UtcNow.AddDays(Int32.Parse(AppSettings.RefreshTokenExpDays));
+                user.RefreshTokenExpTime = DateTime.UtcNow.AddDays(Convert.ToInt32(AppSettings.RefreshTokenExpDays));
                 await _db.SaveChangesAsync();
 
-                var cookie = new CookieHeaderValue("RefreshToken", refreshToken)
+                // Startup.cs'in okuyabilmesi için token'ları body'de dönüyoruz.
+                var responseBody = new LoginSuccessResponse(){RefreshToken = refreshToken, AccessToken = accessToken, Message = "Giriş başarılı."};
+                var response = Request.CreateResponse(HttpStatusCode.OK, responseBody);
+
+                // --- EN İYİ UYGULAMA: Cookie'leri de burada oluşturuyoruz ---
+                // AccessToken için HttpOnly cookie (Güvenlik!)
+                var accessTokenCookie = new CookieHeaderValue("AuthToken", accessToken)
                 {
-                    Domain = Request.RequestUri.Host,
-                    Expires = DateTime.UtcNow.AddDays(Convert.ToInt32(AppSettings.RefreshTokenExpDays)),
+                    Expires = DateTimeOffset.UtcNow.AddMinutes(Convert.ToInt32(AppSettings.AccessTokenExpMins)),
+                    Path = "/",
+                    HttpOnly = true,
+                    Secure = true,
+                    // SameSite = SameSiteMode.Lax // Tarayıcı uyumluluğu için .NET Framework'te bu şekilde eklenemeyebilir. Web.config'den ayarlanması daha iyidir.
+                };
+
+                // RefreshToken için HttpOnly cookie (Güvenlik!)
+                var refreshTokenCookie = new CookieHeaderValue("RefreshToken", refreshToken)
+                {
+                    Expires = DateTimeOffset.UtcNow.AddDays(Convert.ToInt32(AppSettings.RefreshTokenExpDays)),
                     Path = "/",
                     HttpOnly = true,
                     Secure = true
                 };
-                var response = Request.CreateResponse(HttpStatusCode.OK,
-                    new { Message = "Giriş Başarılı", Token = accessToken });
-                response.Headers.AddCookies(new[] { cookie });
+
+                response.Headers.AddCookies(new[] { accessTokenCookie, refreshTokenCookie });
 
                 return response;
             }
             catch (Exception ex)
             {
-                Logger.Error("SSO Girişi yapılırken hata oluştu.", ex);
-                return Request.CreateResponse(HttpStatusCode.InternalServerError,
-                    new { Message = "SSO Girişi yapılırken bir sunucu hatası oluştu." });
+                Logger.Error("SSO girişi sırasında hata oluştu.", ex);
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "SSO girişi sırasında bir sunucu hatası oluştu.");
             }
         }
     }

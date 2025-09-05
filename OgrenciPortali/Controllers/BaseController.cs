@@ -4,6 +4,7 @@ using System.Web.Mvc;
 
 namespace OgrenciPortali.Controllers
 {
+    [NoCache]
     public abstract class BaseController : Controller
     {
         protected readonly string ApiBaseAddress = Utils.AppSettings.ApiBaseAddress;

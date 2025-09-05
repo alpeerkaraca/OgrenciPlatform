@@ -15,10 +15,10 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .user-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-    }
+        .user-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
 
     .list-user-avatar {
         width: 60px;
@@ -55,7 +55,9 @@
         margin-top: 1.5rem;
     }
 
-    .stats-item { text-align: center; }
+    .stats-item {
+        text-align: center;
+    }
 
     .stats-number {
         font-size: 2.5rem;
@@ -68,7 +70,9 @@
         opacity: 0.9;
     }
 
-    .filter-section { margin-bottom: 2rem; }
+    .filter-section {
+        margin-bottom: 2rem;
+    }
 
     .filter-btn {
         background: transparent;
@@ -81,13 +85,15 @@
         transition: all 0.3s ease;
     }
 
-    .filter-btn.active {
-        background: #667eea;
-        border-color: #667eea;
-        color: white;
-    }
+        .filter-btn.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
 
-    .filter-btn:hover { transform: translateY(-1px); }
+        .filter-btn:hover {
+            transform: translateY(-1px);
+        }
 
     .search-box {
         border-radius: 25px;
@@ -97,10 +103,10 @@
         transition: all 0.3s ease;
     }
 
-    .search-box:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-    }
+        .search-box:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
 
     .list-user-info {
         padding: 1.25rem;
@@ -137,11 +143,11 @@
         color: #6c757d;
     }
 
-    .no-users i {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-        opacity: 0.5;
-    }
+        .no-users i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
 
     .password-bubble {
         position: absolute;
@@ -156,41 +162,45 @@
         box-shadow: 0 4px 8px rgba(0, 0, 0, .2)
     }
 
-    .password-bubble::after {
-        content: '';
-        position: absolute;
-        top: 100%;
-        left: 30px;
-        border-width: 8px;
-        border-style: solid;
-        border-color: #343a40 transparent transparent transparent
+        .password-bubble::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 30px;
+            border-width: 8px;
+            border-style: solid;
+            border-color: #343a40 transparent transparent transparent
+        }
+
+        .password-bubble ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin-bottom: 0;
+            font-size: .9em
+        }
+
+        .password-bubble li {
+            margin-bottom: 2px;
+            transition: color .3s
+        }
+
+    .invalid {
+        color: #d9534f
     }
 
-    .password-bubble ul {
-        list-style-type: none;
-        padding-left: 0;
-        margin-bottom: 0;
-        font-size: .9em
+        .invalid::before {
+            content: '✗ ';
+            margin-right: 5px
+        }
+
+    .valid {
+        color: #4bbf73
     }
 
-    .password-bubble li {
-        margin-bottom: 2px;
-        transition: color .3s
-    }
-
-    .invalid { color: #d9534f }
-
-    .invalid::before {
-        content: '✗ ';
-        margin-right: 5px
-    }
-
-    .valid { color: #4bbf73 }
-
-    .valid::before {
-        content: '✓ ';
-        margin-right: 5px
-    }
+        .valid::before {
+            content: '✓ ';
+            margin-right: 5px
+        }
 </style>
 
 <div class="container-fluid">
@@ -390,10 +400,6 @@
                             <label class="form-label">Danışman</label><select name="AdvisorId" class="form-select"></select>
                             <div class="invalid-feedback"></div>
                         </div>
-                        <div class="col-md-6 mb-3 conditional" id="add-student-no-container">
-                            <label class="form-label">Öğrenci Numarası</label><input type="text" name="StudentNo" class="form-control">
-                            <div class="invalid-feedback"></div>
-                        </div>
                         <div class="col-md-6 mb-3 conditional" id="add-student-year-container">
                             <label class="form-label">Öğrenci Sınıfı</label><input type="number" name="StudentYear" class="form-control" min="1" max="5">
                             <div class="invalid-feedback"></div>
@@ -495,10 +501,11 @@
 </div>
 
 
+
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded',
-            function() {
+            function () {
                 // Initialize existing page functions
                 initializeFiltering();
                 initializeSearch();
@@ -509,7 +516,7 @@
                 initializeDeleteFunctionality();
             });
 
-// --- CENTRAL FORM MANAGEMENT ---
+        // --- CENTRAL FORM MANAGEMENT ---
         function initializeUserForm(options) {
             const { form, modal, isEditMode } = options;
             const saveBtn = form.querySelector('.btn-primary, .btn-info');
@@ -550,9 +557,17 @@
                     fields.department.required = true;
                     fields.advisorContainer.style.display = 'block';
                     fields.advisor.required = true;
-                    fields.studentNoContainer.style.display = 'block';
-                    fields.studentNo.required = true;
-                    fields.studentYearContainer.style.display = 'block';
+
+                    // StudentNoContainer yoksa hata vermemesi için kontrol
+                    if (fields.studentNoContainer) {
+                        fields.studentNoContainer.style.display = 'block';
+                        fields.studentNo.required = true;
+                    }
+
+                    // StudentYearContainer yoksa hata vermemesi için kontrol
+                    if (fields.studentYearContainer) {
+                        fields.studentYearContainer.style.display = 'block';
+                    }
                 }
             }
 
@@ -672,6 +687,58 @@
                     validateForm();
                 });
 
+            // ==========================================================
+            // YENİ EKLENEN KOD: Bölüm seçildiğinde danışmanları getirme
+            // ==========================================================
+            if (fields.department) {
+                fields.department.addEventListener('change', async function() {
+                    const departmentId = this.value;
+                    const advisorSelect = fields.advisor;
+                    // Token'a artık GET isteğinde gerek yok, ama proxy'niz gerektiriyorsa kalabilir.
+
+                    advisorSelect.innerHTML = '<option value="">Yükleniyor...</option>';
+                    advisorSelect.disabled = true;
+
+                    if (!departmentId) {
+                        advisorSelect.innerHTML = '<option value="">Önce bölüm seçiniz</option>';
+                        return;
+                    }
+
+                    try {
+                        // DİKKAT: URL yapısı ve proxy endpoint'i değişti!
+                        const apiUrl = encodeURIComponent(`api/user/get-by-department/${departmentId}`);
+                        const response = await fetch(`/ApiProxy/Get?apiUrl=${apiUrl}`); // POST yerine GET
+
+                        if (!response.ok) {
+                            throw new Error('Danışman listesi alınamadı. Sunucu kodu: ' + response.status);
+                        }
+
+                        const advisors = await response.json();
+            
+                        advisorSelect.innerHTML = '<option value="">Seçiniz...</option>';
+
+                        if (advisors && advisors.length > 0) {
+                            advisors.forEach(advisor => {
+                                const option = document.createElement('option');
+                                option.value = advisor.Value;
+                                option.textContent = advisor.Text;
+                                advisorSelect.appendChild(option);
+                            });
+                            advisorSelect.disabled = false;
+                        } else {
+                            advisorSelect.innerHTML = '<option value="">Danışman bulunamadı</option>';
+                        }
+
+                    } catch (error) {
+                        console.error('Danışmanlar getirilirken hata oluştu:', error);
+                        advisorSelect.innerHTML = '<option value="">Bir hata oluştu</option>';
+                    }
+                });
+            }            // ==========================================================
+            // YENİ EKLENEN KOD SONU
+            // ==========================================================
+
+
             if (fields.password) {
                 fields.password.addEventListener('focus', () => fields.passwordBubble?.classList.remove('d-none'));
                 fields.password.addEventListener('blur', () => fields.passwordBubble?.classList.add('d-none'));
@@ -704,7 +771,8 @@
             return validateForm;
         }
 
-// --- GENERAL DATA FETCHING ---
+        // --- DİĞER FONKSİYONLARDA DEĞİŞİKLİK YOK ---
+        // --- GENERAL DATA FETCHING ---
         let formDataCache = null;
 
         async function fetchFormData() {
@@ -742,7 +810,7 @@
             populate('AdvisorId', data.AdvisorsList, 'Value', 'Text');
         }
 
-// --- ADD MODAL ---
+        // --- ADD MODAL ---
         function initializeAddUserModal() {
             const modalEl = document.getElementById('addUserModal');
             const modal = new bootstrap.Modal(modalEl);
@@ -761,7 +829,7 @@
                 });
 
             saveBtn.addEventListener('click',
-                async function() {
+                async function () {
                     if (!validate()) return;
                     const originalText = this.innerHTML;
                     this.disabled = true;
@@ -795,7 +863,7 @@
                 });
         }
 
-// --- EDIT MODAL ---
+        // --- EDIT MODAL ---
         function initializeEditUserModal() {
             const modalEl = document.getElementById('editUserModal');
             const modal = new bootstrap.Modal(modalEl);
@@ -805,7 +873,7 @@
             const validate = initializeUserForm({ form: form, modal: modalEl, isEditMode: true });
 
             document.getElementById('usersContainer').addEventListener('click',
-                async function(e) {
+                async function (e) {
                     if (e.target.closest('.edit-button')) {
                         const userId = e.target.closest('.edit-button').dataset.id;
                         try {
@@ -849,7 +917,7 @@
             }
 
             updateBtn.addEventListener('click',
-                async function() {
+                async function () {
                     if (!validate()) return;
                     const originalText = this.innerHTML;
                     this.disabled = true;
@@ -886,7 +954,7 @@
                 });
         }
 
-// --- DELETE MODAL ---
+        // --- DELETE MODAL ---
         function initializeDeleteFunctionality() {
             const deleteModalEl = document.getElementById('deleteConfirmModal');
             // Eğer sayfada silme modalı yoksa (örneğin hiç kullanıcı yoksa), hata almamak için kontrol ekliyoruz.
@@ -899,7 +967,7 @@
 
             // Silme butonlarına tıklandığında modalı aç ve silinecek kullanıcıyı ayarla
             document.getElementById('usersContainer').addEventListener('click',
-                function(e) {
+                function (e) {
                     if (e.target.closest('.delete-button')) {
                         const button = e.target.closest('.delete-button');
                         userIdToDelete = button.dataset.id;
@@ -915,7 +983,7 @@
 
             // Modal'daki "Sil" butonuna tıklandığında asıl silme işlemini yap
             confirmDeleteBtn.addEventListener('click',
-                async function() {
+                async function () {
                     if (!userIdToDelete) return;
 
                     // Silme işlemi sırasında butonu pasif yap ve spinner ekle
@@ -957,13 +1025,13 @@
                 });
         }
 
-// --- EXISTING FILTER AND SEARCH FUNCTIONS ---
+        // --- EXISTING FILTER AND SEARCH FUNCTIONS ---
         function initializeFiltering() {
             const filterButtons = document.querySelectorAll('.filter-btn');
             const userItems = document.querySelectorAll('.user-item');
             filterButtons.forEach(button => {
                 button.addEventListener('click',
-                    function() {
+                    function () {
                         const filter = this.dataset.filter;
                         filterButtons.forEach(btn => btn.classList.remove('active'));
                         this.classList.add('active');
@@ -979,7 +1047,7 @@
             const searchInput = document.getElementById('userSearch');
             const userItems = document.querySelectorAll('.user-item');
             searchInput.addEventListener('input',
-                function() {
+                function () {
                     const searchTerm = this.value.toLowerCase();
                     userItems.forEach(item => {
                         const searchData = item.dataset.search;

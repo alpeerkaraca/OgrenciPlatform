@@ -1,4 +1,4 @@
-(function() {
+ï»¿(function() {
     // Schedule Template - by CodyHouse.co
     function ScheduleTemplate(element) {
         this.element = element;
@@ -89,21 +89,21 @@
             this.singleEvents[i].addEventListener('click',
                 function(event) {
                     event.preventDefault();
-                    const target = document.querySelector('.cd-schedule__event a');
-                    console.log("target: ", target);
-                    if (!target) return;
+                    var target = event.currentTarget.getElementsByTagName('a')[0];
 
-                    var content = target.getAttribute('data-content');
-                    self.openModal(target);
-                    self.loadEventContent(content, target);
+                    if (!self.animating) {
+                        self.openModal(target);
+                    }
                 });
         }
-        //close modal window
+
+        // Modal kapatma olaylarÄ±
         this.modalClose.addEventListener('click',
             function(event) {
                 event.preventDefault();
                 if (!self.animating) self.closeModal();
             });
+
         this.coverLayer.addEventListener('click',
             function(event) {
                 event.preventDefault();
@@ -120,12 +120,9 @@
         this.modalEventName.textContent = target.getElementsByTagName('em')[0].textContent;
         this.modalDate.textContent = target.getAttribute('data-start') + ' - ' + target.getAttribute('data-end');
         this.modal.setAttribute('data-event', target.getAttribute('data-event'));
-
         //update event content
-        this.loadEventContent(target.getAttribute('data-content'), target);
-
+        this.loadEventContent(target.getAttribute('data-event-content'), target);
         Util.addClass(this.modal, 'cd-schedule-modal--open');
-
         setTimeout(function() {
                 //fixes a flash when an event is selected - desktop version only
                 Util.addClass(target.closest('li'), 'cd-schedule__event--selected');
@@ -354,29 +351,35 @@
         }
     };
 
-    ScheduleTemplate.prototype.loadEventContent = function(content, target) {
-        // load the content of an event when user selects it
+    ScheduleTemplate.prototype.loadEventContent = function (content, target) {
         var self = this;
         var teacherName = target.getAttribute('data-teacher-full-name');
+        var classroom = target.getAttribute('data-classroom');
+        var description = content; // 'content' artÄ±k ders aÃ§Ä±klamasÄ±nÄ± iÃ§eriyor.
 
+        var finalContentHTML = '';
 
-        // Öðretmen bilgisini içeriðe ekle
-        if (teacherName) {
-            var teacherElement = document.createElement('div');
-            teacherElement.className = 'event-teacher';
-            teacherElement.innerHTML = '<strong>Eðitmen:</strong> ' + teacherName;
-
-            // Öðretmen bilgisini içeriðin baþýna ekle
-            var container = document.createElement('div');
-            container.appendChild(teacherElement);
-            container.innerHTML += eventContent;
-            eventContent = container.innerHTML;
+        // EÄŸitmen bilgisi varsa ekle
+        if (teacherName && teacherName.trim() !== '') {
+            finalContentHTML += '<p><strong>EÄŸitmen:</strong> ' + teacherName + '</p>';
         }
 
-        self.modal.getElementsByClassName('cd-schedule-modal__event-info')[0].innerHTML = eventContent;
+        if (classroom && classroom.trim() !== '') {
+            finalContentHTML += '<p><strong>Derslik:</strong> ' + classroom + '</p>';
+        }
+
+        // Ders aÃ§Ä±klamasÄ± varsa ekle
+        if (description && description.trim() !== '') {
+            finalContentHTML += '<div>' + description + '</div>';
+        }
+
+        // EÄŸer iÃ§erik yoksa varsayÄ±lan bir mesaj gÃ¶ster
+        if (finalContentHTML.trim() === '') {
+            finalContentHTML = '<p>Bu ders iÃ§in detaylÄ± bilgi bulunmamaktadÄ±r.</p>';
+        }
+
+        self.modal.getElementsByClassName('cd-schedule-modal__event-info')[0].innerHTML = finalContentHTML;
         Util.addClass(self.modal, 'cd-schedule-modal--content-loaded');
-
-
     };
 
     ScheduleTemplate.prototype.getEventContent = function(string) {

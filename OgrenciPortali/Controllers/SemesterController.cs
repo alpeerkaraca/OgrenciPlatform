@@ -17,7 +17,7 @@ using Shared.Enums;
 namespace OgrenciPortali.Controllers
 {
     [CustomAuth(Roles.Admin)]
-    public class SemesterController : Controller
+    public class SemesterController : BaseController
     {
         private readonly ApiClient _apiClient;
         private readonly IMapper _mapper;

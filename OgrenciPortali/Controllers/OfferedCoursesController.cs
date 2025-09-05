@@ -18,7 +18,7 @@ using Shared.Enums;
 namespace OgrenciPortali.Controllers
 {
     [CustomAuth(Roles.Admin)]
-    public class OfferedCoursesController : Controller
+    public class OfferedCoursesController : BaseController
     {
         private static ApiClient _apiClient;
         private static IMapper _mapper;
@@ -47,7 +47,8 @@ namespace OgrenciPortali.Controllers
         public async Task<ActionResult> Add()
         {
             // If it's an AJAX request, return JSON data for the modal
-            if (Request.IsAjaxRequest() || Request.Headers["Content-Type"] == "application/json" || Request.Headers["Accept"].Contains("application/json"))
+            if (Request.IsAjaxRequest() || Request.Headers["Content-Type"] == "application/json" ||
+                Request.Headers["Accept"].Contains("application/json"))
             {
                 var request = new HttpRequestMessage(HttpMethod.Get, "api/offered/add");
                 var response = await _apiClient.SendAsync(request);
@@ -57,9 +58,10 @@ namespace OgrenciPortali.Controllers
                     var dto = await response.Content.ReadAsAsync<AddOfferedCourseDTO>();
                     return Json(dto, JsonRequestBehavior.AllowGet);
                 }
+
                 return Json(new { error = "Unable to load form data" }, JsonRequestBehavior.AllowGet);
             }
-            
+
             // Regular request - redirect to List page where modal will be available
             return RedirectToAction("List", "OfferedCourses");
         }

@@ -71,7 +71,7 @@ namespace OgrenciPortali.Utils
                     var result =
                         JsonConvert.DeserializeObject<LoginSuccessResponse>(jsonString);
 
-                    var newAuthCookie = new HttpCookie("AuthToken", result.Token)
+                    var newAuthCookie = new HttpCookie("AuthToken", result.AccessToken)
                     {
                         HttpOnly = true,
                         Secure = HttpContext.Current.Request.IsSecureConnection,

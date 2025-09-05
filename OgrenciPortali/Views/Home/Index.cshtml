@@ -342,7 +342,7 @@
     <script>
         class DashboardManager {
             constructor() {
-                this.refreshInterval = 60000;
+                this.refreshInterval = 600000;
                 this.animationDuration = 1000;
                 this.csrfToken = document.querySelector('input[name="__RequestVerificationToken"]').value;
                 this.init();
@@ -370,7 +370,8 @@
                             method: 'GET',
                             headers: {
                                 'Content-Type': 'application/json'
-                            }
+                            },
+                            'credentials': 'include'
                         });
 
                     if (!response.ok) {

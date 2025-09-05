@@ -43,7 +43,8 @@ namespace OgrenciPortalApi.Utils
             {
                 var randomBytes = new byte[64];
                 rng.GetBytes(randomBytes);
-                return Convert.ToBase64String(randomBytes);
+                string base64 = Convert.ToBase64String(randomBytes);
+                return base64.Replace('+', '-').Replace('/', '_').TrimEnd('=');
             }
         }
 

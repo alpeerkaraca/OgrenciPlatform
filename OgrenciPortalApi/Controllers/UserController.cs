@@ -75,7 +75,8 @@ namespace OgrenciPortalApi.Controllers
                     Secure = true,
                 };
                 var res = Request.CreateResponse(HttpStatusCode.OK,
-                    new { Message = "Giriş Başarılı", Token = accessToken });
+                    new LoginSuccessResponse()
+                        { RefreshToken = refreshToken, AccessToken = accessToken, Message = "Giriş Başarılı" });
                 res.Headers.AddCookies(new[] { cookie });
 
                 return res;
@@ -125,47 +126,55 @@ namespace OgrenciPortalApi.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            try
+            using (var transaction = _db.Database.BeginTransaction())
             {
-                if (await _db.Users.AnyAsync(u => u.Email == model.Email && !u.IsDeleted))
-                    return BadRequest("Bu e-posta adresi kullanılıyor.");
-
-                if (model.Role == (int)Roles.Öğrenci && !string.IsNullOrEmpty(model.StudentNo) &&
-                    await _db.Users.AnyAsync(u => u.StudentNo == model.StudentNo && !u.IsDeleted))
-                    return BadRequest("Bu öğrenci numarası zaten kayıtlı.");
-
-                var userClaim = User.Identity as ClaimsIdentity;
-                var userId = userClaim.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-                var newUser = new Users
+                try
                 {
-                    UserId = Guid.NewGuid(),
-                    Name = model.Name,
-                    Surname = model.Surname,
-                    Email = model.Email,
-                    Password = BCrypt.Net.BCrypt.HashPassword(model.Password),
-                    Role = model.Role,
-                    StudentYear = model.StudentYear,
-                    IsActive = true,
-                    IsFirstLogin = true,
-                    StudentNo = model.StudentNo,
-                    DepartmentId = model.DepartmentId,
-                    AdvisorId = model.AdvisorId,
-                    CreatedAt = DateTime.Now,
-                    CreatedBy = userId,
-                    UpdatedAt = DateTime.Now,
-                    UpdatedBy = userId,
-                    IsDeleted = false
-                };
+                    var userClaim = User.Identity as ClaimsIdentity;
+                    var userId = userClaim.FindFirst(ClaimTypes.NameIdentifier).Value;
+                    string generatedStudentNo = await CreateStudentNo(model);
+                    if (generatedStudentNo == null)
+                        return BadRequest("Öğrenci Numarası Hatalı");
 
-                _db.Users.Add(newUser);
-                await _db.SaveChangesAsync();
-                return Ok(new { Message = "Kullanıcı başarıyla kaydedildi." });
-            }
-            catch (Exception ex)
-            {
-                Logger.Error("Kullanıcı kaydı sırasında hata oluştu.", ex);
-                return InternalServerError(new Exception("Kullanıcı kaydedilirken bir hata oluştu."));
+
+                    if (model.Role == (int)Roles.Öğrenci && !string.IsNullOrEmpty(generatedStudentNo) &&
+                        await _db.Users.AnyAsync(u => u.StudentNo == generatedStudentNo && !u.IsDeleted))
+                        return BadRequest("Bu öğrenci numarası zaten kayıtlı.");
+
+                    if (await _db.Users.AnyAsync(u => u.Email == model.Email && !u.IsDeleted))
+                        return BadRequest("Bu e-posta adresi kullanılıyor.");
+                    var newUser = new Users
+                    {
+                        UserId = Guid.NewGuid(),
+                        Name = model.Name,
+                        Surname = model.Surname,
+                        Email = model.Email,
+                        Password = BCrypt.Net.BCrypt.HashPassword(model.Password),
+                        Role = model.Role,
+                        StudentYear = model.StudentYear,
+                        IsActive = true,
+                        IsFirstLogin = true,
+                        StudentNo = generatedStudentNo,
+                        DepartmentId = model.DepartmentId,
+                        AdvisorId = model.AdvisorId,
+                        CreatedAt = DateTime.Now,
+                        CreatedBy = userId,
+                        UpdatedAt = DateTime.Now,
+                        UpdatedBy = userId,
+                        IsDeleted = false
+                    };
+
+
+                    _db.Users.Add(newUser);
+                    await _db.SaveChangesAsync();
+                    transaction.Commit();
+                    return Ok(new { Message = "Kullanıcı başarıyla kaydedildi." });
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error("Kullanıcı kaydı sırasında hata oluştu.", ex);
+                    return InternalServerError(new Exception("Kullanıcı kaydedilirken bir hata oluştu."));
+                }
             }
         }
 
@@ -405,6 +414,8 @@ namespace OgrenciPortalApi.Controllers
         [System.Web.Http.AllowAnonymous]
         public async Task<IHttpActionResult> ResetPassword([FromBody] ResetPasswordRequestDto model)
         {
+            if (!string.Equals(model.NewPassword, model.ConfirmPassword))
+                return BadRequest("Şifreler uyuşmuyor.");
             var user = await _db.Users.FirstOrDefaultAsync(u => u.PasswordResetToken == model.Token && !u.IsDeleted);
 
             if (user == null || user.ResetTokenExpiry <= DateTime.UtcNow)
@@ -436,7 +447,7 @@ namespace OgrenciPortalApi.Controllers
 
         [System.Web.Http.HttpPost]
         [System.Web.Http.Route("test-email")]
-        public async Task<IHttpActionResult> TestEmail([FromBody]TestEmailDto dto)
+        public async Task<IHttpActionResult> TestEmail([FromBody] TestEmailDto dto)
         {
             if (string.IsNullOrEmpty(dto.email.Trim()))
                 return Ok(new { status = true });
@@ -501,6 +512,53 @@ namespace OgrenciPortalApi.Controllers
             model.AdvisorsList = _db.Users
                 .Where(u => u.Role == (int)Roles.Danışman && !u.IsDeleted && u.IsActive)
                 .Select(u => new SelectListItem { Value = u.UserId.ToString(), Text = u.Name + " " + u.Surname });
+        }
+
+        private async Task<string> CreateStudentNo(RegisterDataDto model)
+        {
+            if (model.Role == (int)Roles.Öğrenci)
+            {
+                var currentYear = DateTime.Now.ToString("yy");
+                var department = await _db.Departments.FindAsync(model.DepartmentId);
+                if (department == null || string.IsNullOrEmpty(department.DepartmentIdGen))
+                    return null;
+                var depIdGen = department.DepartmentIdGen;
+                var numPrefix = $"{currentYear}{depIdGen}";
+
+                var lastStudentOnDep = await _db.Users.Where(u => u.StudentNo.StartsWith(numPrefix))
+                    .OrderByDescending(u => u.StudentNo).FirstOrDefaultAsync();
+
+                int nextSeq = 1;
+                if (lastStudentOnDep != null)
+                {
+                    var lastSequenceStr = lastStudentOnDep.StudentNo.Substring(numPrefix.Length);
+                    nextSeq = int.Parse(lastSequenceStr) + 1;
+                }
+
+                return $"{numPrefix}{nextSeq:D3}";
+            }
+            else
+                return null;
+        }
+        [System.Web.Http.HttpGet]
+        [System.Web.Http.Route("get-by-department/{departmentId:guid}")] // Route'u daha açıklayıcı hale getirdik
+        public async Task<IHttpActionResult> GetByDepartment(Guid departmentId)
+        {
+            if (departmentId == Guid.Empty)
+            {
+                return BadRequest("Bölüm ID'si geçersiz.");
+            }
+
+            var advisors = await _db.Users
+                .Where(u => u.DepartmentId == departmentId && u.Role == (int)Roles.Danışman)
+                .Select(a => new SelectListItem()
+                {
+                    Text = a.Name + " " + a.Surname,
+                    Value = a.UserId.ToString(),
+                })
+                .ToListAsync();
+
+            return Ok(advisors);
         }
     }
 }

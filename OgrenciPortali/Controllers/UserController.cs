@@ -9,6 +9,7 @@ using Shared.DTO;
 using Shared.Enums;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -18,6 +19,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using Microsoft.Owin.Security.Cookies;
+using Microsoft.Owin.Security.OpenIdConnect;
 
 namespace OgrenciPortali.Controllers
 {
@@ -74,14 +77,14 @@ namespace OgrenciPortali.Controllers
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<LoginSuccessResponse>();
-                if (result == null || string.IsNullOrEmpty(result.Token))
+                if (result == null || string.IsNullOrEmpty(result.AccessToken))
                 {
                     ModelState.AddModelError("",
                         "Giriş işlemi başarısız oldu. Lütfen bilgilerinizi kontrol edin ve tekrar deneyin.");
                     return View(viewModel);
                 }
 
-                var userCookie = new HttpCookie("AuthToken", result.Token)
+                var userCookie = new HttpCookie("AuthToken", result.AccessToken)
                 {
                     HttpOnly = true,
                     Secure = Request.IsSecureConnection,
@@ -90,7 +93,17 @@ namespace OgrenciPortali.Controllers
                     SameSite = SameSiteMode.Strict,
                 };
 
+                var refreshUserCookie = new HttpCookie("RefreshToken", result.RefreshToken)
+                {
+                    HttpOnly = true,
+                    Secure = Request.IsSecureConnection,
+                    Expires = DateTime.Now.AddDays(7),
+                    Path = "/",
+                    SameSite = SameSiteMode.Strict,
+                };
+
                 Response.Cookies.Add(userCookie);
+                Response.Cookies.Add(refreshUserCookie);
 
                 return RedirectToAction("Index", "Home");
             }
@@ -234,7 +247,11 @@ namespace OgrenciPortali.Controllers
                 return Json(new { success = true, message = "Kullanıcı başarıyla kaydedildi." });
             }
 
-            return Json(new { success = false, message = "Kullanıcı kaydı sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin." });
+            return Json(new
+            {
+                success = false,
+                message = "Kullanıcı kaydı sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin."
+            });
         }
 
         /// <summary>
@@ -262,46 +279,53 @@ namespace OgrenciPortali.Controllers
         {
             try
             {
-                var request = new HttpRequestMessage(HttpMethod.Post, "api/auth/logout")
-                {
-                    Content = null
-                };
+                var claims = User.Identity as ClaimsIdentity;
+                var isSsoUser = Request.Cookies[".AspNet.Cookies"] != null;
+                if (isSsoUser)
+                    HttpContext.GetOwinContext().Authentication.SignOut(
+                        CookieAuthenticationDefaults.AuthenticationType,
+                        OpenIdConnectAuthenticationDefaults.AuthenticationType);
 
+                var request = new HttpRequestMessage(HttpMethod.Post, "api/auth/logout");
                 var response = await _apiClient.SendAsync(request);
-
+                if (!response.IsSuccessStatusCode)
+                    Logger.Warn(
+                        $"API'den çıkış yapılırken beklenmedik bir durum oluştu. Status: {response.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Logout sırasında API isteği başarısız oldu.", ex);
+            }
+            finally
+            {
                 if (Request.Cookies["AuthToken"] != null)
                 {
-                    Response.Cookies.Add(new HttpCookie("AuthToken", "") { Expires = DateTime.Now.AddDays(-1) });
+                    // Cookie'yi silmenin en doğru yolu, süresi geçmiş ve içi boş bir cookie basmaktır.
+                    var authTokenCookie = new HttpCookie("AuthToken", "")
+                    {
+                        Expires = DateTime.Now.AddDays(-1),
+                        HttpOnly = true, // Güvenlik için önemli
+                        Path = "/"
+                    };
+                    Response.Cookies.Set(authTokenCookie);
                 }
 
                 if (Request.Cookies["RefreshToken"] != null)
                 {
-                    Response.Cookies.Add(new HttpCookie("RefreshToken", "") { Expires = DateTime.Now.AddDays(-1) });
+                    var refreshTokenCookie = new HttpCookie("RefreshToken", "")
+                    {
+                        Expires = DateTime.Now.AddDays(-1),
+                        HttpOnly = true, // Güvenlik için önemli
+                        Path = "/"
+                    };
+                    Response.Cookies.Set(refreshTokenCookie);
                 }
 
                 Session.Clear();
-                // Session cleared
-                if (Request.Cookies["AuthToken"] != null)
-                {
-                    var cookie = new HttpCookie("AuthToken", "")
-                    {
-                        Expires = DateTime.Now.AddDays(-1),
-                        HttpOnly = true,
-                        Path = "/"
-                    };
-                    Response.Cookies.Add(cookie);
-                }
-
-                Response.Cache.SetCacheability(HttpCacheability.NoCache);
-                Response.Cache.SetExpires(DateTime.UtcNow.AddHours(-1));
-                Response.Cache.SetNoStore();
-
-                return RedirectToAction("Login", "User");
+                Session.Abandon();
             }
-            catch (Exception ex)
-            {
-                return RedirectToAction("Login", "User");
-            }
+
+            return RedirectToAction("Login", "User");
         }
 
         /// <summary>
@@ -398,7 +422,7 @@ namespace OgrenciPortali.Controllers
                 {
                     Content = new StringContent(
                         JsonConvert.SerializeObject(new ResetPasswordRequestDto
-                            { NewPassword = model.NewPassword, Token = model.Token }), Encoding.UTF8,
+                            { NewPassword = model.NewPassword, Token = model.Token, ConfirmPassword = model.ConfirmPassword}), Encoding.UTF8,
                         "application/json"),
                 };
 
