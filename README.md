@@ -327,6 +327,29 @@ This project is a security-focused student information system developed with mod
 - **👨‍🏫 Advisor (Danışman)**: Academic advisor - Course and student management
 - **👨‍🎓 Student (Öğrenci)**: Student user - Course registration and tracking
 
+## 📚 Comprehensive System Documentation
+
+### 🏗️ Architecture Documentation (agents.md)
+For complete technical documentation, please refer to the **[agents.md](agents.md)** file which contains:
+
+- **🏗️ System Architecture**: Detailed layered architecture diagrams and component interactions
+- **🛠️ Technology Stack**: Complete analysis of all technologies, versions, and their purposes  
+- **🗄️ Database Schema**: Entity relationship diagrams and table structure documentation
+- **🔐 Security Implementation**: JWT authentication flows, role-based authorization, and security best practices
+- **🌐 API Documentation**: Complete endpoint documentation with request/response formats
+- **🎨 Frontend Architecture**: MVC pattern implementation and UI/UX features
+- **🔄 Data Flow**: Comprehensive data flow diagrams and transformation pipelines
+- **⚡ Advanced Features**: AI integration, Redis caching, background job processing
+- **🚀 Deployment & Scaling**: Configuration management, deployment guides, and scaling considerations
+- **📋 Multilingual Summary**: Complete system overview in both Turkish and English
+
+### 📖 Project-Specific Documentation
+Each project has its own detailed README file:
+- **[OgrenciPortalApi/README.md](OgrenciPortalApi/README.md)** - Backend API documentation
+- **[OgrenciPortali/README.md](OgrenciPortali/README.md)** - Frontend MVC documentation  
+- **[Shared/README.md](Shared/README.md)** - Shared library documentation
+- **[OgrenciPlatform.Shared/README.md](OgrenciPlatform.Shared/README.md)** - DTO library documentation
+
 ## 🚀 Technology Stack
 
 ### Backend Technologies
@@ -461,6 +484,29 @@ HANGFIRE_DASHBOARD_PASSWORD="your_secure_password"
 - [ ] Monitor API rate limiting
 - [ ] Implement audit trail for critical operations
 
+## 📚 Comprehensive System Documentation
+
+### 🏗️ Architecture Documentation (agents.md)
+For complete technical documentation, please refer to the **[agents.md](agents.md)** file which contains:
+
+- **🏗️ System Architecture**: Detailed layered architecture diagrams and component interactions
+- **🛠️ Technology Stack**: Complete analysis of all technologies, versions, and their purposes  
+- **🗄️ Database Schema**: Entity relationship diagrams and table structure documentation
+- **🔐 Security Implementation**: JWT authentication flows, role-based authorization, and security best practices
+- **🌐 API Documentation**: Complete endpoint documentation with request/response formats
+- **🎨 Frontend Architecture**: MVC pattern implementation and UI/UX features
+- **🔄 Data Flow**: Comprehensive data flow diagrams and transformation pipelines
+- **⚡ Advanced Features**: AI integration, Redis caching, background job processing
+- **🚀 Deployment & Scaling**: Configuration management, deployment guides, and scaling considerations
+- **📋 Multilingual Summary**: Complete system overview in both Turkish and English
+
+### 📖 Project-Specific Documentation
+Each project has its own detailed README file:
+- **[OgrenciPortalApi/README.md](OgrenciPortalApi/README.md)** - Backend API documentation
+- **[OgrenciPortali/README.md](OgrenciPortali/README.md)** - Frontend MVC documentation  
+- **[Shared/README.md](Shared/README.md)** - Shared library documentation
+- **[OgrenciPlatform.Shared/README.md](OgrenciPlatform.Shared/README.md)** - DTO library documentation
+
 ## 📚 API Documentation
 
 Use Swagger UI for API endpoints and security model:
@@ -492,6 +538,22 @@ GET  /hangfire                # Background jobs dashboard (Admin only)
 ```
 
 ## 📋 Recent Updates
+
+### 2025-09-08 - Comprehensive Architecture Documentation
+- **📚 Complete System Documentation**: Created comprehensive `agents.md` file with 37,000+ characters of technical documentation
+- **🏗️ System Architecture Analysis**: Detailed layered architecture diagrams and component interaction documentation
+- **🔒 Security Implementation Guide**: Complete JWT authentication flow, role-based authorization, and security best practices
+- **🌐 API Documentation**: Full endpoint documentation with request/response formats and authentication requirements
+- **🗄️ Database Schema Documentation**: Entity relationship diagrams and table structure documentation
+- **🚀 Deployment & Scaling Guide**: Complete deployment instructions, configuration management, and scaling considerations
+- **🛠️ Technology Stack Analysis**: Comprehensive documentation of all technologies, versions, and their purposes
+- **📋 Multilingual Documentation**: Complete system overview in both Turkish and English
+
+### 2025-09-04 - Microsoft Azure SSO Integration
+- **🔐 Azure Active Directory SSO**: Microsoft Azure Single Sign-On authentication implementation
+- **⚡ Enhanced Security**: OAuth 2.0 authentication flow with automatic user provisioning
+- **🎯 Enterprise Integration**: Corporate identity management system integration
+- **📱 Modern Authentication**: Support for modern authentication protocols and standards
 
 ### 2025-09-02 - Redis Integration and Real-time Validation
 - **⚡ Redis Cache System**: User email addresses cached in Redis for lightning-fast validation
