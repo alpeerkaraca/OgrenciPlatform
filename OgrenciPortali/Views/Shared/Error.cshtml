@@ -1,14 +1,27 @@
-﻿<!DOCTYPE html>
+﻿@model System.Web.Mvc.HandleErrorInfo
+
+<!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta name="viewport" content="width=device-width" />
     <title>Hata</title>
 </head>
 <body>
-    <hgroup>
-        <h1>Hata.</h1>
-        <h2>İsteğiniz işlenirken bir hata oluştu.</h2>
-    </hgroup>
+<hgroup>
+    <h1>Hata.</h1>
+    <h2>İsteğiniz işlenirken bir hata oluştu.</h2>
+</hgroup>
+    
+@{
+    // Güvenlik nedeniyle, detaylı hata bilgisini sadece yerel sunucuda gösteriyoruz.
+    if (Model != null && HttpContext.Current.IsCustomErrorEnabled)
+    {
+        <p>
+            <b>Hatanın Oluştuğu Controller:</b> @Model.ControllerName <br />
+            <b>Hatanın Oluştuğu Action:</b> @Model.ActionName <br />
+            <b>Hata Mesajı:</b> @Model.Exception.Message
+        </p>
+    }
+}
 </body>
 </html>

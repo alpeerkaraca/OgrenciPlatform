@@ -8,12 +8,13 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
+using System.Web.Mvc;
 using Shared.Enums;
 
 namespace OgrenciPortalApi.Controllers
 {
-    [Authorize(Roles = nameof(Roles.Danışman))]
-    [RoutePrefix("api/advisor")]
+    [System.Web.Http.Authorize(Roles = nameof(Roles.Danışman))]
+    [System.Web.Http.RoutePrefix("api/advisor")]
     public class AdvisorController : BaseApiController
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(AdvisorController));
@@ -22,8 +23,8 @@ namespace OgrenciPortalApi.Controllers
         /// Danışmanın onayını bekleyen ders kayıtlarını listeler.
         /// </summary>
         /// <returns>Onay bekleyen ders kayıtlarının listesini içeren bir HTTP yanıtı döner.</returns>
-        [HttpGet]
-        [Route("approvals")]
+        [System.Web.Http.HttpGet]
+        [System.Web.Http.Route("approvals")]
         [ResponseType(typeof(AdvisorApprovalDTO))]
         public async Task<IHttpActionResult> GetApprovals()
         {
@@ -83,8 +84,8 @@ namespace OgrenciPortalApi.Controllers
         /// Danışmana atı olan öğrencileri listeler.
         /// </summary>
         /// <returns>Danışmanın öğrencilerinin listesini içeren bir HTTP yanıtı döner.</returns>
-        [HttpGet]
-        [Route("students")]
+        [System.Web.Http.HttpGet]
+        [System.Web.Http.Route("students")]
         [ResponseType(typeof(AdvisedStudentsDTO))]
         public async Task<IHttpActionResult> GetAdvisedStudents()
         {
@@ -126,8 +127,8 @@ namespace OgrenciPortalApi.Controllers
         /// </summary>
         /// <param name="id">Detayları görüntülenecek öğrencinin ID'si.</param>
         /// <returns>Öğrencinin detay bilgilerini içeren bir HTTP yanıtı döner.</returns>
-        [HttpGet]
-        [Route("student/{id:guid}")]
+        [System.Web.Http.HttpGet]
+        [System.Web.Http.Route("student/{id:guid}")]
         [ResponseType(typeof(StudentDetailDto))]
         public async Task<IHttpActionResult> GetStudent(Guid id)
         {
@@ -184,8 +185,8 @@ namespace OgrenciPortalApi.Controllers
         /// </summary>
         /// <param name="model">Onay durumu güncellenecek kayıtların bilgilerini içeren model.</param>
         /// <returns>İşlem sonucunu bildiren bir HTTP yanıtı döner.</returns>
-        [HttpPost]
-        [Route("update-approval-status")]
+        [System.Web.Http.HttpPost]
+        [System.Web.Http.Route("update-approval-status")]
         [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> UpdateApprovalStatus(ApprovalRequestModel model)
         {
@@ -261,5 +262,9 @@ namespace OgrenciPortalApi.Controllers
                 }
             }
         }
+
+
+
+
     }
 }

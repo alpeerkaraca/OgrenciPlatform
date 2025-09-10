@@ -57,6 +57,10 @@
                 <h4 class="fw-bold mb-0" id="totalCredits">30</h4>
             </div>
             <div class="text-end">
+                <span class="text-muted">Kalan Kredi</span>
+                <h4 class="fw-bold mb-0" id="remainingCredits">30</h4>
+            </div>
+            <div class="text-end">
                 <span class="text-muted">Seçilen Kredi</span>
                 <h4 class="fw-bold mb-0" id="selectedCredits">0</h4>
             </div>
@@ -119,6 +123,7 @@
                     selected: document.getElementById('selectedCredits'),
                     pending: document.getElementById('pendingCredits')
                 };
+                let initialRemainingCredits = 0; 
                 // ### YENİLİK: Maksimum kredi limitini de değişkene alıyoruz ###
                 const maxCreditsEl = document.getElementById('totalCredits');
                 const semesterEl = document.getElementById('activeSemester');
@@ -126,6 +131,7 @@
                 const submitBtn = document.getElementById('submitBtn');
                 const resetBtn = document.getElementById('resetBtn');
                 const resetPendingBtn = document.getElementById('resetPendingBtn');
+                const remainingCreditsEl = document.getElementById('remainingCredits');
 
 
                 // --- VERİ YÜKLEME VE ARAYÜZ ÇİZME ---
@@ -137,6 +143,7 @@
                         const data = await response.json();
 
                         semesterEl.textContent = data.ActiveSemesterName || 'Aktif Dönem Bulunamadı';
+                        initialRemainingCredits = data.RemainingCredits || 30;
                         renderAllCourses(data);
                         updateAllCounters();
                     } catch (error) {
@@ -194,10 +201,27 @@
                 `;
                     return card;
                 }
+                function updateRemainingCredits() {
+                    // Sadece "Seçilen Dersler" sütunundaki (yani yeni eklenenlerin) kredisini hesapla.
+                    const newlySelectedCredits = calculateCredits(containers.selected);
 
+                    // API'den gelen başlangıç kredisinden yeni seçilenleri çıkar.
+                    const remaining = initialRemainingCredits - newlySelectedCredits;
+
+                    // Sonucu ekrana yazdır.
+                    remainingCreditsEl.textContent = remaining;
+
+                    // Kalan kredi 0'ın altına düşerse (kredi aşımı) rengini kırmızı yap.
+                    if (remaining < 0) {
+                        remainingCreditsEl.classList.add('text-danger');
+                    } else {
+                        remainingCreditsEl.classList.remove('text-danger');
+                    }
+                }
                 function updateAllCounters() {
                     counters.selected.textContent = calculateCredits(containers.selected);
                     counters.pending.textContent = calculateCredits(containers.pending);
+                    updateRemainingCredits();
                     submitBtn.disabled = containers.selected.childElementCount === 0;
                 }
 

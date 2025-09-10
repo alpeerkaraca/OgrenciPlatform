@@ -9,7 +9,6 @@ using System.Web.Mvc;
 
 namespace OgrenciPortali.Controllers
 {
-    [CustomAuth]
     public class ApiProxyController : BaseController
     {
         private readonly ApiClient _apiClient;

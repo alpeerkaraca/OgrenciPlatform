@@ -18,7 +18,7 @@ namespace OgrenciPortali.Controllers
     /// Danışman işlemlerini yöneten controller sınıfı
     /// </summary>
     [CustomAuth(Roles.Danışman)]
-    public class AdvisorController : Controller
+    public class AdvisorController : BaseController
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(CoursesController));
         private readonly ApiClient _apiClient;

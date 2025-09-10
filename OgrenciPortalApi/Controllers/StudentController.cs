@@ -110,12 +110,16 @@ namespace OgrenciPortalApi.Controllers
                     Classroom = s.Classroom
                 }).ToList();
                 var activeSemester = await _db.Semesters.FirstOrDefaultAsync(x => x.IsActive);
+                var remainingCredits = 30 - await _db.StudentCourses
+                    .Where(sc => sc.ApprovalStatus == (int)ApprovalStatus.Onaylandı)
+                    .Select(sc => sc.OfferedCourses.Courses.Credits).SumAsync();
 
                 var viewModel = new EnrollPageDTO
                 {
                     EnrollableList = availableCourses,
                     PendingCourses = pendingCourses,
-                    ActiveSemesterName = activeSemester?.SemesterName ?? "Aktif Dönem Bulunamadı"
+                    ActiveSemesterName = activeSemester?.SemesterName ?? "Aktif Dönem Bulunamadı",
+                    RemainingCredits = remainingCredits
                 };
 
                 return Ok(viewModel);
@@ -344,7 +348,9 @@ namespace OgrenciPortalApi.Controllers
                         TimeSlot = $"{sc.OfferedCourses.StartTime:hh\\:mm} - {sc.OfferedCourses.EndTime:hh\\:mm}",
                         ApprovalStatus = sc.ApprovalStatus,
                         ApprovalStatusText = ((ApprovalStatus)sc.ApprovalStatus).ToString(),
-                        CreatedAt = sc.CreatedAt
+                        CreatedAt = sc.CreatedAt,
+                        Description = sc.OfferedCourses.Courses.Description,
+                        Classroom = sc.OfferedCourses.Classroom
                     })
                         .OrderByDescending(c => c.CreatedAt)
                         .ToList()

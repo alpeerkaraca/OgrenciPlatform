@@ -233,6 +233,20 @@
                         </div>
                     }
 
+                    <div class="form-group">
+                        <a href="@Url.Action("SignIn", "Account")" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-microsoft"></i>
+                            Microsoft ile Giriş Yap
+                        </a>
+                    </div>
+
+                    <div class="d-flex align-items-center my-4">
+                        <hr class="flex-grow-1">
+                        <span class="px-3 text-muted">VEYA</span>
+                        <hr class="flex-grow-1">
+                    </div>
+
+
                     @using (Html.BeginForm("Login", "User", FormMethod.Post, new { @class = "login-form", id = "loginForm" }))
                     {
                         <div class="form-group mb-4">
@@ -433,7 +447,7 @@
     }
 
     $('#sendResetLinkBtn').on('click',
-        function () {
+        function() {
             const serverResponse = $('#server-response');
             const form = $('#forgotPasswordForm');
             const emailInput = $('#resetEmail');
@@ -457,7 +471,7 @@
                     __RequestVerificationToken: form.find('input[name="__RequestVerificationToken"]').val(),
                     email: email
                 },
-                success: function (response) {
+                success: function(response) {
                     $('#forgotPasswordFormView').hide();
                     $('#confirmationView').show();
                     serverResponse.text(response.Message);

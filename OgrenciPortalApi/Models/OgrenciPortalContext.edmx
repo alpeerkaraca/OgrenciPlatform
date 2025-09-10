@@ -38,6 +38,7 @@
           <Property Name="DeletedAt" Type="datetime" />
           <Property Name="DeletedBy" Type="nvarchar" MaxLength="100" />
           <Property Name="DepartmentCode" Type="nvarchar" MaxLength="10" Nullable="false" />
+          <Property Name="DepartmentIdGen" Type="nvarchar" MaxLength="10" />
         </EntityType>
         <EntityType Name="OfferedCourses">
           <Key>
@@ -171,6 +172,18 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_dbo_StudentCourses_dbo_OfferedCourses_OfferedCourseId">
+          <End Role="OfferedCourses" Type="Self.OfferedCourses" Multiplicity="1" />
+          <End Role="StudentCourses" Type="Self.StudentCourses" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="OfferedCourses">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="StudentCourses">
+              <PropertyRef Name="OfferedCourseId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_dbo_StudentCourses_dbo_Users_StudentId">
           <End Role="Users" Type="Self.Users" Multiplicity="1" />
           <End Role="StudentCourses" Type="Self.StudentCourses" Multiplicity="*" />
@@ -230,6 +243,10 @@
             <End Role="Users" EntitySet="Users" />
             <End Role="OfferedCourses" EntitySet="OfferedCourses" />
           </AssociationSet>
+          <AssociationSet Name="FK_dbo_StudentCourses_dbo_OfferedCourses_OfferedCourseId" Association="Self.FK_dbo_StudentCourses_dbo_OfferedCourses_OfferedCourseId">
+            <End Role="OfferedCourses" EntitySet="OfferedCourses" />
+            <End Role="StudentCourses" EntitySet="StudentCourses" />
+          </AssociationSet>
           <AssociationSet Name="FK_dbo_StudentCourses_dbo_Users_StudentId" Association="Self.FK_dbo_StudentCourses_dbo_Users_StudentId">
             <End Role="Users" EntitySet="Users" />
             <End Role="StudentCourses" EntitySet="StudentCourses" />
@@ -284,6 +301,7 @@
           <Property Name="DepartmentCode" Type="String" MaxLength="10" FixedLength="false" Unicode="true" Nullable="false" />
           <NavigationProperty Name="Courses" Relationship="Self.FK_dbo_Courses_dbo_Departments_DepartmentId" FromRole="Departments" ToRole="Courses" />
           <NavigationProperty Name="Users" Relationship="Self.FK_dbo_Users_dbo_Departments_DepartmentId" FromRole="Departments" ToRole="Users" />
+          <Property Name="DepartmentIdGen" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="OfferedCourses">
           <Key>
@@ -545,6 +563,7 @@
           <EntitySetMapping Name="Departments">
             <EntityTypeMapping TypeName="ogrenciPortalContext.Departments">
               <MappingFragment StoreEntitySet="Departments">
+                <ScalarProperty Name="DepartmentIdGen" ColumnName="DepartmentIdGen" />
                 <ScalarProperty Name="DepartmentId" ColumnName="DepartmentId" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="IsActive" ColumnName="IsActive" />

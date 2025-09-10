@@ -7,11 +7,14 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using log4net;
 
 namespace OgrenciPortali.Controllers
 {
-    public class AccountController : Controller
+    public class AccountController : BaseController
     {
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(AccountController));
+
         /// <summary>
         /// Kicks off the SSO sign-in process by redirecting the user to Microsoft.
         /// </summary>
@@ -29,37 +32,48 @@ namespace OgrenciPortali.Controllers
         /// Performs a complete sign-out from all sessions.
         /// </summary>
         [HttpPost]
-        public async Task<ActionResult> SignOut()
+        public ActionResult SignOut()
         {
-
-            var apiClient = new ApiClient();
-            var logoutRequest = new HttpRequestMessage(HttpMethod.Post, "api/auth/logout");
-            await apiClient.SendAsync(logoutRequest);
-
-            if (Request.Cookies["AuthToken"] != null)
+            try
             {
-                var authTokenCookie = new HttpCookie("AuthToken")
-                {
-                    Expires = DateTime.Now.AddDays(-1),
-                    Path = "/"
-                };
-                Response.Cookies.Set(authTokenCookie);
+                HttpContext.GetOwinContext().Authentication.SignOut(
+                    CookieAuthenticationDefaults.AuthenticationType,
+                    OpenIdConnectAuthenticationDefaults.AuthenticationType);
             }
-            if (Request.Cookies["RefreshToken"] != null)
+            catch (Exception ex)
             {
-                var refreshTokenCookie = new HttpCookie("RefreshToken")
+                Logger.Error("Owin SignOut sırasında hata oluştu.", ex);
+            }
+            finally
+            {
+                if (Request.Cookies["AuthToken"] != null)
                 {
-                    Expires = DateTime.Now.AddDays(-1),
-                    Path = "/"
-                };
-                Response.Cookies.Set(refreshTokenCookie);
+                    var authTokenCookie = new HttpCookie("AuthToken", "")
+                    {
+                        Expires = DateTime.Now.AddDays(-1),
+                        HttpOnly = true, // Güvenlik!
+                        Path = "/"
+                    };
+                    Response.Cookies.Set(authTokenCookie);
+                }
+
+                if (Request.Cookies["RefreshToken"] != null)
+                {
+                    var refreshTokenCookie = new HttpCookie("RefreshToken", "")
+                    {
+                        Expires = DateTime.Now.AddDays(-1),
+                        HttpOnly = true, // Güvenlik!
+                        Path = "/"
+                    };
+                    Response.Cookies.Set(refreshTokenCookie);
+                }
+
+                // 3. Session'ı temizle
+                Session.Clear();
+                Session.Abandon();
             }
 
-
-            HttpContext.GetOwinContext().Authentication.SignOut(
-                 CookieAuthenticationDefaults.AuthenticationType,
-                 OpenIdConnectAuthenticationDefaults.AuthenticationType);
-
+            // 4. Kullanıcıyı giriş sayfasına yönlendir
             return RedirectToAction("Login", "User");
         }
     }

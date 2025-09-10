@@ -66,19 +66,25 @@ namespace OgrenciPortalApi.Controllers
             try
             {
                 if (await _db.Departments.AnyAsync(d =>
-                        (d.Name == dto.DepartmentName || d.DepartmentCode == dto.DepartmentCode) && !d.IsDeleted))
-                {
-                    return Conflict();
-                }
+                        (d.Name.ToLower() == dto.DepartmentName.ToLower() && !d.IsDeleted)))
+                    return BadRequest("Bu isme ait bir bölüm mevcut.");
+                if (await _db.Departments.AnyAsync(d =>
+                        d.DepartmentCode.ToLower() == dto.DepartmentCode.ToLower() && !d.IsDeleted))
+                    return BadRequest("Bu bölüm koduna ait bir bölüm mevcut.");
+                var maxGenId = await _db.Departments.Select(d => d.DepartmentIdGen).MaxAsync();
+                int nextCode = 101;
+                if (maxGenId != null)
+                    nextCode = int.Parse(maxGenId) + 1;
 
                 var department = new Departments
                 {
                     DepartmentId = Guid.NewGuid(),
-                    Name = dto.DepartmentName,
-                    DepartmentCode = dto.DepartmentCode,
+                    Name = dto.DepartmentName.Trim(),
+                    DepartmentCode = dto.DepartmentCode.Trim(),
                     IsActive = true,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
+                    DepartmentIdGen = nextCode.ToString(),
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
                     CreatedBy = GetActiveUserIdString(),
                     UpdatedBy = GetActiveUserIdString(),
                 };
@@ -87,7 +93,7 @@ namespace OgrenciPortalApi.Controllers
                 await _db.SaveChangesAsync();
 
                 Logger.Info($"Departman eklendi: {department.Name}");
-                return CreatedAtRoute("DefaultApi", new { id = department.DepartmentId },
+                return Ok(
                     new { Message = "Departman başarıyla eklendi." });
             }
             catch (Exception ex)

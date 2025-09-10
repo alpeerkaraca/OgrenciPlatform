@@ -14,10 +14,13 @@ namespace OgrenciPortali
                 url: "{controller}/{action}/{id}",
                 defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
             );
-            //routes.MapRoute(
-            //    name: "EditCourse",
-            //    url: "{controller}/{action}/{id}"
-            //);
+
+
+            routes.MapRoute(
+                name: "NotFound",
+                url: "{*url}",
+                defaults: new { controller = "Error", action = "NotFound" }
+            );
         }
     }
 }

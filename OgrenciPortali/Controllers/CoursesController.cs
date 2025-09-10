@@ -19,7 +19,7 @@ using Shared.Enums;
 namespace OgrenciPortali.Controllers
 {
     [CustomAuth(Roles.Admin)]
-    public class CoursesController : Controller
+    public class CoursesController : BaseController
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(CoursesController));
         private static ApiClient _apiClient;

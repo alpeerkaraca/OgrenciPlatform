@@ -31,7 +31,8 @@ namespace Shared.DTO
 
     public class LoginSuccessResponse
     {
-        public string Token { get; set; }
+        public string AccessToken { get; set; }
+        public string RefreshToken { get; set; }
         public string Message { get; set; }
     }
 
@@ -43,10 +44,9 @@ namespace Shared.DTO
         public string Email { get; set; }
         public int Role { get; set; }
         public string Password { get; set; }
-        public int StudentYear { get; set; } = 1;
+        public int? StudentYear { get; set; }
         public Guid? DepartmentId { get; set; }
         public Guid? AdvisorId { get; set; }
-        public string StudentNo { get; set; }
         public IEnumerable<SelectListItem> RolesList { get; set; }
         public IEnumerable<SelectListItem> DepartmentsList { get; set; }
         public IEnumerable<SelectListItem> AdvisorsList { get; set; }
@@ -68,6 +68,7 @@ namespace Shared.DTO
     {
         public string Token { get; set; }
         public string NewPassword { get; set; }
+        public string ConfirmPassword { get; set; }
     }
 
     public class SsoLoginRequestDTO

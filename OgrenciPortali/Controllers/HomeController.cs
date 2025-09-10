@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Shared.DTO;
+using Shared.Enums;
 
 namespace OgrenciPortali.Controllers
 {
@@ -25,16 +26,24 @@ namespace OgrenciPortali.Controllers
         [CustomAuth]
         public async Task<ActionResult> Index()
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, "api/student/my-courses");
-            var response = await _apiClient.SendAsync(request);
-            var dto = new MyCoursesDTO();
-            if (response.IsSuccessStatusCode)
+            if (User.IsInRole(nameof(Roles.Öğrenci)))
             {
-                dto = await response.Content.ReadAsAsync<MyCoursesDTO>();
+                var request = new HttpRequestMessage(HttpMethod.Get, "api/student/my-courses");
+
+
+                var response = await _apiClient.SendAsync(request);
+                var dto = new MyCoursesDTO();
+                if (response.IsSuccessStatusCode)
+                {
+                    dto = await response.Content.ReadAsAsync<MyCoursesDTO>();
+                }
+
+                return View(dto);
             }
 
-            return View(dto);
+            return View(new MyCoursesDTO());
         }
+
 
         /// <summary>
         /// Hakkında sayfası

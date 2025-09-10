@@ -16,7 +16,7 @@ using Shared.Enums;
 namespace OgrenciPortali.Controllers
 {
     [CustomAuth(Roles.Öğrenci)]
-    public class StudentController : Controller
+    public class StudentController : BaseController
     {
         private readonly ApiClient _apiClient;
         private readonly IMapper _mapper;

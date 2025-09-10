@@ -8,9 +8,7 @@
         transform: translateY(-50%);
     }
 
-    #offeredCoursesTable .btn {
-        margin-right: 5px;
-    }
+    #offeredCoursesTable .btn { margin-right: 5px; }
 
     .actions-cell {
         display: flex;
@@ -23,51 +21,55 @@
 </style>
 
 <div class="container mt-4">
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>@ViewBag.Title</h2>
-    <p>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOfferedCourseModal">
-            <i class="bi bi-plus-square me-2"></i>Döneme Yeni Ders Ekle
-        </button>
-    </p>
-</div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>@ViewBag.Title</h2>
+        <p>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOfferedCourseModal">
+                <i class="bi bi-plus-square me-2"></i>Döneme Yeni Ders Ekle
+            </button>
+        </p>
     </div>
+</div>
 <div class="card shadow-sm">
     <div class="card-body">
         <table id="offeredCoursesTable" class="table table-striped table-bordered" style="width: 100%">
             <thead class="thead-dark">
-                @Html.AntiForgeryToken()
-                <tr class="text-center">
-                    <th>Bölüm</th>
-                    <th>Ders Kodu</th>
-                    <th>Ders Adı</th>
-                    <th>Dönem</th>
-                    <th>Akademisyen</th>
-                    <th>Kontenjan</th>
-                    <th>İşlemler</th>
-                </tr>
+            @Html.AntiForgeryToken()
+            <tr class="text-center align-content-center">
+                <th>Bölüm</th>
+                <th>Ders Kodu</th>
+                <th>Ders Adı</th>
+                <th>Dönem</th>
+                <th>Akademisyen</th>
+                <th>Kontenjan</th>
+                <th>İşlemler</th>
+            </tr>
             </thead>
             <tbody>
-                @foreach (var item in Model.OfferedCoursesList)
-                {
-                    <tr>
-                        <td>@Html.DisplayFor(modelItem => item.DepartmentName)</td>
-                        <td class="text-center">@Html.DisplayFor(modelItem => item.CourseCode)</td>
-                        <td>@Html.DisplayFor(modelItem => item.CourseName)</td>
-                        <td class="text-center">@Html.DisplayFor(modelItem => item.SemesterName)</td>
-                        <td>@Html.DisplayFor(modelItem => item.TeacherFullName)</td>
-                        <td class="text-center">@item.EnrolledCount / @item.Capacity</td>
-                        <td class="text-center">
-                            <a href="#" class="btn btn-sm btn-info edit-button" data-id="@item.OfferedCourseId">
-                                <i class="bi bi-pen me-1"></i> Düzenle
-                            </a>
+            @foreach (var item in Model.OfferedCoursesList)
+            {
+                <tr>
+                    <td>@Html.DisplayFor(modelItem => item.DepartmentName)</td>
+                    <td class="text-center">@Html.DisplayFor(modelItem => item.CourseCode)</td>
+                    <td>@Html.DisplayFor(modelItem => item.CourseName)</td>
+                    <td class="text-center">@Html.DisplayFor(modelItem => item.SemesterName)</td>
+                    <td>@Html.DisplayFor(modelItem => item.TeacherFullName)</td>
+                    <td class="text-center">@item.EnrolledCount / @item.Capacity</td>
+                    <td>
+                        <div class="flex justify-center">
+                            <button class="btn btn-sm btn-outline-info edit-button" data-id="@item.OfferedCourseId">
+                                <i class="bi bi-pen me-1"></i>
+                            </button>
                             <button type="button" class="btn btn-outline-danger btn-sm delete-button"
                                     data-id="@item.OfferedCourseId" data-name="@item.CourseName">
-                                <i class="bi bi-trash"></i> Sil
+                                <i class="bi bi-trash"></i>
                             </button>
-                        </td>
-                    </tr>
-                }
+
+                        </div>
+
+                    </td>
+                </tr>
+            }
             </tbody>
         </table>
     </div>
@@ -83,16 +85,45 @@
             <div class="modal-body">
                 <form id="addOfferedCourseForm" novalidate>
                     <div class="row">
-                        <div class="col-md-4 mb-3"><label for="courseId" class="form-label">Ders</label><select class="form-select" id="courseId" name="CourseId" required></select><div class="invalid-feedback"></div></div>
-                        <div class="col-md-4 mb-3"><label for="semesterId" class="form-label">Dönem</label><select class="form-select" id="semesterId" name="SemesterId" required></select><div class="invalid-feedback"></div></div>
-                        <div class="col-md-4 mb-3"><label for="advisorId" class="form-label">Akademisyen</label><select class="form-select" id="teacherId" name="AdvisorId" required></select><div class="invalid-feedback"></div></div>
-                        <div class="col-md-4 mb-3"><label for="quota" class="form-label">Kontenjan</label><input type="number" class="form-control" id="quota" name="Quota" min="1" max="200" required><div class="invalid-feedback"></div></div>
-                        <div class="col-md-4 mb-3"><label for="courseYear" class="form-label">Yıl</label><input type="number" class="form-control" id="courseYear" name="CourseYear" min="1" max="5" required><div class="invalid-feedback"></div></div>
-                        <div class="col-md-4 mb-3"><label for="classroom" class="form-label">Derslik</label><input type="text" class="form-control" id="classroom" name="Classroom" maxlength="50" required><div class="invalid-feedback"></div></div>
-                        <div class="col-md-4 mb-3"><label for="dayOfWeek" class="form-label">Ders Günü</label><select class="form-select" id="dayOfWeek" name="DayOfWeek" required></select><div class="invalid-feedback"></div></div>
-                        <div class="col-md-4 mb-3"><label for="startTime" class="form-label">Başlangıç Saati</label><input type="time" class="form-control" id="startTime" name="StartTime" required><div class="invalid-feedback"></div></div>
-                        <div class="col-md-4 mb-3"><label for="endTime" class="form-label">Bitiş Saati</label><input type="time" class="form-control" id="endTime" name="EndTime" required><div class="invalid-feedback"></div></div>
-                        <div class="col-12"><div id="timeError" class="text-danger mt-n2 mb-3"></div></div>
+                        <div class="col-md-4 mb-3">
+                            <label for="courseId" class="form-label">Ders</label><select class="form-select" id="courseId" name="CourseId" required></select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="semesterId" class="form-label">Dönem</label><select class="form-select" id="semesterId" name="SemesterId" required></select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="advisorId" class="form-label">Akademisyen</label><select class="form-select" id="teacherId" name="AdvisorId" required></select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="quota" class="form-label">Kontenjan</label><input type="number" class="form-control" id="quota" name="Quota" min="1" max="200" required>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="courseYear" class="form-label">Yıl</label><input type="number" class="form-control" id="courseYear" name="CourseYear" min="1" max="5" required>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="classroom" class="form-label">Derslik</label><input type="text" class="form-control" id="classroom" name="Classroom" maxlength="50" required>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="dayOfWeek" class="form-label">Ders Günü</label><select class="form-select" id="dayOfWeek" name="DayOfWeek" required></select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="startTime" class="form-label">Başlangıç Saati</label><input type="time" class="form-control" id="startTime" name="StartTime" required>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="endTime" class="form-label">Bitiş Saati</label><input type="time" class="form-control" id="endTime" name="EndTime" required>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-12">
+                            <div id="timeError" class="text-danger mt-n2 mb-3"></div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -115,16 +146,45 @@
                 <form id="editOfferedCourseForm" novalidate>
                     <input type="hidden" id="editOfferedCourseId" name="OfferedCourseId">
                     <div class="row">
-                        <div class="col-md-4 mb-3"><label for="editCourseId" class="form-label">Ders</label><select class="form-select" id="editCourseId" name="CourseId" required></select><div class="invalid-feedback"></div></div>
-                        <div class="col-md-4 mb-3"><label for="editSemesterId" class="form-label">Dönem</label><select class="form-select" id="editSemesterId" name="SemesterId" required></select><div class="invalid-feedback"></div></div>
-                        <div class="col-md-4 mb-3"><label for="editTeacherId" class="form-label">Akademisyen</label><select class="form-select" id="editTeacherId" name="AdvisorId" required></select><div class="invalid-feedback"></div></div>
-                        <div class="col-md-4 mb-3"><label for="editQuota" class="form-label">Kontenjan</label><input type="number" class="form-control" id="editQuota" name="Quota" min="1" max="200" required><div class="invalid-feedback"></div></div>
-                        <div class="col-md-4 mb-3"><label for="editCourseYear" class="form-label">Yıl</label><input type="number" class="form-control" id="editCourseYear" name="CourseYear" min="1" max="5" required><div class="invalid-feedback"></div></div>
-                        <div class="col-md-4 mb-3"><label for="editClassroom" class="form-label">Derslik</label><input type="text" class="form-control" id="editClassroom" name="Classroom" maxlength="50" required><div class="invalid-feedback"></div></div>
-                        <div class="col-md-4 mb-3"><label for="editDayOfWeek" class="form-label">Ders Günü</label><select class="form-select" id="editDayOfWeek" name="DayOfWeek" required></select><div class="invalid-feedback"></div></div>
-                        <div class="col-md-4 mb-3"><label for="editStartTime" class="form-label">Başlangıç Saati</label><input type="time" class="form-control" id="editStartTime" name="StartTime" required><div class="invalid-feedback"></div></div>
-                        <div class="col-md-4 mb-3"><label for="editEndTime" class="form-label">Bitiş Saati</label><input type="time" class="form-control" id="editEndTime" name="EndTime" required><div class="invalid-feedback"></div></div>
-                        <div class="col-12"><div id="editTimeError" class="text-danger mt-n2 mb-3"></div></div>
+                        <div class="col-md-4 mb-3">
+                            <label for="editCourseId" class="form-label">Ders</label><select class="form-select" id="editCourseId" name="CourseId" required></select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="editSemesterId" class="form-label">Dönem</label><select class="form-select" id="editSemesterId" name="SemesterId" required></select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="editTeacherId" class="form-label">Akademisyen</label><select class="form-select" id="editTeacherId" name="AdvisorId" required></select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="editQuota" class="form-label">Kontenjan</label><input type="number" class="form-control" id="editQuota" name="Quota" min="1" max="200" required>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="editCourseYear" class="form-label">Yıl</label><input type="number" class="form-control" id="editCourseYear" name="CourseYear" min="1" max="5" required>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="editClassroom" class="form-label">Derslik</label><input type="text" class="form-control" id="editClassroom" name="Classroom" maxlength="50" required>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="editDayOfWeek" class="form-label">Ders Günü</label><select class="form-select" id="editDayOfWeek" name="DayOfWeek" required></select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="editStartTime" class="form-label">Başlangıç Saati</label><input type="time" class="form-control" id="editStartTime" name="StartTime" required>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="editEndTime" class="form-label">Bitiş Saati</label><input type="time" class="form-control" id="editEndTime" name="EndTime" required>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-12">
+                            <div id="editTimeError" class="text-danger mt-n2 mb-3"></div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -139,7 +199,7 @@
 
 @section scripts {
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             $('#offeredCoursesTable').DataTable({
                 language: { url: '/Content/datatables/i18n/tr.json' },
                 responsive: true,
@@ -153,7 +213,7 @@
             initializeDeleteFunctionality();
         });
 
-        // --- MERKEZİ DOĞRULAMA FONKSİYONU ---
+// --- MERKEZİ DOĞRULAMA FONKSİYONU ---
         function initializeFormValidation(formEl, saveBtnEl) {
             const fields = {
                 course: formEl.querySelector('[name="CourseId"]'),
@@ -231,8 +291,9 @@
             return validate;
         }
 
-        // --- GENEL VERİ ÇEKME FONKSİYONLARI ---
+// --- GENEL VERİ ÇEKME FONKSİYONLARI ---
         let dropdownDataCache = null;
+
         async function fetchDropdownData() {
             if (dropdownDataCache) return dropdownDataCache;
             try {
@@ -269,7 +330,7 @@
             populate('DayOfWeek', data.DaysOfWeek, 'Value', 'Text', 'Gün Seçiniz');
         }
 
-        // --- ADD MODAL ---
+// --- ADD MODAL ---
         function initializeAddOfferedCourseModal() {
             const addModalEl = document.getElementById('addOfferedCourseModal');
             const addModal = new bootstrap.Modal(addModalEl);
@@ -277,54 +338,58 @@
             const saveBtn = document.getElementById('saveOfferedCourseBtn');
             const validate = initializeFormValidation(addForm, saveBtn);
 
-            addModalEl.addEventListener('show.bs.modal', async () => {
-                const data = await fetchDropdownData();
-                if (data) {
-                    populateDropdowns(addForm, data);
-                    validate();
-                }
-            });
-
-            saveBtn.addEventListener('click', async function () {
-                if (!validate()) return;
-
-                const originalText = this.innerHTML;
-                this.disabled = true;
-                this.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Ekleniyor...`;
-
-                const formData = new FormData(addForm);
-                const data = Object.fromEntries(formData.entries());
-
-                try {
-                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-                    const apiUrl = encodeURIComponent('api/offered/add');
-                    const response = await fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
-                        body: JSON.stringify(data)
-                    });
-                    const result = await response.json();
-                    if (response.ok) {
-                        addModal.hide();
-                        showFeedbackModal('success', 'Başarılı', result.message || 'Ders başarıyla eklendi.', null, null, () => location.reload());
-                    } else {
-                        showFeedbackModal('error', 'Hata', result.message || 'Bir hata oluştu.');
+            addModalEl.addEventListener('show.bs.modal',
+                async () => {
+                    const data = await fetchDropdownData();
+                    if (data) {
+                        populateDropdowns(addForm, data);
+                        validate();
                     }
-                } catch (err) {
-                    showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya ulaşılamadı.');
-                } finally {
-                    this.disabled = false;
-                    this.innerHTML = `<i class="bi bi-check-lg me-2"></i>Döneme Ders Ekle`;
-                }
-            });
+                });
 
-            addModalEl.addEventListener('hidden.bs.modal', () => {
-                addForm.reset();
-                validate();
-            });
+            saveBtn.addEventListener('click',
+                async function() {
+                    if (!validate()) return;
+
+                    const originalText = this.innerHTML;
+                    this.disabled = true;
+                    this.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Ekleniyor...`;
+
+                    const formData = new FormData(addForm);
+                    const data = Object.fromEntries(formData.entries());
+
+                    try {
+                        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                        const apiUrl = encodeURIComponent('api/offered/add');
+                        const response = await fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`,
+                            {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                                body: JSON.stringify(data)
+                            });
+                        const result = await response.json();
+                        if (response.ok) {
+                            addModal.hide();
+                            showFeedbackModal('success', 'Başarılı', result.message || 'Ders başarıyla eklendi.', null, null, () => location.reload());
+                        } else {
+                            showFeedbackModal('error', 'Hata', result.message || 'Bir hata oluştu.');
+                        }
+                    } catch (err) {
+                        showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya ulaşılamadı.');
+                    } finally {
+                        this.disabled = false;
+                        this.innerHTML = `<i class="bi bi-check-lg me-2"></i>Döneme Ders Ekle`;
+                    }
+                });
+
+            addModalEl.addEventListener('hidden.bs.modal',
+                () => {
+                    addForm.reset();
+                    validate();
+                });
         }
 
-        // --- EDIT MODAL ---
+// --- EDIT MODAL ---
         function initializeEditOfferedCourseModal() {
             const editModalEl = document.getElementById('editOfferedCourseModal');
             const editModal = new bootstrap.Modal(editModalEl);
@@ -332,37 +397,39 @@
             const updateBtn = document.getElementById('updateOfferedCourseBtn');
             const validate = initializeFormValidation(editForm, updateBtn);
 
-            $('#offeredCoursesTable tbody').on('click', '.edit-button', async function () {
-                const offeredCourseId = $(this).data('id');
-                try {
-                    const [dropdownData, courseData] = await Promise.all([
-                        fetchDropdownData(),
-                        fetchOfferedCourseData(offeredCourseId)
-                    ]);
-                    if (!dropdownData || !courseData) return;
+            $('#offeredCoursesTable tbody').on('click',
+                '.edit-button',
+                async function() {
+                    const offeredCourseId = $(this).data('id');
+                    try {
+                        const [dropdownData, courseData] = await Promise.all([
+                            fetchDropdownData(),
+                            fetchOfferedCourseData(offeredCourseId)
+                        ]);
+                        if (!dropdownData || !courseData) return;
 
-                    const selectedValues = {
-                        CourseId: courseData.CourseId,
-                        SemesterId: courseData.SemesterId,
-                        AdvisorId: courseData.AdvisorId,
-                        DayOfWeek: courseData.DayOfWeek
-                    };
-                    populateDropdowns(editForm, dropdownData, selectedValues);
+                        const selectedValues = {
+                            CourseId: courseData.CourseId,
+                            SemesterId: courseData.SemesterId,
+                            AdvisorId: courseData.AdvisorId,
+                            DayOfWeek: courseData.DayOfWeek
+                        };
+                        populateDropdowns(editForm, dropdownData, selectedValues);
 
-                    editForm.elements.OfferedCourseId.value = courseData.OfferedCourseId;
-                    editForm.elements.Quota.value = courseData.Quota;
-                    editForm.elements.CourseYear.value = courseData.CourseYear;
-                    editForm.elements.Classroom.value = courseData.Classroom;
-                    // API'den gelen "HH:mm:ss" formatını input için "HH:mm" formatına çeviriyoruz.
-                    editForm.elements.StartTime.value = courseData.StartTime.substring(0, 5);
-                    editForm.elements.EndTime.value = courseData.EndTime.substring(0, 5);
+                        editForm.elements.OfferedCourseId.value = courseData.OfferedCourseId;
+                        editForm.elements.Quota.value = courseData.Quota;
+                        editForm.elements.CourseYear.value = courseData.CourseYear;
+                        editForm.elements.Classroom.value = courseData.Classroom;
+                        // API'den gelen "HH:mm:ss" formatını input için "HH:mm" formatına çeviriyoruz.
+                        editForm.elements.StartTime.value = courseData.StartTime.substring(0, 5);
+                        editForm.elements.EndTime.value = courseData.EndTime.substring(0, 5);
 
-                    validate();
-                    editModal.show();
-                } catch (error) {
-                    showFeedbackModal('error', 'Veri Hatası', 'Ders bilgileri alınamadı.');
-                }
-            });
+                        validate();
+                        editModal.show();
+                    } catch (error) {
+                        showFeedbackModal('error', 'Veri Hatası', 'Ders bilgileri alınamadı.');
+                    }
+                });
 
             async function fetchOfferedCourseData(id) {
                 const apiUrl = encodeURIComponent(`api/offered/edit/${id}`);
@@ -371,75 +438,82 @@
                 return await response.json();
             }
 
-            updateBtn.addEventListener('click', async function () {
-                if (!validate()) return;
+            updateBtn.addEventListener('click',
+                async function() {
+                    if (!validate()) return;
 
-                const originalText = this.innerHTML;
-                this.disabled = true;
-                this.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Güncelleniyor...`;
+                    const originalText = this.innerHTML;
+                    this.disabled = true;
+                    this.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Güncelleniyor...`;
 
-                const formData = new FormData(editForm);
-                const data = Object.fromEntries(formData.entries());
+                    const formData = new FormData(editForm);
+                    const data = Object.fromEntries(formData.entries());
 
-                try {
-                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-                    const apiUrl = encodeURIComponent('api/offered/edit');
-                    const response = await fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
-                        body: JSON.stringify(data)
-                    });
-                    const result = await response.json();
-                    if (response.ok) {
-                        editModal.hide();
-                        showFeedbackModal('success', 'Başarılı', result.message || 'Ders başarıyla güncellendi.', null, null, () => location.reload());
-                    } else {
-                        showFeedbackModal('error', 'Hata', result.message || 'Bir hata oluştu.');
+                    try {
+                        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                        const apiUrl = encodeURIComponent('api/offered/edit');
+                        const response = await fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`,
+                            {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                                body: JSON.stringify(data)
+                            });
+                        const result = await response.json();
+                        if (response.ok) {
+                            editModal.hide();
+                            showFeedbackModal('success', 'Başarılı', result.message || 'Ders başarıyla güncellendi.', null, null, () => location.reload());
+                        } else {
+                            showFeedbackModal('error', 'Hata', result.message || 'Bir hata oluştu.');
+                        }
+                    } catch (err) {
+                        showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya ulaşılamadı.');
+                    } finally {
+                        this.disabled = false;
+                        this.innerHTML = `<i class="bi bi-check-lg me-2"></i>Değişiklikleri Kaydet`;
                     }
-                } catch (err) {
-                    showFeedbackModal('error', 'Bağlantı Hatası', 'Sunucuya ulaşılamadı.');
-                } finally {
-                    this.disabled = false;
-                    this.innerHTML = `<i class="bi bi-check-lg me-2"></i>Değişiklikleri Kaydet`;
-                }
-            });
+                });
 
-            editModalEl.addEventListener('hidden.bs.modal', () => {
-                editForm.reset();
-                validate();
-            });
+            editModalEl.addEventListener('hidden.bs.modal',
+                () => {
+                    editForm.reset();
+                    validate();
+                });
         }
 
-        // --- DELETE MODAL ---
+// --- DELETE MODAL ---
         function initializeDeleteFunctionality() {
-            $('#offeredCoursesTable tbody').on('click', '.delete-button', function () {
-                const id = $(this).data('id');
-                const name = $(this).data('name');
+            $('#offeredCoursesTable tbody').on('click',
+                '.delete-button',
+                function() {
+                    const id = $(this).data('id');
+                    const name = $(this).data('name');
 
-                showFeedbackModal('confirm',
-                    'Ders Silme Onayı',
-                    `<p><b>${name}</b> adlı dersi dönemden kaldırmak istediğinize emin misiniz?</p><div class="alert alert-warning mb-0"><i class="bi bi-exclamation-triangle me-2"></i><strong>Uyarı:</strong> Bu işlem geri alınamaz!</div>`,
-                    async () => {
-                        try {
-                            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-                            const apiUrl = encodeURIComponent(`api/offered/delete/${id}`);
-                            const response = await fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`, {
-                                method: 'POST',
-                                headers: { 'RequestVerificationToken': token }
-                            });
-                            const result = await response.json();
-                            if (response.ok) {
-                                showFeedbackModal("success", "Başarılı", result.message || "Ders silindi.", null, null, () => location.reload());
-                            } else {
-                                showFeedbackModal('error', 'Hata', result.message || 'Bir hata oluştu.');
+                    showFeedbackModal('confirm',
+                        'Ders Silme Onayı',
+                        `<p><b>${name}</b> adlı dersi dönemden kaldırmak istediğinize emin misiniz?</p><div class="alert alert-warning mb-0"><i class="bi bi-exclamation-triangle me-2"></i><strong>Uyarı:</strong> Bu işlem geri alınamaz!</div>`,
+                        async () => {
+                            try {
+                                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                                const apiUrl = encodeURIComponent(`api/offered/delete/${id}`);
+                                const response = await fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`,
+                                    {
+                                        method: 'POST',
+                                        headers: { 'RequestVerificationToken': token }
+                                    });
+                                const result = await response.json();
+                                if (response.ok) {
+                                    showFeedbackModal("success", "Başarılı", result.Message || "Ders silindi.", null, null, () => location.reload());
+                                } else {
+                                    alert(result.Message);
+                                    //showFeedbackModal('error', 'Hata', result.Message || 'Bir hata oluştu.');
+                                }
+                            } catch (ex) {
+                                showFeedbackModal("error", "Bağlantı Hatası", "Sunucuya ulaşılamadı.");
                             }
-                        } catch (ex) {
-                            showFeedbackModal("error", "Bağlantı Hatası", "Sunucuya ulaşılamadı.");
-                        }
-                    },
-                    'Evet, Sil'
-                );
-            });
+                        },
+                        'Evet, Sil'
+                    );
+                });
         }
     </script>
 }

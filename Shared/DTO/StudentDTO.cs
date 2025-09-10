@@ -26,6 +26,7 @@ namespace Shared.DTO
         public List<EnrollDTO> EnrollableList { get; set; }
         public List<EnrollDTO> PendingCourses { get; set; }
         public string ActiveSemesterName { get; set; }
+        public int RemainingCredits { get; set; } = 0;
     }
 
     public class MyCoursesDTO
@@ -60,6 +61,8 @@ namespace Shared.DTO
         public int ApprovalStatus { get; set; }
         public string ApprovalStatusText { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string Description { get; set; }
+        public string Classroom { get; set; }
     }
 
     public class StudentDetailDto
