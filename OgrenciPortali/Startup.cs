@@ -18,6 +18,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.UI;
+using log4net;
 using SameSiteMode = System.Web.SameSiteMode;
 
 [assembly: OwinStartup(typeof(OgrenciPortali.Startup))]
@@ -29,6 +30,7 @@ namespace OgrenciPortali
         private static readonly string clientId = AppSettings.ClientId;
         private static readonly string tenant = AppSettings.TenantId;
         private static readonly string authority = $"https://login.microsoftonline.com/{tenant}/v2.0";
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(Startup));
 
         public void Configuration(IAppBuilder app)
         {
@@ -78,6 +80,10 @@ namespace OgrenciPortali
                         },
                         SecurityTokenValidated = async context =>
                         {
+                            try
+                            {
+
+                            
                             var ssoIdentity = context.AuthenticationTicket.Identity;
                             var email = ssoIdentity.FindFirst(ClaimTypes.Email)?.Value ??
                                         ssoIdentity.FindFirst("email")?.Value;
@@ -113,6 +119,7 @@ namespace OgrenciPortali
                                     {
                                         appIdentity.AddClaim(idpClaim);
                                     }
+
                                     appIdentity.AddClaim(new Claim("id_token", context.ProtocolMessage.IdToken));
 
                                     // 3. Owin oturumunu bizim API'mizin kimliği ile tamamen değiştir
@@ -144,6 +151,14 @@ namespace OgrenciPortali
                                     context.HandleResponse();
                                     context.Response.Redirect("/User/Login?error=sso_failed");
                                 }
+                            }
+                            }
+                            catch (Exception ex)
+                            {
+                                // Hata durumunda kullanıcıyı login sayfasına yönlendir
+                                context.HandleResponse();
+                                context.Response.Redirect("/User/Login?error=exception");
+                                Logger.Error("SSO giriş işlemi sırasında hata oluştu: ", ex);
                             }
                         }
                     }

@@ -8,11 +8,13 @@ namespace OgrenciPortalApi
         public static void Register(HttpConfiguration config)
         {
             var cors = new EnableCorsAttribute(
-                origins: "https://localhost:3000",
+                origins: "https://ogrenciportal.alpeerkaraca.site",
                 headers: "*",
                 methods: "*"
-            );
-            cors.SupportsCredentials = true;
+            )
+            {
+                SupportsCredentials = true
+            };
 
             config.EnableCors(cors);
 

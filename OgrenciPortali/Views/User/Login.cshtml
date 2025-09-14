@@ -14,7 +14,7 @@
     <!-- Bootstrap CSS -->
     <link href="~/Content/bootstrap.min.css" rel="stylesheet"/>
     <link href="~/Content/css/style.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/Content/bootstrap-icons/bootstrap-icons.min.css">
 
     <style>
         body {
@@ -446,44 +446,73 @@
         modal.show();
     }
 
-    $('#sendResetLinkBtn').on('click',
-        function() {
-            const serverResponse = $('#server-response');
-            const form = $('#forgotPasswordForm');
-            const emailInput = $('#resetEmail');
-            const email = emailInput.val();
-            const sendBtn = $(this);
+    // Butonun click olayını dinlemek için async bir fonksiyon tanımlıyoruz.
+$('#sendResetLinkBtn').on('click', async function() {
+    // Gerekli DOM elementlerini seçiyoruz. 'this' butonu ifade eder.
+    const sendBtn = $(this);
+    const serverResponse = $('#server-response');
+    const form = $('#forgotPasswordForm');
+    const emailInput = $('#resetEmail');
+    const email = emailInput.val();
 
-            if (!email || !isValidEmail(email)) {
-                emailInput.addClass('is-invalid');
-                return;
-            } else {
-                emailInput.removeClass('is-invalid');
-            }
+    // 1. E-posta Adresi Doğrulaması
+    // isValidEmail fonksiyonunun daha önce tanımlandığını varsayıyoruz.
+    if (!email || !isValidEmail(email)) {
+        emailInput.addClass('is-invalid');
+        return; // Fonksiyonun çalışmasını durdur.
+    } else {
+        emailInput.removeClass('is-invalid');
+    }
 
-            sendBtn.prop('disabled', true);
-            sendBtn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Gönderiliyor...');
+    // 2. Yükleme Durumunu Ayarla (Butonu devre dışı bırak ve spinner göster)
+    sendBtn.prop('disabled', true);
+    sendBtn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Gönderiliyor...');
 
-            $.ajax({
-                url: 'https://localhost:8000/api/user/forgot-password',
-                type: 'POST',
-                data: {
-                    __RequestVerificationToken: form.find('input[name="__RequestVerificationToken"]').val(),
-                    email: email
-                },
-                success: function(response) {
-                    $('#forgotPasswordFormView').hide();
-                    $('#confirmationView').show();
-                    serverResponse.text(response.Message);
-                    sendBtn.hide();
-                },
-                error: function() {
-                    $('#forgotPasswordFormView').hide();
-                    $('#confirmationView').show();
-                    sendBtn.hide();
-                }
-            });
+    // API URL'ini hazırlıyoruz.
+    const apiUrl = encodeURIComponent("api/user/forgot-password");
+    const requestUrl = `/ApiProxy/Post?apiUrl=${apiUrl}`;
+    const verificationToken = form.find('input[name="__RequestVerificationToken"]').val();
+
+    // 3. API İsteği ve Sonuçların Yönetimi
+    try {
+        // fetch ile API'ye isteği gönder ve cevabı bekle (await).
+        const response = await fetch(requestUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', // Gönderilen verinin tipini belirtiyoruz.
+                'RequestVerificationToken': verificationToken
+            },
+            body: JSON.stringify({ Email: email }) // JavaScript nesnesini JSON'a çeviriyoruz.
         });
+
+        // Sunucudan gelen cevap başarılı ise (HTTP 200-299 arası)
+        if (response.ok) {
+            const result = await response.json(); // Gelen JSON verisini işle.
+            serverResponse.text(result.Message); // Başarı mesajını ekrana yaz.
+        } else {
+            // Sunucudan hata kodu geldiyse (örn: 404, 500)
+            // Orijinal kodda özel bir hata mesajı yoktu, biz de bir tane ekleyebiliriz.
+            const result = await response.json(); // Gelen JSON verisini işle.
+            serverResponse.text(result.Message || 'Bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
+        }
+    } catch (error) {
+        // Ağ bağlantısı hatası gibi durumlarda bu blok çalışır.
+        serverResponse.text('Ağ bağlantısı kurulamadı. Lütfen internetinizi kontrol edin.');
+    } finally {
+        // 4. Arayüzü Güncelle (Her durumda çalışır)
+        // Bu blok, istek başarılı da olsa başarısız da olsa çalışır.
+        // Bu sayede kod tekrarını önlemiş oluruz.
+        $('#forgotPasswordFormView').hide();
+        $('#confirmationView').show();
+        sendBtn.hide();
+    }
+});
+
+// E-posta doğrulama fonksiyonu (Örnek)
+function isValidEmail(email) {
+    const re = /^(([^<>()[\]\\.,;:\s@@"]+(\.[^<>()[\]\\.,;:\s@@"]+)*)|(".+"))@@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
+}
 </script>
 </body>
 </html>

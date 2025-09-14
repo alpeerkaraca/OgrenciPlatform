@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using log4net;
 
 namespace OgrenciPortali.Controllers
 {
     public class ErrorController : Controller
     {
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(ErrorController));
         // GET: Error
         public ActionResult NotFound()
         {

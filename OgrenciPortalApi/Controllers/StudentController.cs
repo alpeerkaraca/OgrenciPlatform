@@ -6,10 +6,15 @@ using Shared.Enums;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
+using MailKit;
+using MailKit.Net.Smtp;
+using MimeKit;
+using MailService = OgrenciPortalApi.Services.MailService;
 
 namespace OgrenciPortalApi.Controllers
 {
@@ -28,6 +33,7 @@ namespace OgrenciPortalApi.Controllers
         [ResponseType(typeof(EnrollPageDTO))]
         public async Task<IHttpActionResult> GetEnrollableCourses()
         {
+            Logger.Debug("Hey hey buradayım" + typeof(StudentController));
             try
             {
                 var userId = GetActiveUserId();
@@ -39,10 +45,13 @@ namespace OgrenciPortalApi.Controllers
                     .Select(sc => sc.OfferedCourseId)
                     .ToListAsync();
 
-                var enrolledOrPendingCourseIds = new HashSet<Guid>(enrolledOrPendingIds); new HashSet<Guid>();
-               
+                var enrolledOrPendingCourseIds = new HashSet<Guid>(enrolledOrPendingIds);
+                new HashSet<Guid>();
+
                 var pendingCoursesData = await _db.StudentCourses
-                    .Where(sc => enrolledOrPendingIds.Contains(sc.OfferedCourseId) && sc.ApprovalStatus == (int)ApprovalStatus.Bekliyor)
+                    .Where(sc =>
+                        enrolledOrPendingIds.Contains(sc.OfferedCourseId) &&
+                        sc.ApprovalStatus == (int)ApprovalStatus.Bekliyor)
                     .Select(sc => new
                     {
                         sc.OfferedCourseId,
@@ -110,9 +119,22 @@ namespace OgrenciPortalApi.Controllers
                     Classroom = s.Classroom
                 }).ToList();
                 var activeSemester = await _db.Semesters.FirstOrDefaultAsync(x => x.IsActive);
-                var remainingCredits = 30 - await _db.StudentCourses
-                    .Where(sc => sc.ApprovalStatus == (int)ApprovalStatus.Onaylandı)
-                    .Select(sc => sc.OfferedCourses.Courses.Credits).SumAsync();
+                Logger.Debug(
+                    $"Available Courses: {availableCourses}, Pending Courses: {pendingCourses}, ActiveSemesterName: {activeSemester?.SemesterName ?? "Aktif Dönem Bulunamadı"}");
+
+                var totalApprovedCreditsList = await _db.StudentCourses
+                    .Where(sc =>
+                        sc.StudentId == userId &&
+                        sc.ApprovalStatus == (int)ApprovalStatus.Onaylandı &&
+                        sc.OfferedCourses.Semesters.IsActive)
+                    .Select(sc => sc.OfferedCourses.Courses.Credits == null ? 0 : sc.OfferedCourses.Courses.Credits).ToListAsync();
+                Logger.Debug($"Total Approved Credits: {totalApprovedCreditsList}");
+                var totalApprovedCredits = 0;
+                if (totalApprovedCreditsList.Any())
+                    totalApprovedCredits = totalApprovedCreditsList.Sum();
+                var remainingCredits = Math.Max(0, 30 - totalApprovedCredits);
+
+                Logger.Debug($"Remaining Credits: {remainingCredits}");
 
                 var viewModel = new EnrollPageDTO
                 {
@@ -130,6 +152,7 @@ namespace OgrenciPortalApi.Controllers
                 return InternalServerError(new Exception("Seçilebilir dersler alınırken bir hata oluştu."));
             }
         }
+
         /// <summary>
         /// Öğrencinin onay bekleyen tüm ders kayıtlarını sıfırlar.
         /// </summary>
@@ -167,7 +190,11 @@ namespace OgrenciPortalApi.Controllers
                     await _db.SaveChangesAsync();
                     transaction.Commit();
 
-                    return Ok(new { Message = "Onay bekleyen tüm dersleriniz başarıyla sıfırlandı. Şimdi yeniden seçim yapabilirsiniz." });
+                    return Ok(new
+                    {
+                        Message =
+                            "Onay bekleyen tüm dersleriniz başarıyla sıfırlandı. Şimdi yeniden seçim yapabilirsiniz."
+                    });
                 }
                 catch (Exception ex)
                 {
@@ -194,6 +221,8 @@ namespace OgrenciPortalApi.Controllers
                 return BadRequest("Lütfen en az bir ders seçin.");
 
             var studentId = GetActiveUserId();
+            var student = await _db.Users.FindAsync(studentId);
+            var advisor = await _db.Users.FirstOrDefaultAsync(u => u.UserId == student.AdvisorId);
 
             var existingSchedule = await _db.StudentCourses
                 .Where(sc => sc.StudentId == studentId && !sc.IsDeleted && sc.OfferedCourses.Semesters.IsActive)
@@ -288,7 +317,28 @@ namespace OgrenciPortalApi.Controllers
                     await _db.SaveChangesAsync();
                     transaction.Commit();
 
-                    return Ok(new { Message = "Ders seçimleriniz başarıyla danışman onayına gönderilmiştir." });
+                    try
+                    {
+                        string templatePath =
+                            System.Web.Hosting.HostingEnvironment.MapPath("~/Views/CourseApprovalMail.html");
+                        string htmlTemplate = File.ReadAllText(templatePath);
+                        htmlTemplate =
+                            htmlTemplate.Replace("[Öğrenci Adı Soyadı]", student.Name + " " + student.Surname);
+                        htmlTemplate = htmlTemplate.Replace("[Öğrenci Numarası]", student.StudentNo);
+                        htmlTemplate = htmlTemplate.Replace("[Onay_Linki]",
+                            AppSettings.JwtAudience + "Advisor/CourseApprovals");
+                        await MailService.Instance.SendEmailAsync(advisor.Email, "Yeni Ders Kaydı", htmlTemplate);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error("Ders onay bilgilendirme maili gönderilirken hata oluştu.", ex);
+                    }
+
+                    return Ok(new
+                    {
+                        Message =
+                            "Ders seçimleriniz başarıyla danışman onayına gönderilmiştir ve danışmanınız bigilendirilmiştir."
+                    });
                 }
                 catch (Exception ex)
                 {
@@ -337,21 +387,21 @@ namespace OgrenciPortalApi.Controllers
                             .Sum(c => c.OfferedCourses.Courses.Credits)
                     },
                     Courses = studentCoursesInDb.Select(sc => new MyCourseDto
-                    {
-                        CourseId = sc.OfferedCourseId,
-                        CourseCode = sc.OfferedCourses.Courses.CourseCode,
-                        CourseName = sc.OfferedCourses.Courses.CourseName,
-                        Credits = sc.OfferedCourses.Courses.Credits,
-                        TeacherFullName = sc.OfferedCourses.Users.Name + " " + sc.OfferedCourses.Users.Surname,
-                        SemesterName = sc.OfferedCourses.Semesters.SemesterName,
-                        DayOfWeek = ((DaysOfWeek)sc.OfferedCourses.DayOfWeek).ToString(),
-                        TimeSlot = $"{sc.OfferedCourses.StartTime:hh\\:mm} - {sc.OfferedCourses.EndTime:hh\\:mm}",
-                        ApprovalStatus = sc.ApprovalStatus,
-                        ApprovalStatusText = ((ApprovalStatus)sc.ApprovalStatus).ToString(),
-                        CreatedAt = sc.CreatedAt,
-                        Description = sc.OfferedCourses.Courses.Description,
-                        Classroom = sc.OfferedCourses.Classroom
-                    })
+                        {
+                            CourseId = sc.OfferedCourseId,
+                            CourseCode = sc.OfferedCourses.Courses.CourseCode,
+                            CourseName = sc.OfferedCourses.Courses.CourseName,
+                            Credits = sc.OfferedCourses.Courses.Credits,
+                            TeacherFullName = sc.OfferedCourses.Users.Name + " " + sc.OfferedCourses.Users.Surname,
+                            SemesterName = sc.OfferedCourses.Semesters.SemesterName,
+                            DayOfWeek = ((DaysOfWeek)sc.OfferedCourses.DayOfWeek).ToString(),
+                            TimeSlot = $"{sc.OfferedCourses.StartTime:hh\\:mm} - {sc.OfferedCourses.EndTime:hh\\:mm}",
+                            ApprovalStatus = sc.ApprovalStatus,
+                            ApprovalStatusText = ((ApprovalStatus)sc.ApprovalStatus).ToString(),
+                            CreatedAt = sc.CreatedAt,
+                            Classroom = sc.OfferedCourses.Classroom,
+                            Description = sc.OfferedCourses.Courses.Description
+                        })
                         .OrderByDescending(c => c.CreatedAt)
                         .ToList()
                 };
@@ -367,11 +417,12 @@ namespace OgrenciPortalApi.Controllers
         [HttpPost]
         [Route("check-conflict")]
         [ResponseType(typeof(object))]
-        public async Task<IHttpActionResult> CheckConflict([FromBody] Guid offeredCourseId)
+        public async Task<IHttpActionResult> CheckConflict([FromBody] CheckConflictDto dto)
         {
             var studentId = GetActiveUserId();
+            var offeredCourseGuid = Guid.Parse(dto.offeredCourseId);
             var selectedCourse = await _db.OfferedCourses
-                .Where(oc => oc.Id == offeredCourseId)
+                .Where(oc => oc.Id == offeredCourseGuid)
                 .Select(oc => new ConflictCheckDTO
                 {
                     CourseName = oc.Courses.CourseName,

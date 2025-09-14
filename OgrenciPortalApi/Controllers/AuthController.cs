@@ -93,14 +93,11 @@ namespace OgrenciPortalApi.Controllers
                     return Request.CreateResponse(HttpStatusCode.BadRequest, new { Message = "E-posta adresi gerekli." });
                 }
 
-                // Senin mevcut mantığını koruyoruz: Kullanıcıyı bul veya oluştur.
                 var user = await _db.Users.Include(u => u.Departments)
                     .FirstOrDefaultAsync(u => u.Email == reqDto.Email && !u.IsDeleted);
 
-                // Eğer kullanıcı sistemde yoksa, senin iş kurallarına göre yeni bir kullanıcı oluşturuyoruz.
                 if (user == null)
                 {
-                    // İsim ve soyismi ayıran kendi metodunu kullanıyoruz.
                     var tuple = SsoLoginRequestDTO.ParseNameCompatible(reqDto.Name);
                     user = new Users
                     {

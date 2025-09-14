@@ -484,6 +484,7 @@
       <DependentUpon>OgrenciPortalContext.tt</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\MailService.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="Utils\CheckUserData.cs" />
     <Compile Include="Utils\ConflictCheck.cs" />
@@ -537,6 +538,7 @@
       <DependentUpon>OgrenciPortalContext.edmx</DependentUpon>
       <LastGenOutput>OgrenciPortalContext.Context.cs</LastGenOutput>
     </Content>
+    <Content Include="Models\OgrenciPortalContext.edmx.sql" />
     <Content Include="Models\OgrenciPortalContext.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <DependentUpon>OgrenciPortalContext.edmx</DependentUpon>
@@ -548,7 +550,7 @@
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
-    <Content Include=".env" />
+    <None Include=".env.prod" />
     <Content Include=".env.example" />
     <Content Include="README.md" />
     <EntityDeploy Include="Models\OgrenciPortalContext.edmx">
@@ -558,6 +560,7 @@
     <Content Include="Models\OgrenciPortalContext.edmx.diagram">
       <DependentUpon>OgrenciPortalContext.edmx</DependentUpon>
     </Content>
+    <None Include=".env" />
     <None Include="Scripts\jquery-3.7.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.1.js" />
     <Content Include="Scripts\jquery-3.7.1.min.js" />
@@ -570,6 +573,10 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <EmbeddedResource Include="SwaggerUI\custom.js" />
+    <Content Include="Views\account-created-template.html" />
+    <Content Include="Views\course-status-update-template.html" />
+    <Content Include="Views\CourseApprovalMail.html" />
+    <Content Include="Views\password-reset-template.html" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>

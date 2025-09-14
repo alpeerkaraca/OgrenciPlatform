@@ -143,7 +143,7 @@
                         const data = await response.json();
 
                         semesterEl.textContent = data.ActiveSemesterName || 'Aktif Dönem Bulunamadı';
-                        initialRemainingCredits = data.RemainingCredits || 30;
+                        initialRemainingCredits = data.RemainingCredits  || 30;
                         renderAllCourses(data);
                         updateAllCounters();
                     } catch (error) {
@@ -206,7 +206,7 @@
                     const newlySelectedCredits = calculateCredits(containers.selected);
 
                     // API'den gelen başlangıç kredisinden yeni seçilenleri çıkar.
-                    const remaining = initialRemainingCredits - newlySelectedCredits;
+                    const remaining = initialRemainingCredits - newlySelectedCredits - calculateCredits(containers.pending);
 
                     // Sonucu ekrana yazdır.
                     remainingCreditsEl.textContent = remaining;

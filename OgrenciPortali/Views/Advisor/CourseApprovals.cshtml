@@ -2,12 +2,12 @@
 @using Shared.Enums
 @model Shared.DTO.AdvisorApprovalDTO
 @{
-    ViewBag.Title = "Ders Kayýt Onaylarý";
+    ViewBag.Title = "Ders KayÄ±t OnaylarÄ±";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <style>
-    /* Stil tanýmlamalarý burada yer alýyor (deðiþiklik yok) */
+    /* Stil tanÄ±mlamalarÄ± burada yer alÄ±yor (deÄŸiÅŸiklik yok) */
 </style>
 
 @if (User.Identity.IsAuthenticated)
@@ -15,44 +15,44 @@
     var user = (ClaimsIdentity)User.Identity;
     var fullName = user.FindFirst("full_name")?.Value;
     var department = user.FindFirst("department")?.Value;
-    
+
 
     <div class="d-flex flex-wrap p-2 p-md-3 gap-2 gap-md-3 justify-content-center align-items-center bg-light shadow-sm rounded mb-3 mb-md-4">
-    <div class="text-center text-md-start">
-        <strong>Danýþman:</strong> @fullName
-    </div>
-    @if (department != null)
-    {
         <div class="text-center text-md-start">
-            <strong>Bölüm:</strong> @department
+            <strong>DanÄ±ÅŸman:</strong> @fullName
         </div>
-    }
-    <div class="text-center text-md-start">
-        <strong>Bekleyen Onay:</strong>
-        <span class="badge bg-warning text-dark">@Model.PendingStudentGroups.SelectMany(g => g.CourseRequests).Count()</span>
+        @if (department != null)
+        {
+            <div class="text-center text-md-start">
+                <strong>BÃ¶lÃ¼m:</strong> @department
+            </div>
+        }
+        <div class="text-center text-md-start">
+            <strong>Bekleyen Onay:</strong>
+            <span class="badge bg-warning text-dark">@Model.PendingStudentGroups.SelectMany(g => g.CourseRequests).Count()</span>
+        </div>
     </div>
-</div>
 }
 
 <div class="card mb-3 mb-md-4">
     <div class="card-header">
-        <h5 class="mb-0"><i class="bi bi-gear-fill me-2"></i>Toplu Ýþlemler</h5>
+        <h5 class="mb-0"><i class="bi bi-gear-fill me-2"></i>Toplu Ä°ÅŸlemler</h5>
     </div>
     <div class="card-body">
         <div class="row g-2 g-md-3">
             <div class="col-12 col-md-4">
                 <button type="button" id="select-all-btn" class="btn btn-outline-primary w-100 btn-lg">
-                    <i class="bi bi-check-square me-1 me-md-2"></i>Tümünü Seç
+                    <i class="bi bi-check-square me-1 me-md-2"></i>TÃ¼mÃ¼nÃ¼ SeÃ§
                 </button>
             </div>
             <div class="col-6 col-md-4">
                 <button type="button" id="approve-selected-btn" class="btn btn-success w-100 btn-lg" disabled>
-                    <i class="bi bi-check-circle me-1 me-md-2"></i><span class="d-none d-sm-inline">Seçilenleri </span>Onayla
+                    <i class="bi bi-check-circle me-1 me-md-2"></i><span class="d-none d-sm-inline">SeÃ§ilenleri </span>Onayla
                 </button>
             </div>
             <div class="col-6 col-md-4">
                 <button type="button" id="reject-selected-btn" class="btn btn-danger w-100 btn-lg" disabled>
-                    <i class="bi bi-x-circle me-1 me-md-2"></i><span class="d-none d-sm-inline">Seçilenleri </span>Reddet
+                    <i class="bi bi-x-circle me-1 me-md-2"></i><span class="d-none d-sm-inline">SeÃ§ilenleri </span>Reddet
                 </button>
             </div>
         </div>
@@ -61,14 +61,14 @@
 
 <div class="card">
     <div class="card-header">
-        <h5 class="mb-0"><i class="bi bi-list-task me-2"></i>Ders Kayýt Talepleri</h5>
+        <h5 class="mb-0"><i class="bi bi-list-task me-2"></i>Ders KayÄ±t Talepleri</h5>
     </div>
     <div class="card-body p-0 p-md-3">
         @if (Model.PendingStudentGroups == null || !Model.PendingStudentGroups.Any())
         {
             <div class="alert alert-info text-center m-3">
                 <i class="bi bi-info-circle-fill me-2"></i>
-                Henüz onay bekleyen ders kayýt talebi bulunmamaktadýr.
+                HenÃ¼z onay bekleyen ders kayÄ±t talebi bulunmamaktadÄ±r.
             </div>
         }
         else
@@ -82,7 +82,7 @@
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-@accordionId" aria-expanded="false" aria-controls="collapse-@accordionId">
                                 <div class="d-flex justify-content-between w-100 align-items-center pe-3">
                                     <span>
-                                        <input type="checkbox" class="form-check-input group-master-checkbox me-2 bg-info" data-target-group="@accordionId" title="Bu öðrencinin tüm derslerini seç/kaldýr">
+                                        <input type="checkbox" class="form-check-input group-master-checkbox me-2 bg-info" data-target-group="@accordionId" title="Bu Ã¶ÄŸrencinin tÃ¼m derslerini seÃ§/kaldÄ±r">
                                         <strong>@studentGroup.StudentName</strong> (@studentGroup.StudentNo)
                                     </span>
                                     <span class="badge bg-primary rounded-pill">
@@ -95,8 +95,8 @@
                             <div class="accordion-body">
                                 <div class="text-end mb-2">
                                     <div class="btn-group" role="group">
-                                        <button class="btn btn-sm btn-outline-success group-approve-btn" data-target-group="@accordionId"><i class="bi bi-check-all"></i> Bu Öðrencinin Tümünü Onayla</button>
-                                        <button class="btn btn-sm btn-outline-danger group-reject-btn" data-target-group="@accordionId"><i class="bi bi-x-octagon"></i> Bu Öðrencinin Tümünü Reddet</button>
+                                        <button class="btn btn-sm btn-outline-success group-approve-btn" data-target-group="@accordionId"><i class="bi bi-check-all"></i> Bu Ã–ÄŸrencinin TÃ¼mÃ¼nÃ¼ Onayla</button>
+                                        <button class="btn btn-sm btn-outline-danger group-reject-btn" data-target-group="@accordionId"><i class="bi bi-x-octagon"></i> Bu Ã–ÄŸrencinin TÃ¼mÃ¼nÃ¼ Reddet</button>
                                     </div>
                                 </div>
                                 <div class="table-responsive">
@@ -105,9 +105,9 @@
                                             <tr>
                                                 <th style="width: 5%;"><input type="checkbox" class="form-check-input d-none row-checkbox-header bg-info"></th>
                                                 <th style="width: 15%;">Ders Kodu</th>
-                                                <th style="width: 30%;">Ders Adý</th>
+                                                <th style="width: 30%;">Ders AdÄ±</th>
                                                 <th style="width: 10%;">Kredi</th>
-                                                <th style="width: 25%;">Gün/Saat</th>
+                                                <th style="width: 25%;">GÃ¼n/Saat</th>
                                                 <th style="width: 15%;">Talep Tarihi</th>
                                             </tr>
                                         </thead>
@@ -156,10 +156,11 @@
 
                 const allCheckboxes = document.querySelectorAll('.row-checkbox');
                 const allChecked = allCheckboxes.length > 0 && Array.from(allCheckboxes).every(cb => cb.checked);
-
                 if (selectAllBtn) {
-                    selectAllBtn.innerHTML = allChecked ? '<i class="bi bi-square me-1 me-md-2"></i>Seçimi Temizle' : '<i class="bi bi-check-square me-1 me-md-2"></i>Tümünü Seç';
-                    selectAllBtn.className = allChecked ? 'btn btn-outline-secondary w-100 btn-lg' : 'btn btn-outline-primary w-100 btn-lg';
+                    selectAllBtn.innerHTML = allChecked ?
+                        '<i class="bi bi-square me-1 me-md-2"></i>SeÃ§imi Temizle' : '<i class="bi bi-check-square me-1 me-md-2"></i>TÃ¼mÃ¼nÃ¼ SeÃ§';
+                    selectAllBtn.className = allChecked ?
+                        'btn btn-outline-secondary w-100 btn-lg' : 'btn btn-outline-primary w-100 btn-lg';
                 }
             }
 
@@ -178,11 +179,11 @@
 
             async function processApproval(studentIds, offeredCourseIds, newStatus) {
                 if (!token) {
-                    showFeedbackModal('error', "Güvenlik Hatasý", 'Lütfen sayfayý yenileyiniz.');
+                    showFeedbackModal('error', "GÃ¼venlik HatasÄ±", 'LÃ¼tfen sayfayÄ± yenileyiniz.');
                     return;
                 }
                 if (studentIds.length === 0) {
-                    showFeedbackModal('info', "Seçim Yapýlmadý", 'Lütfen iþlem yapmak için en az bir ders seçin.');
+                    showFeedbackModal('info', "SeÃ§im YapÄ±lmadÄ±", 'LÃ¼tfen iÅŸlem yapmak iÃ§in en az bir ders seÃ§in.');
                     return;
                 }
 
@@ -192,7 +193,6 @@
                     OfferedCourseIds: offeredCourseIds,
                     NewStatus: newStatus
                 };
-
                 document.querySelectorAll('.btn').forEach(btn => btn.disabled = true);
 
                 try {
@@ -206,28 +206,24 @@
                     });
 
                     const result = await response.json();
-
                     if (response.ok) {
-                        showFeedbackModal("success", "Ýþlem Baþarýlý", result.message, null, null, () => window.location.reload());
+                        showFeedbackModal("success", "Ä°ÅŸlem BaÅŸarÄ±lÄ±", result.message, null, null, () => window.location.reload());
                     } else {
-                        showFeedbackModal("error", "Baþarýsýz Ýþlem", result.message || 'Bir hata oluþtu.', null, null, () => window.location.reload());
+                        showFeedbackModal("error", "BaÅŸarÄ±sÄ±z Ä°ÅŸlem", result.message || 'Bir hata oluÅŸtu.', null, null, () => window.location.reload());
                     }
                 } catch (error) {
-                    showFeedbackModal('error', 'Að Hatasý', 'Sunucu ile iletiþim kurulamadý.');
+                    showFeedbackModal('error', 'AÄŸ HatasÄ±', 'Sunucu ile iletiÅŸim kurulamadÄ±.');
                 } finally {
-                     document.querySelectorAll('.btn').forEach(btn => btn.disabled = false);
-                     updateTopButtonStates();
+                    document.querySelectorAll('.btn').forEach(btn => btn.disabled = false);
+                    updateTopButtonStates();
                 }
             }
 
-            // --- Event Listeners ---
-
-            // Toplu Onayla/Reddet Butonlarý
             if (approveSelectedBtn) {
                 approveSelectedBtn.addEventListener('click', function() {
                     const selected = getSelectedItems();
                     if (selected.studentIds.length > 0) {
-                        processApproval(selected.studentIds, selected.offeredCourseIds, @((int)ApprovalStatus.Onaylandý));
+                        processApproval(selected.studentIds, selected.offeredCourseIds, 1);
                     }
                 });
             }
@@ -235,13 +231,12 @@
             if (rejectSelectedBtn) {
                 rejectSelectedBtn.addEventListener('click', function() {
                     const selected = getSelectedItems();
-                     if (selected.studentIds.length > 0) {
+                    if (selected.studentIds.length > 0) {
                         processApproval(selected.studentIds, selected.offeredCourseIds, @((int)ApprovalStatus.Reddedildi));
                     }
                 });
             }
 
-            // Genel Tümünü Seç/Temizle Butonu
             if (selectAllBtn) {
                 selectAllBtn.addEventListener('click', function() {
                     const allCheckboxes = document.querySelectorAll('.row-checkbox');
@@ -252,19 +247,17 @@
                 });
             }
 
-            // Grup içi checkbox'lar
             document.querySelectorAll('.row-checkbox').forEach(cb => {
                 cb.addEventListener('change', () => {
                     const groupName = cb.closest('.approval-row').dataset.group;
                     const groupCheckboxes = document.querySelectorAll(`.approval-row[data-group="${groupName}"] .row-checkbox`);
                     const allCheckedInGroup = groupCheckboxes.length > 0 && Array.from(groupCheckboxes).every(gcb => gcb.checked);
                     const groupMasterCheckbox = document.querySelector(`.group-master-checkbox[data-target-group="${groupName}"]`);
-                    if(groupMasterCheckbox) groupMasterCheckbox.checked = allCheckedInGroup;
+                    if (groupMasterCheckbox) groupMasterCheckbox.checked = allCheckedInGroup;
                     updateTopButtonStates();
                 });
             });
 
-            // Grup baþlýðýndaki master checkbox'lar
             document.querySelectorAll('.group-master-checkbox').forEach(masterCb => {
                 masterCb.addEventListener('change', function() {
                     const groupName = this.dataset.targetGroup;
@@ -275,17 +268,15 @@
                 });
             });
 
-            // Grup içi Toplu Onayla/Reddet Butonlarý
             document.querySelectorAll('.group-approve-btn, .group-reject-btn').forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     e.stopPropagation();
                     const groupName = this.dataset.targetGroup;
                     const isApprove = this.classList.contains('group-approve-btn');
                     const selected = getSelectedItems(`.approval-row[data-group="${groupName}"] .row-checkbox`);
-                    processApproval(selected.studentIds, selected.offeredCourseIds, isApprove ? @((int)ApprovalStatus.Onaylandý) : @((int)ApprovalStatus.Reddedildi));
+                    processApproval(selected.studentIds, selected.offeredCourseIds, isApprove ? 1 : @((int)ApprovalStatus.Reddedildi));
                 });
             });
-
             updateTopButtonStates();
         });
     </script>

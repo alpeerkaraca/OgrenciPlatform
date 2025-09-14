@@ -1,5 +1,8 @@
 ﻿using log4net;
+using OgrenciPortalApi.Models;
+using OgrenciPortalApi.Services;
 using Shared.DTO;
+using Shared.Enums;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -9,7 +12,6 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
 using System.Web.Mvc;
-using Shared.Enums;
 
 namespace OgrenciPortalApi.Controllers
 {
@@ -197,6 +199,7 @@ namespace OgrenciPortalApi.Controllers
             }
 
             var advisorId = GetActiveUserId();
+            var studentMailList = new Dictionary<Guid, (Users student, List<CourseStatusInfo> updates)>();
             using (var transaction = _db.Database.BeginTransaction())
             {
                 try
@@ -230,6 +233,16 @@ namespace OgrenciPortalApi.Controllers
                                 }
                             }
 
+                            if (!studentMailList.ContainsKey(studentId))
+                            {
+                                studentMailList[studentId] = (studentCourse.Users, new List<CourseStatusInfo>());
+                            }
+                            studentMailList[studentId].updates.Add(new CourseStatusInfo
+                            {
+                                CourseName = studentCourse.OfferedCourses.Courses.CourseName,
+                                Status = model.NewStatus
+                            });
+
                             successCount++;
                         }
                         else
@@ -240,6 +253,25 @@ namespace OgrenciPortalApi.Controllers
 
                     await _db.SaveChangesAsync();
                     transaction.Commit();
+
+                    foreach (var entry in studentMailList)
+                    {
+                        try
+                        {
+                            var studentInfo = entry.Value.student;
+                            var courseUpdates = entry.Value.updates;
+                            await MailService.Instance.SendCourseStatusUpdateEmailAsync(
+                                $"{studentInfo.Name} {studentInfo.Surname}",
+                                studentInfo.Email,
+                                courseUpdates
+                            );
+                        }
+                        catch (Exception ex)
+                        {
+                            // E-posta gönderimi başarısız olursa bunu sadece logla, API'ın başarısını etkilemesin.
+                            Logger.Error($"Öğrenci {entry.Key} için durum güncelleme e-postası gönderilemedi.", ex);
+                        }
+                    }
 
                     var statusText = model.NewStatus == ApprovalStatus.Onaylandı ? "onaylandı" : "reddedildi";
                     var message = $"{successCount} ders kaydı başarıyla {statusText}.";
@@ -253,6 +285,7 @@ namespace OgrenciPortalApi.Controllers
                     }
 
                     return Ok(new { message });
+
                 }
                 catch (Exception ex)
                 {
@@ -261,6 +294,8 @@ namespace OgrenciPortalApi.Controllers
                     return InternalServerError(new Exception("Onay durumu güncellenirken bir hata oluştu."));
                 }
             }
+
+
         }
 
 

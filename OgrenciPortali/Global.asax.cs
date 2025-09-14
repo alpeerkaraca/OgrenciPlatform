@@ -1,4 +1,4 @@
-using log4net;
+ï»¿using log4net;
 using Microsoft.IdentityModel.Tokens;
 using OgrenciPortali.Utils;
 using System;
@@ -34,6 +34,12 @@ namespace OgrenciPortali
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             AntiForgeryConfig.UniqueClaimTypeIdentifier = ClaimTypes.NameIdentifier;
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+            log4net.Config.XmlConfigurator.Configure();
+            System.Threading.Thread.CurrentThread.CurrentCulture =
+                new System.Globalization.CultureInfo("tr-TR");
+            System.Threading.Thread.CurrentThread.CurrentUICulture =
+                new System.Globalization.CultureInfo("tr-TR");
+
             InitializeTokenValidationParameters();
 
             var builder = new ContainerBuilder();
@@ -44,7 +50,7 @@ namespace OgrenciPortali
             var mapperConfig = new MapperConfiguration(cfg => { cfg.AddMaps(typeof(MvcApplication).Assembly); },
                 new LoggerFactory());
 
-            // 2. Oluþturulan mapper nesnesini DI container'a tek bir instance olarak kaydet.
+            // 2. OluÅŸturulan mapper nesnesini DI container'a tek bir instance olarak kaydet.
             builder.RegisterInstance(mapperConfig.CreateMapper())
                 .As<IMapper>()
                 .SingleInstance();
@@ -56,12 +62,17 @@ namespace OgrenciPortali
 
         protected void
             Application_BeginRequest(object sender,
-                EventArgs e) // Input streami baþa sarmamýzý saðlýyor bu sayede request body'yi birden fazla kez okuyabiliyoruz.
+                EventArgs e) // Input streami baÅŸa sarmamÄ±zÄ± saÄŸlÄ±yor bu sayede request body'yi birden fazla kez okuyabiliyoruz.
         {
             if (Request.InputStream.Length > 0)
             {
                 Request.InputStream.Position = 0;
             }
+
+            Response.ContentType = "text/html; charset=utf-8";
+            Response.Charset = "utf-8";
+            Response.HeaderEncoding = Encoding.UTF8;
+            Response.ContentEncoding = Encoding.UTF8;
         }
 
         protected void Application_AuthenticateRequest(object sender, EventArgs e)
@@ -85,17 +96,17 @@ namespace OgrenciPortali
             }
             catch (SecurityTokenExpiredException ex)
             {
-                Logger.Warn("Kullanýcýnýn token süresi dolmuþ (Global.asax). Cookie temizlenecek.", ex);
+                Logger.Warn("KullanÄ±cÄ±nÄ±n token sÃ¼resi dolmuÅŸ (Global.asax). Cookie temizlenecek.", ex);
                 var expiredCookie = new HttpCookie("AuthToken", "") { Expires = DateTime.Now.AddDays(-1) };
                 HttpContext.Current.Response.Cookies.Add(expiredCookie);
             }
             catch (SecurityTokenException ex)
             {
-                Logger.Error("Token doðrulamasý baþarýsýz oldu (Global.asax): ", ex);
+                Logger.Error("Token doÄŸrulamasÄ± baÅŸarÄ±sÄ±z oldu (Global.asax): ", ex);
             }
             catch (Exception ex)
             {
-                Logger.Error("Authentication Request sýrasýnda genel hata (Global.asax): ", ex);
+                Logger.Error("Authentication Request sÄ±rasÄ±nda genel hata (Global.asax): ", ex);
             }
         }
 

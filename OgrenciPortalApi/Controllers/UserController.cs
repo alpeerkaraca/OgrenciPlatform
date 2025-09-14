@@ -5,18 +5,21 @@ using Shared.DTO;
 using Shared.Enums;
 using System;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Web.Hosting;
 using System.Web.Http;
 using System.Web.Http.Description;
 using System.Web.Http.Results;
 using System.Web.Mvc;
 using MailKit.Net.Smtp;
 using MimeKit;
+using OgrenciPortalApi.Services;
 using Org.BouncyCastle.Ocsp;
 using ModelStateDictionary = System.Web.Http.ModelBinding.ModelStateDictionary;
 
@@ -133,12 +136,11 @@ namespace OgrenciPortalApi.Controllers
                     var userClaim = User.Identity as ClaimsIdentity;
                     var userId = userClaim.FindFirst(ClaimTypes.NameIdentifier).Value;
                     string generatedStudentNo = await CreateStudentNo(model);
-                    if (generatedStudentNo == null)
+                    if (generatedStudentNo == null && model.Role == (int)Roles.Öğrenci)
                         return BadRequest("Öğrenci Numarası Hatalı");
 
 
-                    if (model.Role == (int)Roles.Öğrenci && !string.IsNullOrEmpty(generatedStudentNo) &&
-                        await _db.Users.AnyAsync(u => u.StudentNo == generatedStudentNo && !u.IsDeleted))
+                    if (model.Role == (int)Roles.Öğrenci && await CheckUserData.CheckStudentNoAsync(generatedStudentNo))
                         return BadRequest("Bu öğrenci numarası zaten kayıtlı.");
 
                     if (await _db.Users.AnyAsync(u => u.Email == model.Email && !u.IsDeleted))
@@ -168,6 +170,13 @@ namespace OgrenciPortalApi.Controllers
                     _db.Users.Add(newUser);
                     await _db.SaveChangesAsync();
                     transaction.Commit();
+                    var htmlPath = HostingEnvironment.MapPath("~/Views/account-created-template.html");
+                    var htmlTemplate = File.ReadAllText(htmlPath);
+                    htmlTemplate = htmlTemplate.Replace("[Öğrenci Adı Soyadı]", newUser.Name + " " + newUser.Surname);
+                    htmlTemplate = htmlTemplate.Replace("[E-Posta Adresi]", newUser.Email);
+                    htmlTemplate = htmlTemplate.Replace("[Geçici Şifre]", model.Password);
+                    htmlTemplate = htmlTemplate.Replace("[Giris_Linki]", AppSettings.JwtAudience + "/User/Login");
+                    await MailService.Instance.SendEmailAsync(newUser.Email, "Öğrenci Portala Hoş Geldiniz", htmlTemplate);
                     return Ok(new { Message = "Kullanıcı başarıyla kaydedildi." });
                 }
                 catch (Exception ex)
@@ -391,22 +400,34 @@ namespace OgrenciPortalApi.Controllers
         [System.Web.Http.Route("forgot-password")]
         public async Task<IHttpActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto model)
         {
-            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == model.Email && !u.IsDeleted);
-            if (user != null)
+            try
             {
-                var token = Guid.NewGuid().ToString("N");
-                user.PasswordResetToken = token;
-                user.ResetTokenExpiry = DateTime.UtcNow.AddMinutes(15);
-                await _db.SaveChangesAsync();
-                var resetLink = AppSettings.JwtAudience + "/User/ResetPassword?token=" + token;
-                await SendPasswordResetEmail(user.Email, resetLink);
-            }
+                var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == model.Email && !u.IsDeleted);
+                if (user != null)
+                {
+                    var token = Guid.NewGuid().ToString("N");
+                    user.PasswordResetToken = token;
+                    user.ResetTokenExpiry = DateTime.UtcNow.AddMinutes(15);
+                    await _db.SaveChangesAsync();
+                    var resetLink = AppSettings.JwtAudience + "/User/ResetPassword?token=" + token;
+                    await SendPasswordResetEmail(user.Email, resetLink);
+                }
 
-            return Ok(new
+                return Ok(new
+                {
+                    Message =
+                        "Eğer E-Postanız sistemimizde kayıtlıysa 15 dakika geçerli bir sıfırlama bağlantısı gönderilecektir. Spam kutunuzu kontrol etmeyi unutmayın."
+                });
+            }
+            catch (Exception ex)
             {
-                Message =
-                    "Eğer E-Postanız sistemimizde kayıtlıysa 15 dakika geçerli bir sıfırlama bağlantısı gönderilecektir. Spam kutunuzu kontrol etmeyi unutmayın."
-            });
+                Logger.Error("Parola sıfırlama isteği sırasında hata oluştu.", ex);
+                return Ok(new
+                {
+                    Message =
+                        "Eğer E-Postanız sistemimizde kayıtlıysa 15 dakika geçerli bir sıfırlama bağlantısı gönderilecektir. Spam kutunuzu kontrol etmeyi unutmayın."
+                });
+            }
         }
 
         [System.Web.Http.HttpPost]
@@ -461,25 +482,12 @@ namespace OgrenciPortalApi.Controllers
         {
             try
             {
-                var message = new MimeMessage();
-                message.From.Add(new MailboxAddress("Öğrenci Portal", AppSettings.SmtpUser));
-                message.To.Add(new MailboxAddress("", toEmail));
-                message.Subject = "Parola Sıfırlama Talebi";
-                message.Body = new TextPart("html")
-                {
-                    Text =
-                        $"Merhaba,<br/>Parolanızı sıfırlamak için aşağıdaki linke tıklayabilirsiniz:<br/><a href='{resetLink}'>Parolamı Sıfırla</a><br/><br/>Eğer bu talebi siz yapmadıysanız, bu e-postayı görmezden gelebilirsiniz."
-                };
-
-                using (var client = new SmtpClient())
-                {
-                    await client.ConnectAsync(AppSettings.SmtpHost, int.Parse(AppSettings.SmtpPort),
-                        MailKit.Security.SecureSocketOptions.SslOnConnect);
-                    await client.AuthenticateAsync(AppSettings.SmtpUser, AppSettings.SmtpPass);
-                    await client.SendAsync(message);
-                    await client.DisconnectAsync(true);
-                    Logger.Info($"Parola sıfırlama e-postası başarıyla gönderildi: {toEmail}");
-                }
+                var templatePath =
+                    System.Web.Hosting.HostingEnvironment.MapPath("~/Views/password-reset-template.html");
+                var htmlTemplate = File.ReadAllText(templatePath);
+                htmlTemplate = htmlTemplate.Replace("[Sifirlama_Linki]", resetLink);
+                htmlTemplate = htmlTemplate.Replace("[Geçerlilik Süresi]", "15");
+                await MailService.Instance.SendEmailAsync(toEmail, "Parola Sıfırlama Talebi", htmlTemplate);
             }
             catch (Exception ex)
             {
@@ -540,6 +548,7 @@ namespace OgrenciPortalApi.Controllers
             else
                 return null;
         }
+
         [System.Web.Http.HttpGet]
         [System.Web.Http.Route("get-by-department/{departmentId:guid}")] // Route'u daha açıklayıcı hale getirdik
         public async Task<IHttpActionResult> GetByDepartment(Guid departmentId)

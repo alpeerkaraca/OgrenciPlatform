@@ -27,7 +27,7 @@ namespace OgrenciPortali
             bundles.Add(new Bundle("~/bundles/datatables").Include(
                       "~/Scripts/datatables/datatables.min.js"));
 
-            bundles.Add(new StyleBundle("~/Content/css").Include(
+            bundles.Add(new StyleBundle("~/bundles/css").Include(
                       "~/Content/bootstrap-lux.css",
                       "~/Content/css/style.css",
                       "~/Content/boxicons/boxicons.min.css",

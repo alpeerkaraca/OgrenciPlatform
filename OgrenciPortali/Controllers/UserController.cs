@@ -63,61 +63,71 @@ namespace OgrenciPortali.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> Login(LoginUserViewModel viewModel)
         {
-            if (!ModelState.IsValid)
-                return View(viewModel);
-            var loginUserDto = _mapper.Map<LoginUserDTO>(viewModel);
-            var request = new HttpRequestMessage(HttpMethod.Post, "api/user/login")
+            try
             {
-                Content = new StringContent(JsonConvert.SerializeObject(loginUserDto), Encoding.UTF8,
-                    "application/json"),
-            };
-
-            var response = await _apiClient.SendAsync(request);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsAsync<LoginSuccessResponse>();
-                if (result == null || string.IsNullOrEmpty(result.AccessToken))
+                if (!ModelState.IsValid)
+                    return View(viewModel);
+                var loginUserDto = _mapper.Map<LoginUserDTO>(viewModel);
+                var request = new HttpRequestMessage(HttpMethod.Post, "api/user/login")
                 {
-                    ModelState.AddModelError("",
-                        "Giriş işlemi başarısız oldu. Lütfen bilgilerinizi kontrol edin ve tekrar deneyin.");
+                    Content = new StringContent(JsonConvert.SerializeObject(loginUserDto), Encoding.UTF8,
+                        "application/json"),
+                };
+
+                var response = await _apiClient.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<LoginSuccessResponse>();
+                    if (result == null || string.IsNullOrEmpty(result.AccessToken))
+                    {
+                        ModelState.AddModelError("",
+                            "Giriş işlemi başarısız oldu. Lütfen bilgilerinizi kontrol edin ve tekrar deneyin.");
+                        return View(viewModel);
+                    }
+
+                    var userCookie = new HttpCookie("AuthToken", result.AccessToken)
+                    {
+                        HttpOnly = true,
+                        Secure = Request.IsSecureConnection,
+                        Expires = DateTime.Now.AddMinutes(15),
+                        Path = "/",
+                        SameSite = SameSiteMode.Strict,
+                    };
+
+                    var refreshUserCookie = new HttpCookie("RefreshToken", result.RefreshToken)
+                    {
+                        HttpOnly = true,
+                        Secure = Request.IsSecureConnection,
+                        Expires = DateTime.Now.AddDays(7),
+                        Path = "/",
+                        SameSite = SameSiteMode.Strict,
+                    };
+
+                    Response.Cookies.Add(userCookie);
+                    Response.Cookies.Add(refreshUserCookie);
+
+                    return RedirectToAction("Index", "Home");
+                }
+
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    var json = await response.Content.ReadAsAsync<dynamic>();
+                    ModelState.AddModelError("", json.Message.ToString());
                     return View(viewModel);
                 }
 
-                var userCookie = new HttpCookie("AuthToken", result.AccessToken)
-                {
-                    HttpOnly = true,
-                    Secure = Request.IsSecureConnection,
-                    Expires = DateTime.Now.AddMinutes(15),
-                    Path = "/",
-                    SameSite = SameSiteMode.Strict,
-                };
-
-                var refreshUserCookie = new HttpCookie("RefreshToken", result.RefreshToken)
-                {
-                    HttpOnly = true,
-                    Secure = Request.IsSecureConnection,
-                    Expires = DateTime.Now.AddDays(7),
-                    Path = "/",
-                    SameSite = SameSiteMode.Strict,
-                };
-
-                Response.Cookies.Add(userCookie);
-                Response.Cookies.Add(refreshUserCookie);
-
-                return RedirectToAction("Index", "Home");
-            }
-
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                var json = await response.Content.ReadAsAsync<dynamic>();
-                ModelState.AddModelError("", json.Message.ToString());
+                ModelState.AddModelError("",
+                    "Giriş işlemi sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
                 return View(viewModel);
             }
-
-            ModelState.AddModelError("",
-                "Giriş işlemi sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
-            return View(viewModel);
+            catch (Exception ex)
+            {
+                Logger.Error("Login sırasında API isteği başarısız oldu.", ex);
+                ModelState.AddModelError("",
+                    "Giriş işlemi sırasında beklenmedik bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
+                return View(viewModel);
+            }
         }
 
         /// <summary>
@@ -140,7 +150,6 @@ namespace OgrenciPortali.Controllers
                 return View(model);
 
             var changePasswordDto = _mapper.Map<ChangePasswordDTO>(model);
-            changePasswordDto.UserId = Guid.Parse(userIdClaim);
 
             var request = new HttpRequestMessage(HttpMethod.Post, "api/user/change-password")
             {
@@ -422,7 +431,10 @@ namespace OgrenciPortali.Controllers
                 {
                     Content = new StringContent(
                         JsonConvert.SerializeObject(new ResetPasswordRequestDto
-                            { NewPassword = model.NewPassword, Token = model.Token, ConfirmPassword = model.ConfirmPassword}), Encoding.UTF8,
+                        {
+                            NewPassword = model.NewPassword, Token = model.Token,
+                            ConfirmPassword = model.ConfirmPassword
+                        }), Encoding.UTF8,
                         "application/json"),
                 };
 

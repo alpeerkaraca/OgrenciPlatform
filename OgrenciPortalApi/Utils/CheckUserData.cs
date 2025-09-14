@@ -17,19 +17,31 @@ namespace OgrenciPortalApi.Utils
             {
                 using (var sql = new OgrenciPortalApiDB())
                 {
-                    var users = sql.Users.Select(u => new { u.UserId, u.Email }).ToList();
-                    if (!users.Any())
+                    var usersEmail = sql.Users.Select(u => new { u.UserId, u.Email }).ToList();
+                    var usersStudentNo = sql.Users.Select(u => new { u.UserId, u.StudentNo }).ToList();
+                    if (!usersEmail.Any())
                         return;
 
-                    var tasks = users.Select(user =>
+                    var tasks = usersEmail.Select(user =>
                     {
                         string redisKey = $"user:email:{user.Email}";
                         return redisDb.StringSetAsync(redisKey, user.UserId.ToString());
                     });
 
                     await Task.WhenAll(tasks);
-                    Logger.Info($"{users.Count} kullanıcı e-postası başarıyla Redis'e önbelleklendi.");
-                }
+                    Logger.Info($"{usersEmail.Count} kullanıcı e-postası başarıyla Redis'e önbelleklendi.");
+                    if (!usersStudentNo.Any())
+                        return;
+
+                    var tasksStuNo = usersStudentNo.Select(user =>
+                    {
+                        string redisKey = $"user:studentno:{user.StudentNo}";
+                        return redisDb.StringSetAsync(redisKey, user.UserId.ToString());
+                    });
+                    await Task.WhenAll(tasksStuNo);
+                    Logger.Info($"{usersStudentNo.Count} kullanıcı öğrenci numarası başarıyla Redis'e önbelleklendi.");
+
+                }   
             }
             catch (Exception e)
             {
@@ -41,6 +53,10 @@ namespace OgrenciPortalApi.Utils
         {
             return await redisDb.KeyExistsAsync($"user:email:{email}");
         }
+        private static async Task<bool> CheckStudentNoOnRedisAsync(string studentNo)
+        {
+            return await redisDb.KeyExistsAsync($"user:studentno:{studentNo}");
+        }
 
         private static async Task<bool> CheckEmailAddressOnSqlAsync(string email)
         {
@@ -48,6 +64,24 @@ namespace OgrenciPortalApi.Utils
             {
                 return await Task.FromResult(sql.Users.Any(u => u.Email == email));
             }
+        }
+
+        private static async Task<bool> CheckStudentNoOnSqlAsync(string studentNo)
+        {
+            using (var sql = new OgrenciPortalApiDB())
+            {
+                return await Task.FromResult(sql.Users.Any(u => u.StudentNo == studentNo));
+            }
+        }
+
+        public static async Task<bool> CheckStudentNoAsync(string number)
+        {
+            if (await CheckEmailAddressOnRedisAsync(number))
+            {
+                return true;
+            }
+
+            return await CheckEmailAddressOnSqlAsync(number);
         }
 
         public static async Task<bool> CheckEmailAddressAsync(string email)

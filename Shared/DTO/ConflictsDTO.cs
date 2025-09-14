@@ -10,4 +10,9 @@ namespace Shared.DTO
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
     }
+
+    public class CheckConflictDto
+    {
+        public string offeredCourseId { get; set; }
+    }
 }

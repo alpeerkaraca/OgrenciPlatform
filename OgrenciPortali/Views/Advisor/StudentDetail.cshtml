@@ -1,8 +1,8 @@
-@using Shared.DTO
+ï»¿@using Shared.DTO
 @using Shared.Enums
 @model StudentDetailDto
 @{
-    ViewBag.Title = "Öðrenci Detayý";
+    ViewBag.Title = "Ã–ÄŸrenci DetayÄ±";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -10,7 +10,7 @@
     <div class="row mt-4">
         <div class="col-12">
             <a href="@Url.Action("AdvisedStudentList", "Advisor")" class="btn btn-secondary">
-                <i class="bi bi-arrow-left me-2"></i>Geri Dön
+                <i class="bi bi-arrow-left me-2"></i>Geri DÃ¶n
             </a>
         </div>
     </div>
@@ -19,7 +19,7 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
-                        <i class="bi bi-person-circle me-2"></i>Öðrenci Bilgileri
+                        <i class="bi bi-person-circle me-2"></i>Ã–ÄŸrenci Bilgileri
                     </h5>
                 </div>
                 <div class="card-body">
@@ -36,7 +36,7 @@
                             <td>@Model.FullName</td>
                         </tr>
                         <tr>
-                            <td class="fw-bold text-muted">Öðrenci No:</td>
+                            <td class="fw-bold text-muted">Ã–ÄŸrenci No:</td>
                             <td>
                                 <span class="badge bg-primary">@Model.StudentNo</span>
                             </td>
@@ -50,7 +50,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td class="fw-bold text-muted">Bölüm:</td>
+                            <td class="fw-bold text-muted">BÃ¶lÃ¼m:</td>
                             <td>
                                 @if (Model.DepartmentName != null)
                                 {
@@ -59,7 +59,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td class="fw-bold text-muted">Kayýt Tarihi:</td>
+                            <td class="fw-bold text-muted">KayÄ±t Tarihi:</td>
                             <td>@Model.CreatedAt.ToString("dd.MM.yyyy")</td>
                         </tr>
                     </table>
@@ -69,7 +69,7 @@
             <div class="card shadow-sm mt-4">
                 <div class="card-header bg-info text-white">
                     <h6 class="mb-0">
-                        <i class="bi bi-bar-chart me-2"></i>Ýstatistikler
+                        <i class="bi bi-bar-chart me-2"></i>Ä°statistikler
                     </h6>
                 </div>
                 <div class="card-body">
@@ -82,7 +82,7 @@
                         </div>
                         <div class="col-4">
                             <div class="border-end">
-                                <div class="fs-4 fw-bold text-success">@Model.StudentCourses.Count(c => c.ApprovalStatus == (int)ApprovalStatus.Onaylandý)</div>
+                                <div class="fs-4 fw-bold text-success">@Model.StudentCourses.Count(c => c.ApprovalStatus == 1)</div>
                                 <small class="text-muted">Onaylanan</small>
                             </div>
                         </div>
@@ -99,7 +99,7 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-secondary text-black bg-success">
                     <h5 class="mb-0">
-                        <i class="bi bi-journal-bookmark me-2"></i>Ders Kayýtlarý
+                        <i class="bi bi-journal-bookmark me-2"></i>Ders KayÄ±tlarÄ±
                     </h5>
                 </div>
                 <div class="card-body">
@@ -110,12 +110,12 @@
                                 <thead class="table-dark">
                                 <tr>
                                     <th>Ders Kodu</th>
-                                    <th>Ders Adý</th>
+                                    <th>Ders AdÄ±</th>
                                     <th>Kredi</th>
-                                    <th>Dönem</th>
+                                    <th>DÃ¶nem</th>
                                     <th>Durum</th>
-                                    <th>Kayýt Tarihi</th>
-                                    <th class="text-center">Ýþlemler</th>
+                                    <th>KayÄ±t Tarihi</th>
+                                    <th class="text-center">Ä°ÅŸlemler</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -124,17 +124,17 @@
                                     var statusClass = course.ApprovalStatus switch
                                     {
                                         (int)ApprovalStatus.Bekliyor => "warning",
-                                        (int)ApprovalStatus.Onaylandý => "success",
+                                        1 => "success",
                                         _ => "danger"
                                     };
                                     var statusIcon = course.ApprovalStatus switch
                                     {
                                         (int)ApprovalStatus.Bekliyor => "clock",
-                                        (int)ApprovalStatus.Onaylandý => "check-circle",
+                                        1 => "check-circle",
                                         _ => "x-circle"
                                     };
                                     var statusText = course.ApprovalStatus == (int)ApprovalStatus.Bekliyor ? "Bekliyor" :
-                                        course.ApprovalStatus == (int)ApprovalStatus.Onaylandý ? "Onaylandý" : "Reddedildi";
+                                        course.ApprovalStatus == 1 ? "OnaylandÄ±" : "Reddedildi";
 
                                     <tr>
                                         <td>
@@ -186,7 +186,7 @@
                     {
                         <div class="alert alert-info text-center">
                             <i class="bi bi-info-circle-fill me-2"></i>
-                            Bu öðrencinin henüz ders kaydý bulunmamaktadýr.
+                            Bu Ã¶ÄŸrencinin henÃ¼z ders kaydÄ± bulunmamaktadÄ±r.
                         </div>
                     }
                 </div>
@@ -203,7 +203,7 @@
                             <div class="col-sm-6 text-end">
                                 <small class="text-muted">
                                     <i class="bi bi-clock me-1"></i>
-                                    Son güncelleme: @DateTime.Now.ToString("dd.MM.yyyy HH:mm")
+                                    Son gÃ¼ncelleme: @DateTime.Now.ToString("dd.MM.yyyy HH:mm")
                                 </small>
                             </div>
                         </div>
@@ -219,7 +219,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header" id="responseModalHeader">
-                <h5 class="modal-title" id="responseModalLabel"></h5>
+                <h5 class="modal-title text-white" id="responseModalLabel"></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="responseModalBody"></div>
@@ -235,7 +235,7 @@
 @section Scripts {
     <script>
         /**
-         * Sayfa yüklendiðinde gerekli bileþenleri baþlatýr
+         * Sayfa yÃ¼klendiÄŸinde gerekli bileÅŸenleri baÅŸlatÄ±r
          */
         document.addEventListener('DOMContentLoaded',
             function() {
@@ -244,7 +244,7 @@
             });
 
 /**
- * DataTable'ý baþlatýr
+ * DataTable'Ä± baÅŸlatÄ±r
  */
         function initializeDataTable() {
             const table = document.getElementById('coursesTable');
@@ -266,7 +266,7 @@
         }
 
 /**
- * Onay/Red butonlarýnýn event handler'larýný ayarlar
+ * Onay/Red butonlarÄ±nÄ±n event handler'larÄ±nÄ± ayarlar
  */
         function initializeApprovalButtons() {
             const responseModal = new bootstrap.Modal(document.getElementById('responseModal'));
@@ -284,7 +284,7 @@
                 });
 
             /**
-             * Onay/Red iþlemini gerçekleþtirir
+             * Onay/Red iÅŸlemini gerÃ§ekleÅŸtirir
              */
             async function processApproval(studentIds, offeredCourseIds, newStatus) {
                 const requestData = {
@@ -296,7 +296,7 @@
                 const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
                 try {
 
-                    var response = await fetch(`ApiProxy/Post?=${apiUrl}`,
+                    var response = await fetch(`/ApiProxy/Post?apiUrl=${apiUrl}`,
                         {
                             method: 'POST',
                             headers: {
@@ -307,14 +307,14 @@
                         })
                     var result = await response.json();
                     if (response.ok) {
-                        showFeedbackModal("sucess", 'Ýþlem Baþarýlý', data.message);
+                        showFeedbackModal("sucess", 'Ä°ÅŸlem BaÅŸarÄ±lÄ±', result.Message);
                     }
                     else {
-                        showFeedbackModal("error", "Ýþlem Hatasý", data.message);
+                        showFeedbackModal("error", "Ä°ÅŸlem HatasÄ±", result.Message);
                     }
                 } catch
                 (error) {
-                    showFeedbackModal('error', 'Að Hatasý', error.message);
+                    showFeedbackModal('error', 'AÄŸ HatasÄ±', error.message);
                 };
             }
         }

@@ -55,5 +55,5 @@ TestResult.xml
 nunit-*.xml
 
 # Enviroment
-.env
+.env*
 packages/

@@ -8,6 +8,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using AutoMapper;
+using log4net.Core;
 using Newtonsoft.Json;
 using OgrenciPortali.Utils;
 using Shared.DTO;
@@ -20,7 +21,7 @@ namespace OgrenciPortali.Controllers
     [CustomAuth(Roles.Danışman)]
     public class AdvisorController : BaseController
     {
-        private static readonly ILog Logger = LogManager.GetLogger(typeof(CoursesController));
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(AdvisorController));
         private readonly ApiClient _apiClient;
         private readonly IMapper _mapper;
 
@@ -33,15 +34,23 @@ namespace OgrenciPortali.Controllers
 
         public async Task<ActionResult> CourseApprovals()
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, "api/advisor/approvals");
-            var response = await _apiClient.SendAsync(request);
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var dto = await response.Content.ReadAsAsync<AdvisorApprovalDTO>();
-                return View(dto);
-            }
+                var request = new HttpRequestMessage(HttpMethod.Get, "api/advisor/approvals");
+                var response = await _apiClient.SendAsync(request);
+                if (response.IsSuccessStatusCode)
+                {
+                    var dto = await response.Content.ReadAsAsync<AdvisorApprovalDTO>();
+                    return View(dto);
+                }
 
-            return View(new AdvisorApprovalDTO());
+                return View(new AdvisorApprovalDTO());
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Ders Onayları Alınırken Hata: ", ex);
+                return View(new AdvisorApprovalDTO());
+            }
         }
 
         public async Task<ActionResult> AdvisedStudentList()

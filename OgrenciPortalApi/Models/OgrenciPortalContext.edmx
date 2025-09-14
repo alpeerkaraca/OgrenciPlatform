@@ -4,263 +4,263 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-    <Schema Namespace="ogrenciPortalContext.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
-        <EntityType Name="Courses">
-          <Key>
-            <PropertyRef Name="CourseId" />
-          </Key>
-          <Property Name="CourseId" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="CourseCode" Type="nvarchar" MaxLength="10" Nullable="false" />
-          <Property Name="CourseName" Type="nvarchar" MaxLength="100" Nullable="false" />
-          <Property Name="Credits" Type="int" Nullable="false" />
-          <Property Name="DepartmentId" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="CreatedAt" Type="datetime" Nullable="false" />
-          <Property Name="CreatedBy" Type="nvarchar" MaxLength="100" />
-          <Property Name="UpdatedAt" Type="datetime" Nullable="false" />
-          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="100" />
-          <Property Name="IsDeleted" Type="bit" Nullable="false" />
-          <Property Name="DeletedAt" Type="datetime" />
-          <Property Name="DeletedBy" Type="nvarchar" MaxLength="100" />
-          <Property Name="Description" Type="nvarchar" MaxLength="512" />
-        </EntityType>
-        <EntityType Name="Departments">
-          <Key>
-            <PropertyRef Name="DepartmentId" />
-          </Key>
-          <Property Name="DepartmentId" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
-          <Property Name="IsActive" Type="bit" Nullable="false" />
-          <Property Name="CreatedAt" Type="datetime" Nullable="false" />
-          <Property Name="CreatedBy" Type="nvarchar" MaxLength="100" />
-          <Property Name="UpdatedAt" Type="datetime" Nullable="false" />
-          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="100" />
-          <Property Name="IsDeleted" Type="bit" Nullable="false" />
-          <Property Name="DeletedAt" Type="datetime" />
-          <Property Name="DeletedBy" Type="nvarchar" MaxLength="100" />
-          <Property Name="DepartmentCode" Type="nvarchar" MaxLength="10" Nullable="false" />
-          <Property Name="DepartmentIdGen" Type="nvarchar" MaxLength="10" />
-        </EntityType>
-        <EntityType Name="OfferedCourses">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="CourseId" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="SemesterId" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="TeacherId" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="Quota" Type="int" Nullable="false" />
-          <Property Name="DayOfWeek" Type="int" Nullable="false" />
-          <Property Name="StartTime" Type="time" Precision="7" Nullable="false" />
-          <Property Name="EndTime" Type="time" Precision="7" Nullable="false" />
-          <Property Name="CreatedAt" Type="datetime" Nullable="false" />
-          <Property Name="CreatedBy" Type="nvarchar" MaxLength="100" />
-          <Property Name="UpdatedAt" Type="datetime" Nullable="false" />
-          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="100" />
-          <Property Name="IsDeleted" Type="bit" Nullable="false" />
-          <Property Name="DeletedAt" Type="datetime" />
-          <Property Name="DeletedBy" Type="nvarchar" MaxLength="100" />
-          <Property Name="CurrentUserCount" Type="int" Nullable="false" />
-          <Property Name="CourseYear" Type="int" Nullable="false" />
-          <Property Name="Classroom" Type="nvarchar" MaxLength="100" Nullable="false" />
-        </EntityType>
-        <EntityType Name="Semesters">
-          <Key>
-            <PropertyRef Name="SemesterId" />
-          </Key>
-          <Property Name="SemesterId" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="SemesterName" Type="nvarchar" MaxLength="50" Nullable="false" />
-          <Property Name="StartDate" Type="datetime" Nullable="false" />
-          <Property Name="EndDate" Type="datetime" Nullable="false" />
-          <Property Name="IsActive" Type="bit" Nullable="false" />
-          <Property Name="CreatedAt" Type="datetime" Nullable="false" />
-          <Property Name="CreatedBy" Type="nvarchar" MaxLength="100" />
-          <Property Name="UpdatedAt" Type="datetime" Nullable="false" />
-          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="100" />
-          <Property Name="IsDeleted" Type="bit" Nullable="false" />
-          <Property Name="DeletedAt" Type="datetime" />
-          <Property Name="DeletedBy" Type="nvarchar" MaxLength="100" />
-        </EntityType>
-        <EntityType Name="StudentCourses">
-          <Key>
-            <PropertyRef Name="StudentId" />
-            <PropertyRef Name="OfferedCourseId" />
-          </Key>
-          <Property Name="StudentId" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="OfferedCourseId" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="ApprovalStatus" Type="int" Nullable="false" />
-          <Property Name="CreatedAt" Type="datetime" Nullable="false" />
-          <Property Name="CreatedBy" Type="nvarchar" MaxLength="100" />
-          <Property Name="UpdatedAt" Type="datetime" Nullable="false" />
-          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="100" />
-          <Property Name="IsDeleted" Type="bit" Nullable="false" />
-          <Property Name="DeletedAt" Type="datetime" />
-          <Property Name="DeletedBy" Type="nvarchar" MaxLength="100" />
-        </EntityType>
-        <EntityType Name="Users">
-          <Key>
-            <PropertyRef Name="UserId" />
-          </Key>
-          <Property Name="UserId" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="Name" Type="nvarchar" MaxLength="50" Nullable="false" />
-          <Property Name="Surname" Type="nvarchar" MaxLength="50" Nullable="false" />
-          <Property Name="Email" Type="nvarchar" MaxLength="100" Nullable="false" />
-          <Property Name="Password" Type="nvarchar" MaxLength="100" Nullable="false" />
-          <Property Name="Role" Type="int" Nullable="false" />
-          <Property Name="IsActive" Type="bit" Nullable="false" />
-          <Property Name="IsFirstLogin" Type="bit" Nullable="false" />
-          <Property Name="StudentNo" Type="nvarchar(max)" />
-          <Property Name="DepartmentId" Type="uniqueidentifier" />
-          <Property Name="AdvisorId" Type="uniqueidentifier" />
-          <Property Name="CreatedAt" Type="datetime" Nullable="false" />
-          <Property Name="CreatedBy" Type="nvarchar" MaxLength="100" />
-          <Property Name="UpdatedAt" Type="datetime" Nullable="false" />
-          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="100" />
-          <Property Name="IsDeleted" Type="bit" Nullable="false" />
-          <Property Name="DeletedAt" Type="datetime" />
-          <Property Name="DeletedBy" Type="nvarchar" MaxLength="100" />
-          <Property Name="RefreshToken" Type="nvarchar" MaxLength="128" />
-          <Property Name="RefreshTokenExpTime" Type="datetime" />
-          <Property Name="PasswordResetToken" Type="nvarchar" MaxLength="255" />
-          <Property Name="ResetTokenExpiry" Type="datetime" />
-          <Property Name="StudentYear" Type="int" />
-        </EntityType>
-        <Association Name="FK_dbo_Courses_dbo_Departments_DepartmentId">
-          <End Role="Departments" Type="Self.Departments" Multiplicity="1" />
-          <End Role="Courses" Type="Self.Courses" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Departments">
-              <PropertyRef Name="DepartmentId" />
-            </Principal>
-            <Dependent Role="Courses">
-              <PropertyRef Name="DepartmentId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_dbo_OfferedCourses_dbo_Courses_CourseId">
-          <End Role="Courses" Type="Self.Courses" Multiplicity="1" />
-          <End Role="OfferedCourses" Type="Self.OfferedCourses" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Courses">
-              <PropertyRef Name="CourseId" />
-            </Principal>
-            <Dependent Role="OfferedCourses">
-              <PropertyRef Name="CourseId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_dbo_OfferedCourses_dbo_Semesters_SemesterId">
-          <End Role="Semesters" Type="Self.Semesters" Multiplicity="1" />
-          <End Role="OfferedCourses" Type="Self.OfferedCourses" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Semesters">
-              <PropertyRef Name="SemesterId" />
-            </Principal>
-            <Dependent Role="OfferedCourses">
-              <PropertyRef Name="SemesterId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_dbo_OfferedCourses_dbo_Users_TeacherId">
-          <End Role="Users" Type="Self.Users" Multiplicity="1" />
-          <End Role="OfferedCourses" Type="Self.OfferedCourses" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Users">
-              <PropertyRef Name="UserId" />
-            </Principal>
-            <Dependent Role="OfferedCourses">
-              <PropertyRef Name="TeacherId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_dbo_StudentCourses_dbo_OfferedCourses_OfferedCourseId">
-          <End Role="OfferedCourses" Type="Self.OfferedCourses" Multiplicity="1" />
-          <End Role="StudentCourses" Type="Self.StudentCourses" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="OfferedCourses">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="StudentCourses">
-              <PropertyRef Name="OfferedCourseId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_dbo_StudentCourses_dbo_Users_StudentId">
-          <End Role="Users" Type="Self.Users" Multiplicity="1" />
-          <End Role="StudentCourses" Type="Self.StudentCourses" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Users">
-              <PropertyRef Name="UserId" />
-            </Principal>
-            <Dependent Role="StudentCourses">
-              <PropertyRef Name="StudentId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_dbo_Users_dbo_Departments_DepartmentId">
-          <End Role="Departments" Type="Self.Departments" Multiplicity="0..1" />
-          <End Role="Users" Type="Self.Users" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Departments">
-              <PropertyRef Name="DepartmentId" />
-            </Principal>
-            <Dependent Role="Users">
-              <PropertyRef Name="DepartmentId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_dbo_Users_dbo_Users_AdvisorId">
-          <End Role="Users" Type="Self.Users" Multiplicity="0..1" />
-          <End Role="Users1" Type="Self.Users" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Users">
-              <PropertyRef Name="UserId" />
-            </Principal>
-            <Dependent Role="Users1">
-              <PropertyRef Name="AdvisorId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <EntityContainer Name="ogrenciPortalContextStoreContainer">
-          <EntitySet Name="Courses" EntityType="Self.Courses" Schema="dbo" store:Type="Tables" />
-          <EntitySet Name="Departments" EntityType="Self.Departments" Schema="dbo" store:Type="Tables" />
-          <EntitySet Name="OfferedCourses" EntityType="Self.OfferedCourses" Schema="dbo" store:Type="Tables" />
-          <EntitySet Name="Semesters" EntityType="Self.Semesters" Schema="dbo" store:Type="Tables" />
-          <EntitySet Name="StudentCourses" EntityType="Self.StudentCourses" Schema="dbo" store:Type="Tables" />
-          <EntitySet Name="Users" EntityType="Self.Users" Schema="dbo" store:Type="Tables" />
-          <AssociationSet Name="FK_dbo_Courses_dbo_Departments_DepartmentId" Association="Self.FK_dbo_Courses_dbo_Departments_DepartmentId">
-            <End Role="Departments" EntitySet="Departments" />
-            <End Role="Courses" EntitySet="Courses" />
-          </AssociationSet>
-          <AssociationSet Name="FK_dbo_OfferedCourses_dbo_Courses_CourseId" Association="Self.FK_dbo_OfferedCourses_dbo_Courses_CourseId">
-            <End Role="Courses" EntitySet="Courses" />
-            <End Role="OfferedCourses" EntitySet="OfferedCourses" />
-          </AssociationSet>
-          <AssociationSet Name="FK_dbo_OfferedCourses_dbo_Semesters_SemesterId" Association="Self.FK_dbo_OfferedCourses_dbo_Semesters_SemesterId">
-            <End Role="Semesters" EntitySet="Semesters" />
-            <End Role="OfferedCourses" EntitySet="OfferedCourses" />
-          </AssociationSet>
-          <AssociationSet Name="FK_dbo_OfferedCourses_dbo_Users_TeacherId" Association="Self.FK_dbo_OfferedCourses_dbo_Users_TeacherId">
-            <End Role="Users" EntitySet="Users" />
-            <End Role="OfferedCourses" EntitySet="OfferedCourses" />
-          </AssociationSet>
-          <AssociationSet Name="FK_dbo_StudentCourses_dbo_OfferedCourses_OfferedCourseId" Association="Self.FK_dbo_StudentCourses_dbo_OfferedCourses_OfferedCourseId">
-            <End Role="OfferedCourses" EntitySet="OfferedCourses" />
-            <End Role="StudentCourses" EntitySet="StudentCourses" />
-          </AssociationSet>
-          <AssociationSet Name="FK_dbo_StudentCourses_dbo_Users_StudentId" Association="Self.FK_dbo_StudentCourses_dbo_Users_StudentId">
-            <End Role="Users" EntitySet="Users" />
-            <End Role="StudentCourses" EntitySet="StudentCourses" />
-          </AssociationSet>
-          <AssociationSet Name="FK_dbo_Users_dbo_Departments_DepartmentId" Association="Self.FK_dbo_Users_dbo_Departments_DepartmentId">
-            <End Role="Departments" EntitySet="Departments" />
-            <End Role="Users" EntitySet="Users" />
-          </AssociationSet>
-          <AssociationSet Name="FK_dbo_Users_dbo_Users_AdvisorId" Association="Self.FK_dbo_Users_dbo_Users_AdvisorId">
-            <End Role="Users" EntitySet="Users" />
-            <End Role="Users1" EntitySet="Users" />
-          </AssociationSet>
-        </EntityContainer>
-      </Schema></edmx:StorageModels>
+    <Schema Namespace="ogrenciPortalContext.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2012" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+  <EntityContainer Name="ogrenciPortalContextStoreContainer">
+    <EntitySet Name="Courses" EntityType="ogrenciPortalContext.Store.Courses" store:Type="Tables" Schema="dbo" />
+    <EntitySet Name="Departments" EntityType="ogrenciPortalContext.Store.Departments" store:Type="Tables" Schema="dbo" />
+    <EntitySet Name="OfferedCourses" EntityType="ogrenciPortalContext.Store.OfferedCourses" store:Type="Tables" Schema="dbo" />
+    <EntitySet Name="Semesters" EntityType="ogrenciPortalContext.Store.Semesters" store:Type="Tables" Schema="dbo" />
+    <EntitySet Name="StudentCourses" EntityType="ogrenciPortalContext.Store.StudentCourses" store:Type="Tables" Schema="dbo" />
+    <EntitySet Name="Users" EntityType="ogrenciPortalContext.Store.Users" store:Type="Tables" Schema="dbo" />
+    <AssociationSet Name="FK_dbo_Courses_dbo_Departments_DepartmentId" Association="ogrenciPortalContext.Store.FK_dbo_Courses_dbo_Departments_DepartmentId">
+      <End Role="Departments" EntitySet="Departments" />
+      <End Role="Courses" EntitySet="Courses" />
+    </AssociationSet>
+    <AssociationSet Name="FK_dbo_OfferedCourses_dbo_Courses_CourseId" Association="ogrenciPortalContext.Store.FK_dbo_OfferedCourses_dbo_Courses_CourseId">
+      <End Role="Courses" EntitySet="Courses" />
+      <End Role="OfferedCourses" EntitySet="OfferedCourses" />
+    </AssociationSet>
+    <AssociationSet Name="FK_dbo_Users_dbo_Departments_DepartmentId" Association="ogrenciPortalContext.Store.FK_dbo_Users_dbo_Departments_DepartmentId">
+      <End Role="Departments" EntitySet="Departments" />
+      <End Role="Users" EntitySet="Users" />
+    </AssociationSet>
+    <AssociationSet Name="FK_dbo_OfferedCourses_dbo_Semesters_SemesterId" Association="ogrenciPortalContext.Store.FK_dbo_OfferedCourses_dbo_Semesters_SemesterId">
+      <End Role="Semesters" EntitySet="Semesters" />
+      <End Role="OfferedCourses" EntitySet="OfferedCourses" />
+    </AssociationSet>
+    <AssociationSet Name="FK_dbo_OfferedCourses_dbo_Users_TeacherId" Association="ogrenciPortalContext.Store.FK_dbo_OfferedCourses_dbo_Users_TeacherId">
+      <End Role="Users" EntitySet="Users" />
+      <End Role="OfferedCourses" EntitySet="OfferedCourses" />
+    </AssociationSet>
+    <AssociationSet Name="FK_dbo_StudentCourses_dbo_OfferedCourses_OfferedCourseId" Association="ogrenciPortalContext.Store.FK_dbo_StudentCourses_dbo_OfferedCourses_OfferedCourseId">
+      <End Role="OfferedCourses" EntitySet="OfferedCourses" />
+      <End Role="StudentCourses" EntitySet="StudentCourses" />
+    </AssociationSet>
+    <AssociationSet Name="FK_dbo_StudentCourses_dbo_Users_StudentId" Association="ogrenciPortalContext.Store.FK_dbo_StudentCourses_dbo_Users_StudentId">
+      <End Role="Users" EntitySet="Users" />
+      <End Role="StudentCourses" EntitySet="StudentCourses" />
+    </AssociationSet>
+    <AssociationSet Name="FK_dbo_Users_dbo_Users_AdvisorId" Association="ogrenciPortalContext.Store.FK_dbo_Users_dbo_Users_AdvisorId">
+      <End Role="Users" EntitySet="Users" />
+      <End Role="Users1" EntitySet="Users" />
+    </AssociationSet>
+  </EntityContainer>
+  <EntityType Name="Courses">
+    <Key>
+      <PropertyRef Name="CourseId" />
+    </Key>
+    <Property Name="CourseId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="CourseCode" Type="nvarchar" Nullable="false" MaxLength="10" />
+    <Property Name="CourseName" Type="nvarchar" Nullable="false" MaxLength="100" />
+    <Property Name="Credits" Type="int" Nullable="false" />
+    <Property Name="DepartmentId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="CreatedAt" Type="datetime" Nullable="false" />
+    <Property Name="CreatedBy" Type="nvarchar" Nullable="true" MaxLength="100" />
+    <Property Name="UpdatedAt" Type="datetime" Nullable="false" />
+    <Property Name="UpdatedBy" Type="nvarchar" Nullable="true" MaxLength="100" />
+    <Property Name="IsDeleted" Type="bit" Nullable="false" />
+    <Property Name="DeletedAt" Type="datetime" Nullable="true" />
+    <Property Name="DeletedBy" Type="nvarchar" Nullable="true" MaxLength="100" />
+    <Property Name="Description" Type="nvarchar" Nullable="true" MaxLength="512" />
+  </EntityType>
+  <EntityType Name="Departments">
+    <Key>
+      <PropertyRef Name="DepartmentId" />
+    </Key>
+    <Property Name="DepartmentId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="Name" Type="nvarchar" Nullable="false" MaxLength="100" />
+    <Property Name="IsActive" Type="bit" Nullable="false" />
+    <Property Name="CreatedAt" Type="datetime" Nullable="false" />
+    <Property Name="CreatedBy" Type="nvarchar" Nullable="true" MaxLength="100" />
+    <Property Name="UpdatedAt" Type="datetime" Nullable="false" />
+    <Property Name="UpdatedBy" Type="nvarchar" Nullable="true" MaxLength="100" />
+    <Property Name="IsDeleted" Type="bit" Nullable="false" />
+    <Property Name="DeletedAt" Type="datetime" Nullable="true" />
+    <Property Name="DeletedBy" Type="nvarchar" Nullable="true" MaxLength="100" />
+    <Property Name="DepartmentCode" Type="nvarchar" Nullable="false" MaxLength="10" />
+    <Property Name="DepartmentIdGen" Type="nvarchar" Nullable="true" MaxLength="10" />
+  </EntityType>
+  <EntityType Name="OfferedCourses">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="CourseId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="SemesterId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="TeacherId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="Quota" Type="int" Nullable="false" />
+    <Property Name="DayOfWeek" Type="int" Nullable="false" />
+    <Property Name="StartTime" Type="time" Nullable="false" Precision="7" />
+    <Property Name="EndTime" Type="time" Nullable="false" Precision="7" />
+    <Property Name="CreatedAt" Type="datetime" Nullable="false" />
+    <Property Name="CreatedBy" Type="nvarchar" Nullable="true" MaxLength="100" />
+    <Property Name="UpdatedAt" Type="datetime" Nullable="false" />
+    <Property Name="UpdatedBy" Type="nvarchar" Nullable="true" MaxLength="100" />
+    <Property Name="IsDeleted" Type="bit" Nullable="false" />
+    <Property Name="DeletedAt" Type="datetime" Nullable="true" />
+    <Property Name="DeletedBy" Type="nvarchar" Nullable="true" MaxLength="100" />
+    <Property Name="CurrentUserCount" Type="int" Nullable="false" />
+    <Property Name="CourseYear" Type="int" Nullable="false" />
+    <Property Name="Classroom" Type="nvarchar" Nullable="false" MaxLength="100" />
+  </EntityType>
+  <EntityType Name="Semesters">
+    <Key>
+      <PropertyRef Name="SemesterId" />
+    </Key>
+    <Property Name="SemesterId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="SemesterName" Type="nvarchar" Nullable="false" MaxLength="50" />
+    <Property Name="StartDate" Type="datetime" Nullable="false" />
+    <Property Name="EndDate" Type="datetime" Nullable="false" />
+    <Property Name="IsActive" Type="bit" Nullable="false" />
+    <Property Name="CreatedAt" Type="datetime" Nullable="false" />
+    <Property Name="CreatedBy" Type="nvarchar" Nullable="true" MaxLength="100" />
+    <Property Name="UpdatedAt" Type="datetime" Nullable="false" />
+    <Property Name="UpdatedBy" Type="nvarchar" Nullable="true" MaxLength="100" />
+    <Property Name="IsDeleted" Type="bit" Nullable="false" />
+    <Property Name="DeletedAt" Type="datetime" Nullable="true" />
+    <Property Name="DeletedBy" Type="nvarchar" Nullable="true" MaxLength="100" />
+  </EntityType>
+  <EntityType Name="StudentCourses">
+    <Key>
+      <PropertyRef Name="StudentId" />
+      <PropertyRef Name="OfferedCourseId" />
+    </Key>
+    <Property Name="StudentId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="OfferedCourseId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="ApprovalStatus" Type="int" Nullable="false" />
+    <Property Name="CreatedAt" Type="datetime" Nullable="false" />
+    <Property Name="CreatedBy" Type="nvarchar" Nullable="true" MaxLength="100" />
+    <Property Name="UpdatedAt" Type="datetime" Nullable="false" />
+    <Property Name="UpdatedBy" Type="nvarchar" Nullable="true" MaxLength="100" />
+    <Property Name="IsDeleted" Type="bit" Nullable="false" />
+    <Property Name="DeletedAt" Type="datetime" Nullable="true" />
+    <Property Name="DeletedBy" Type="nvarchar" Nullable="true" MaxLength="100" />
+  </EntityType>
+  <EntityType Name="Users">
+    <Key>
+      <PropertyRef Name="UserId" />
+    </Key>
+    <Property Name="UserId" Type="uniqueidentifier" Nullable="false" />
+    <Property Name="Name" Type="nvarchar" Nullable="false" MaxLength="50" />
+    <Property Name="Surname" Type="nvarchar" Nullable="false" MaxLength="50" />
+    <Property Name="Email" Type="nvarchar" Nullable="false" MaxLength="100" />
+    <Property Name="Password" Type="nvarchar" Nullable="false" MaxLength="100" />
+    <Property Name="Role" Type="int" Nullable="false" />
+    <Property Name="IsActive" Type="bit" Nullable="false" />
+    <Property Name="IsFirstLogin" Type="bit" Nullable="false" />
+    <Property Name="StudentNo" Type="nvarchar(max)" Nullable="true" />
+    <Property Name="DepartmentId" Type="uniqueidentifier" Nullable="true" />
+    <Property Name="AdvisorId" Type="uniqueidentifier" Nullable="true" />
+    <Property Name="CreatedAt" Type="datetime" Nullable="false" />
+    <Property Name="CreatedBy" Type="nvarchar" Nullable="true" MaxLength="100" />
+    <Property Name="UpdatedAt" Type="datetime" Nullable="false" />
+    <Property Name="UpdatedBy" Type="nvarchar" Nullable="true" MaxLength="100" />
+    <Property Name="IsDeleted" Type="bit" Nullable="false" />
+    <Property Name="DeletedAt" Type="datetime" Nullable="true" />
+    <Property Name="DeletedBy" Type="nvarchar" Nullable="true" MaxLength="100" />
+    <Property Name="RefreshToken" Type="nvarchar" Nullable="true" MaxLength="128" />
+    <Property Name="RefreshTokenExpTime" Type="datetime" Nullable="true" />
+    <Property Name="PasswordResetToken" Type="nvarchar" Nullable="true" MaxLength="255" />
+    <Property Name="ResetTokenExpiry" Type="datetime" Nullable="true" />
+    <Property Name="StudentYear" Type="int" Nullable="true" />
+  </EntityType>
+  <Association Name="FK_dbo_Courses_dbo_Departments_DepartmentId">
+    <End Role="Departments" Type="ogrenciPortalContext.Store.Departments" Multiplicity="1" />
+    <End Role="Courses" Type="ogrenciPortalContext.Store.Courses" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Departments">
+        <PropertyRef Name="DepartmentId" />
+      </Principal>
+      <Dependent Role="Courses">
+        <PropertyRef Name="DepartmentId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_dbo_OfferedCourses_dbo_Courses_CourseId">
+    <End Role="Courses" Type="ogrenciPortalContext.Store.Courses" Multiplicity="1" />
+    <End Role="OfferedCourses" Type="ogrenciPortalContext.Store.OfferedCourses" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Courses">
+        <PropertyRef Name="CourseId" />
+      </Principal>
+      <Dependent Role="OfferedCourses">
+        <PropertyRef Name="CourseId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_dbo_Users_dbo_Departments_DepartmentId">
+    <End Role="Departments" Type="ogrenciPortalContext.Store.Departments" Multiplicity="0..1" />
+    <End Role="Users" Type="ogrenciPortalContext.Store.Users" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Departments">
+        <PropertyRef Name="DepartmentId" />
+      </Principal>
+      <Dependent Role="Users">
+        <PropertyRef Name="DepartmentId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_dbo_OfferedCourses_dbo_Semesters_SemesterId">
+    <End Role="Semesters" Type="ogrenciPortalContext.Store.Semesters" Multiplicity="1" />
+    <End Role="OfferedCourses" Type="ogrenciPortalContext.Store.OfferedCourses" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Semesters">
+        <PropertyRef Name="SemesterId" />
+      </Principal>
+      <Dependent Role="OfferedCourses">
+        <PropertyRef Name="SemesterId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_dbo_OfferedCourses_dbo_Users_TeacherId">
+    <End Role="Users" Type="ogrenciPortalContext.Store.Users" Multiplicity="1" />
+    <End Role="OfferedCourses" Type="ogrenciPortalContext.Store.OfferedCourses" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Users">
+        <PropertyRef Name="UserId" />
+      </Principal>
+      <Dependent Role="OfferedCourses">
+        <PropertyRef Name="TeacherId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_dbo_StudentCourses_dbo_OfferedCourses_OfferedCourseId">
+    <End Role="OfferedCourses" Type="ogrenciPortalContext.Store.OfferedCourses" Multiplicity="1" />
+    <End Role="StudentCourses" Type="ogrenciPortalContext.Store.StudentCourses" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="OfferedCourses">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="StudentCourses">
+        <PropertyRef Name="OfferedCourseId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_dbo_StudentCourses_dbo_Users_StudentId">
+    <End Role="Users" Type="ogrenciPortalContext.Store.Users" Multiplicity="1" />
+    <End Role="StudentCourses" Type="ogrenciPortalContext.Store.StudentCourses" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Users">
+        <PropertyRef Name="UserId" />
+      </Principal>
+      <Dependent Role="StudentCourses">
+        <PropertyRef Name="StudentId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_dbo_Users_dbo_Users_AdvisorId">
+    <End Role="Users" Type="ogrenciPortalContext.Store.Users" Multiplicity="0..1" />
+    <End Role="Users1" Type="ogrenciPortalContext.Store.Users" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Users">
+        <PropertyRef Name="UserId" />
+      </Principal>
+      <Dependent Role="Users1">
+        <PropertyRef Name="AdvisorId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+</Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="ogrenciPortalContext" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
@@ -539,135 +539,134 @@
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
     <edmx:Mappings>
-      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
-        <EntityContainerMapping StorageEntityContainer="ogrenciPortalContextStoreContainer" CdmEntityContainer="OgrenciPortalApiDB">
-          <EntitySetMapping Name="Courses">
-            <EntityTypeMapping TypeName="ogrenciPortalContext.Courses">
-              <MappingFragment StoreEntitySet="Courses">
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="CourseId" ColumnName="CourseId" />
-                <ScalarProperty Name="CourseCode" ColumnName="CourseCode" />
-                <ScalarProperty Name="CourseName" ColumnName="CourseName" />
-                <ScalarProperty Name="Credits" ColumnName="Credits" />
-                <ScalarProperty Name="DepartmentId" ColumnName="DepartmentId" />
-                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
-                <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
-                <ScalarProperty Name="UpdatedAt" ColumnName="UpdatedAt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
-                <ScalarProperty Name="DeletedAt" ColumnName="DeletedAt" />
-                <ScalarProperty Name="DeletedBy" ColumnName="DeletedBy" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="Departments">
-            <EntityTypeMapping TypeName="ogrenciPortalContext.Departments">
-              <MappingFragment StoreEntitySet="Departments">
-                <ScalarProperty Name="DepartmentIdGen" ColumnName="DepartmentIdGen" />
-                <ScalarProperty Name="DepartmentId" ColumnName="DepartmentId" />
-                <ScalarProperty Name="Name" ColumnName="Name" />
-                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
-                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
-                <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
-                <ScalarProperty Name="UpdatedAt" ColumnName="UpdatedAt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
-                <ScalarProperty Name="DeletedAt" ColumnName="DeletedAt" />
-                <ScalarProperty Name="DeletedBy" ColumnName="DeletedBy" />
-                <ScalarProperty Name="DepartmentCode" ColumnName="DepartmentCode" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="OfferedCourses">
-            <EntityTypeMapping TypeName="ogrenciPortalContext.OfferedCourses">
-              <MappingFragment StoreEntitySet="OfferedCourses">
-                <ScalarProperty Name="Classroom" ColumnName="Classroom" />
-                <ScalarProperty Name="CourseYear" ColumnName="CourseYear" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-                <ScalarProperty Name="CourseId" ColumnName="CourseId" />
-                <ScalarProperty Name="SemesterId" ColumnName="SemesterId" />
-                <ScalarProperty Name="TeacherId" ColumnName="TeacherId" />
-                <ScalarProperty Name="Quota" ColumnName="Quota" />
-                <ScalarProperty Name="DayOfWeek" ColumnName="DayOfWeek" />
-                <ScalarProperty Name="StartTime" ColumnName="StartTime" />
-                <ScalarProperty Name="EndTime" ColumnName="EndTime" />
-                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
-                <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
-                <ScalarProperty Name="UpdatedAt" ColumnName="UpdatedAt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
-                <ScalarProperty Name="DeletedAt" ColumnName="DeletedAt" />
-                <ScalarProperty Name="DeletedBy" ColumnName="DeletedBy" />
-                <ScalarProperty Name="CurrentUserCount" ColumnName="CurrentUserCount" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="Semesters">
-            <EntityTypeMapping TypeName="ogrenciPortalContext.Semesters">
-              <MappingFragment StoreEntitySet="Semesters">
-                <ScalarProperty Name="SemesterId" ColumnName="SemesterId" />
-                <ScalarProperty Name="SemesterName" ColumnName="SemesterName" />
-                <ScalarProperty Name="StartDate" ColumnName="StartDate" />
-                <ScalarProperty Name="EndDate" ColumnName="EndDate" />
-                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
-                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
-                <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
-                <ScalarProperty Name="UpdatedAt" ColumnName="UpdatedAt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
-                <ScalarProperty Name="DeletedAt" ColumnName="DeletedAt" />
-                <ScalarProperty Name="DeletedBy" ColumnName="DeletedBy" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="StudentCourses">
-            <EntityTypeMapping TypeName="ogrenciPortalContext.StudentCourses">
-              <MappingFragment StoreEntitySet="StudentCourses">
-                <ScalarProperty Name="StudentId" ColumnName="StudentId" />
-                <ScalarProperty Name="OfferedCourseId" ColumnName="OfferedCourseId" />
-                <ScalarProperty Name="ApprovalStatus" ColumnName="ApprovalStatus" />
-                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
-                <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
-                <ScalarProperty Name="UpdatedAt" ColumnName="UpdatedAt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
-                <ScalarProperty Name="DeletedAt" ColumnName="DeletedAt" />
-                <ScalarProperty Name="DeletedBy" ColumnName="DeletedBy" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="Users">
-            <EntityTypeMapping TypeName="ogrenciPortalContext.Users">
-              <MappingFragment StoreEntitySet="Users">
-                <ScalarProperty Name="StudentYear" ColumnName="StudentYear" />
-                <ScalarProperty Name="ResetTokenExpiry" ColumnName="ResetTokenExpiry" />
-                <ScalarProperty Name="PasswordResetToken" ColumnName="PasswordResetToken" />
-                <ScalarProperty Name="RefreshTokenExpTime" ColumnName="RefreshTokenExpTime" />
-                <ScalarProperty Name="RefreshToken" ColumnName="RefreshToken" />
-                <ScalarProperty Name="UserId" ColumnName="UserId" />
-                <ScalarProperty Name="Name" ColumnName="Name" />
-                <ScalarProperty Name="Surname" ColumnName="Surname" />
-                <ScalarProperty Name="Email" ColumnName="Email" />
-                <ScalarProperty Name="Password" ColumnName="Password" />
-                <ScalarProperty Name="Role" ColumnName="Role" />
-                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
-                <ScalarProperty Name="IsFirstLogin" ColumnName="IsFirstLogin" />
-                <ScalarProperty Name="StudentNo" ColumnName="StudentNo" />
-                <ScalarProperty Name="DepartmentId" ColumnName="DepartmentId" />
-                <ScalarProperty Name="AdvisorId" ColumnName="AdvisorId" />
-                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
-                <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
-                <ScalarProperty Name="UpdatedAt" ColumnName="UpdatedAt" />
-                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
-                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
-                <ScalarProperty Name="DeletedAt" ColumnName="DeletedAt" />
-                <ScalarProperty Name="DeletedBy" ColumnName="DeletedBy" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-        </EntityContainerMapping>
-      </Mapping>
-    </edmx:Mappings>
+    <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+  <EntityContainerMapping StorageEntityContainer="ogrenciPortalContextStoreContainer" CdmEntityContainer="OgrenciPortalApiDB">
+    <EntitySetMapping Name="Courses">
+      <EntityTypeMapping TypeName="IsTypeOf(ogrenciPortalContext.Courses)">
+        <MappingFragment StoreEntitySet="Courses">
+          <ScalarProperty Name="CourseId" ColumnName="CourseId" />
+          <ScalarProperty Name="CourseCode" ColumnName="CourseCode" />
+          <ScalarProperty Name="CourseName" ColumnName="CourseName" />
+          <ScalarProperty Name="Credits" ColumnName="Credits" />
+          <ScalarProperty Name="DepartmentId" ColumnName="DepartmentId" />
+          <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+          <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
+          <ScalarProperty Name="UpdatedAt" ColumnName="UpdatedAt" />
+          <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+          <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+          <ScalarProperty Name="DeletedAt" ColumnName="DeletedAt" />
+          <ScalarProperty Name="DeletedBy" ColumnName="DeletedBy" />
+          <ScalarProperty Name="Description" ColumnName="Description" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Departments">
+      <EntityTypeMapping TypeName="IsTypeOf(ogrenciPortalContext.Departments)">
+        <MappingFragment StoreEntitySet="Departments">
+          <ScalarProperty Name="DepartmentId" ColumnName="DepartmentId" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+          <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+          <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
+          <ScalarProperty Name="UpdatedAt" ColumnName="UpdatedAt" />
+          <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+          <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+          <ScalarProperty Name="DeletedAt" ColumnName="DeletedAt" />
+          <ScalarProperty Name="DeletedBy" ColumnName="DeletedBy" />
+          <ScalarProperty Name="DepartmentCode" ColumnName="DepartmentCode" />
+          <ScalarProperty Name="DepartmentIdGen" ColumnName="DepartmentIdGen" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="OfferedCourses">
+      <EntityTypeMapping TypeName="IsTypeOf(ogrenciPortalContext.OfferedCourses)">
+        <MappingFragment StoreEntitySet="OfferedCourses">
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="CourseId" ColumnName="CourseId" />
+          <ScalarProperty Name="SemesterId" ColumnName="SemesterId" />
+          <ScalarProperty Name="TeacherId" ColumnName="TeacherId" />
+          <ScalarProperty Name="Quota" ColumnName="Quota" />
+          <ScalarProperty Name="DayOfWeek" ColumnName="DayOfWeek" />
+          <ScalarProperty Name="StartTime" ColumnName="StartTime" />
+          <ScalarProperty Name="EndTime" ColumnName="EndTime" />
+          <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+          <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
+          <ScalarProperty Name="UpdatedAt" ColumnName="UpdatedAt" />
+          <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+          <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+          <ScalarProperty Name="DeletedAt" ColumnName="DeletedAt" />
+          <ScalarProperty Name="DeletedBy" ColumnName="DeletedBy" />
+          <ScalarProperty Name="CurrentUserCount" ColumnName="CurrentUserCount" />
+          <ScalarProperty Name="CourseYear" ColumnName="CourseYear" />
+          <ScalarProperty Name="Classroom" ColumnName="Classroom" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Semesters">
+      <EntityTypeMapping TypeName="IsTypeOf(ogrenciPortalContext.Semesters)">
+        <MappingFragment StoreEntitySet="Semesters">
+          <ScalarProperty Name="SemesterId" ColumnName="SemesterId" />
+          <ScalarProperty Name="SemesterName" ColumnName="SemesterName" />
+          <ScalarProperty Name="StartDate" ColumnName="StartDate" />
+          <ScalarProperty Name="EndDate" ColumnName="EndDate" />
+          <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+          <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+          <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
+          <ScalarProperty Name="UpdatedAt" ColumnName="UpdatedAt" />
+          <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+          <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+          <ScalarProperty Name="DeletedAt" ColumnName="DeletedAt" />
+          <ScalarProperty Name="DeletedBy" ColumnName="DeletedBy" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="StudentCourses">
+      <EntityTypeMapping TypeName="IsTypeOf(ogrenciPortalContext.StudentCourses)">
+        <MappingFragment StoreEntitySet="StudentCourses">
+          <ScalarProperty Name="StudentId" ColumnName="StudentId" />
+          <ScalarProperty Name="OfferedCourseId" ColumnName="OfferedCourseId" />
+          <ScalarProperty Name="ApprovalStatus" ColumnName="ApprovalStatus" />
+          <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+          <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
+          <ScalarProperty Name="UpdatedAt" ColumnName="UpdatedAt" />
+          <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+          <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+          <ScalarProperty Name="DeletedAt" ColumnName="DeletedAt" />
+          <ScalarProperty Name="DeletedBy" ColumnName="DeletedBy" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Users">
+      <EntityTypeMapping TypeName="IsTypeOf(ogrenciPortalContext.Users)">
+        <MappingFragment StoreEntitySet="Users">
+          <ScalarProperty Name="UserId" ColumnName="UserId" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="Surname" ColumnName="Surname" />
+          <ScalarProperty Name="Email" ColumnName="Email" />
+          <ScalarProperty Name="Password" ColumnName="Password" />
+          <ScalarProperty Name="Role" ColumnName="Role" />
+          <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+          <ScalarProperty Name="IsFirstLogin" ColumnName="IsFirstLogin" />
+          <ScalarProperty Name="StudentNo" ColumnName="StudentNo" />
+          <ScalarProperty Name="DepartmentId" ColumnName="DepartmentId" />
+          <ScalarProperty Name="AdvisorId" ColumnName="AdvisorId" />
+          <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+          <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
+          <ScalarProperty Name="UpdatedAt" ColumnName="UpdatedAt" />
+          <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+          <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+          <ScalarProperty Name="DeletedAt" ColumnName="DeletedAt" />
+          <ScalarProperty Name="DeletedBy" ColumnName="DeletedBy" />
+          <ScalarProperty Name="RefreshToken" ColumnName="RefreshToken" />
+          <ScalarProperty Name="RefreshTokenExpTime" ColumnName="RefreshTokenExpTime" />
+          <ScalarProperty Name="PasswordResetToken" ColumnName="PasswordResetToken" />
+          <ScalarProperty Name="ResetTokenExpiry" ColumnName="ResetTokenExpiry" />
+          <ScalarProperty Name="StudentYear" ColumnName="StudentYear" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+  </EntityContainerMapping>
+</Mapping></edmx:Mappings>
   </edmx:Runtime>
   <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
   <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
@@ -681,7 +680,7 @@
         <DesignerProperty Name="ValidateOnBuild" Value="true" />
         <DesignerProperty Name="EnablePluralization" Value="false" />
         <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
-        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="UseLegacyProvider" Value="False" />
         <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
       </DesignerInfoPropertySet>
     </Options>

@@ -1,26 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using System.Web;
-using StackExchange.Redis;
+﻿using StackExchange.Redis;
+using System;
+using System.Configuration;
 
 namespace OgrenciPortalApi.Utils
 {
     public static class RedisService
     {
-        private static string GetRedisConnectionString()
-        {
-            return $"{AppSettings.RedisHost},user={AppSettings.RedisUser},password={AppSettings.RedisPass}";
-        }
 
         private static readonly Lazy<ConnectionMultiplexer> lazyConnection = new Lazy<ConnectionMultiplexer>(() =>
         {
             try
             {
-                return ConnectionMultiplexer.Connect(GetRedisConnectionString());
+                var options = new ConfigurationOptions
+                {
+                    EndPoints = { { AppSettings.RedisHost, int.Parse(AppSettings.RedisPort) } },
 
+                    Password = AppSettings.RedisPass,
+
+                    Ssl = true,
+
+
+                    ConnectTimeout = 5000,
+                    SyncTimeout = 5000
+                };
+
+                return ConnectionMultiplexer.Connect(options);
             }
             catch (Exception e)
             {
@@ -35,6 +39,5 @@ namespace OgrenciPortalApi.Utils
         {
             return Connection.GetDatabase(db);
         }
-
     }
 }
