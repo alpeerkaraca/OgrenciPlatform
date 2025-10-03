@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.IO;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -15,6 +16,8 @@ using MailKit;
 using MailKit.Net.Smtp;
 using MimeKit;
 using MailService = OgrenciPortalApi.Services.MailService;
+using MailKit.Net.Smtp;
+using MimeKit;
 
 namespace OgrenciPortalApi.Controllers
 {

@@ -26,18 +26,23 @@ namespace OgrenciPortali.Controllers
         public async Task<ActionResult> Get(string apiUrl)
         {
             if (string.IsNullOrEmpty(apiUrl))
-                return new HttpStatusCodeResult(400, "API URL belirtilmedi.");
+                return Json(new { message = "API URL belirtilmedi." }, JsonRequestBehavior.AllowGet);
 
             var request = new HttpRequestMessage(HttpMethod.Get, apiUrl);
             var response = await _apiClient.SendAsync(request);
             var content = await response.Content.ReadAsStringAsync();
 
+            Response.StatusCode = (int)response.StatusCode;
+
             if (response.IsSuccessStatusCode)
             {
                 return Content(content, "application/json");
             }
-
-            return new HttpStatusCodeResult((int)response.StatusCode, content);
+            else
+            {
+                var errorResponse = new { message = content };
+                return Json(errorResponse, JsonRequestBehavior.AllowGet);
+            }
         }
 
         /// <summary>
@@ -50,12 +55,13 @@ namespace OgrenciPortali.Controllers
         public async Task<ActionResult> Post(string apiUrl)
         {
             if (string.IsNullOrEmpty(apiUrl))
-                return new HttpStatusCodeResult(400, "API URL belirtilmedi.");
+            {
+                Response.StatusCode = 400;
+                return Json(new { message = "API URL belirtilmedi." });
+            }
 
             var body = BufferRequestBodyAttribute.GetBody(this.HttpContext);
-
-            var originalMethod = new HttpMethod(Request.HttpMethod);
-            var request = new HttpRequestMessage(originalMethod, apiUrl);
+            var request = new HttpRequestMessage(new HttpMethod(Request.HttpMethod), apiUrl);
 
             if (!string.IsNullOrEmpty(body))
             {
@@ -66,7 +72,16 @@ namespace OgrenciPortali.Controllers
             var content = await response.Content.ReadAsStringAsync();
 
             Response.StatusCode = (int)response.StatusCode;
-            return Content(content, "application/json");
+
+            if (response.IsSuccessStatusCode)
+            {
+                return Content(content, "application/json");
+            }
+            else
+            {
+                var errorResponse = new { message = content };
+                return Json(errorResponse);
+            }
         }
     }
 }

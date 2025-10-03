@@ -573,6 +573,7 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <EmbeddedResource Include="SwaggerUI\custom.js" />
+    <Content Include="Views\mail-template.html" />
     <Content Include="Views\account-created-template.html" />
     <Content Include="Views\course-status-update-template.html" />
     <Content Include="Views\CourseApprovalMail.html" />
