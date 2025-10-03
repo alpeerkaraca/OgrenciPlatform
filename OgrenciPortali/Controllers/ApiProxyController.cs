@@ -18,15 +18,14 @@ namespace OgrenciPortali.Controllers
             _apiClient = new ApiClient();
         }
 
-        /// <summary>
-        /// GET istekleri için proxy metodu.
-        /// </summary>
-        /// <param name="apiUrl">Hedef API'nin tam yolu (örn: "api/dashboard/data")</param>
         [HttpGet]
         public async Task<ActionResult> Get(string apiUrl)
         {
             if (string.IsNullOrEmpty(apiUrl))
-                return Json(new { message = "API URL belirtilmedi." }, JsonRequestBehavior.AllowGet);
+            {
+                Response.StatusCode = 400;
+                return Json("API URL belirtilmedi.", JsonRequestBehavior.AllowGet);
+            }
 
             var request = new HttpRequestMessage(HttpMethod.Get, apiUrl);
             var response = await _apiClient.SendAsync(request);
@@ -34,21 +33,10 @@ namespace OgrenciPortali.Controllers
 
             Response.StatusCode = (int)response.StatusCode;
 
-            if (response.IsSuccessStatusCode)
-            {
-                return Content(content, "application/json");
-            }
-            else
-            {
-                var errorResponse = new { message = content };
-                return Json(errorResponse, JsonRequestBehavior.AllowGet);
-            }
+            return Content(content, "application/json");
+
         }
 
-        /// <summary>
-        /// POST istekleri için proxy metodu.
-        /// </summary>
-        /// <param name="apiUrl">Hedef API'nin tam yolu</param>
         [HttpPost]
         [ValidateJsonAntiForgeryToken]
         [BufferRequestBody]
@@ -57,6 +45,7 @@ namespace OgrenciPortali.Controllers
             if (string.IsNullOrEmpty(apiUrl))
             {
                 Response.StatusCode = 400;
+                Response.TrySkipIisCustomErrors = true;
                 return Json(new { message = "API URL belirtilmedi." });
             }
 
@@ -72,16 +61,8 @@ namespace OgrenciPortali.Controllers
             var content = await response.Content.ReadAsStringAsync();
 
             Response.StatusCode = (int)response.StatusCode;
+            return Content(content, "application/json");
 
-            if (response.IsSuccessStatusCode)
-            {
-                return Content(content, "application/json");
-            }
-            else
-            {
-                var errorResponse = new { message = content };
-                return Json(errorResponse);
-            }
         }
     }
 }

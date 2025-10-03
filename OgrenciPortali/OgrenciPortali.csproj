@@ -492,6 +492,8 @@
     <Content Include="Content\Fonts\cust-fonts.css" />
     <Content Include="Content\images\bg.png" />
     <Content Include="Content\style.css" />
+    <Content Include="favicon-16x16.png" />
+    <Content Include="favicon-32x32.png" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
